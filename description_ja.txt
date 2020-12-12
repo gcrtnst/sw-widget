@@ -37,7 +37,7 @@ TPS 視点でも速度と高度を確認したいがために作りました。
        コマンド一覧を表示します。
 [/list]
 
-[h1]ライセンス[/b]
+[h1]ライセンス[/h1]
 これらの作成物は Unlicense でライセンスされています。
 ライセンスの全文はここで確認できます。
 https://github.com/gcrtnst/sw-widget/blob/main/LICENSE
