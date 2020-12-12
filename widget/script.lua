@@ -281,7 +281,7 @@ function onTick(game_ticks)
             local spd
             local alt
 
-            player_matrix, is_success = server.getPlayerPos(peer_id)
+            local player_matrix, is_success = server.getPlayerPos(peer_id)
             if is_success then
                 local _
                 _, alt, _ = matrix.position(player_matrix)
