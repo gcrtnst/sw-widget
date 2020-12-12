@@ -1,0 +1,49 @@
+Meter Widget is an addon that adds speed and altitude widgets to your screen.
+These widgets allow you to know your speed and altitude even in vehicle third person.
+
+[h1]Install[/h1]
+[olist]
+    [*]Subscribe to this work.
+    [*]Create a new world with the "Meter Widget" enabled.
+       New Game > Enabled Addons > Workshop > Meter Widget
+    [*]The widget will now appear in the lower right corner of the screen.
+[/olist]
+
+[h1]Commands[/h1]
+[list]
+    [*][b]?widget on[/b]
+       Displays the widget.
+
+    [*][b]?widget off[/b]
+       Hides the widget.
+
+    [*][b]?widget spdofs HORIZONTAL_OFFSET VERTICAL_OFFSET[/b]
+       Sets the screen space offset for the speed widget.
+       Screen space offset ranges from -1, -1 (Bot Left) to 1, 1 (Top Right).
+
+    [*][b]?widget altofs HORIZONTAL_OFFSET VERTICAL_OFFSET[/b]
+       Sets the screen space offset for the altitude widget.
+       Screen space offset ranges from -1, -1 (Bot Left) to 1, 1 (Top Right).
+
+    [*][b]?widget spdunit UNIT[/b]
+       Sets the speed unit.
+       Available units are "km/h", "m/s", "kt".
+
+    [*][b]?widget altunit UNIT[/b]
+       Set the altitude unit.
+       Available units are "m", "ft".
+
+    [*][b]?widget help[/b]
+       Displays a list of commands.
+[/list]
+
+[h1]License[/h1]
+These creations are licensed under the Unlicense.
+The full text of the license can be found here.
+https://github.com/gcrtnst/sw-widget/blob/main/LICENSE
+
+[h1]Repository[/h1]
+https://github.com/gcrtnst/sw-widget
+
+
+Translated with www.DeepL.com/Translator (free version)

@@ -1,0 +1,46 @@
+速度ウィジェットと高度ウィジェットを画面上に追加するミッションです。
+TPS 視点でも速度と高度を確認したいがために作りました。
+
+[h1]インストール[/h1]
+[olist]
+    [*]この作品をサブスクライブしてください。
+    [*]"Meter Widget"を有効化したワールドを新規作成してください。
+       New Game > Enabled Addons > Workshop > Meter Widget
+    [*]画面右下にウィジェットが表示されます。
+[/olist]
+
+[h1]コマンド[/h1]
+[list]
+    [*][b]?widget on[/b]
+       ウィジェットを表示します。
+
+    [*][b]?widget off[/b]
+       ウィジェットを非表示にします。
+
+    [*][b]?widget spdofs HORIZONTAL_OFFSET VERTICAL_OFFSET[/b]
+       速度ウィジェットの表示位置を設定します。
+       表示位置は -1, -1 (左下) から 1, 1 (右上) の範囲で指定します。
+
+    [*][b]?widget altofs HORIZONTAL_OFFSET VERTICAL_OFFSET[/b]
+       高度ウィジェットの表示位置を設定します。
+       表示位置の指定方法は [b]?widget spdofs[/b] と同じです。
+
+    [*][b]?widget spdunit UNIT[/b]
+       速度単位を設定します。
+       設定可能な単位: "km/h", "m/s", "kt"
+
+    [*][b]?widget altunit UNIT[/b]
+       高度単位を設定します。
+       設定可能な単位: "m", "ft"
+
+    [*][b]?widget help[/b]
+       コマンド一覧を表示します。
+[/list]
+
+[h1]ライセンス[/b]
+これらの作成物は Unlicense でライセンスされています。
+ライセンスの全文はここで確認できます。
+https://github.com/gcrtnst/sw-widget/blob/main/LICENSE
+
+[h1]リポジトリ[/h1]
+https://github.com/gcrtnst/sw-widget
