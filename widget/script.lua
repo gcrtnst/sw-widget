@@ -334,7 +334,7 @@ function onTick(game_ticks)
         g_userhist[peer_id] = userhist
     end
 
-    g_uim.flush()
+    g_uim.flushPopup()
     if g_userdata[0] ~= nil then
         g_savedata['hostdata'] = g_userdata[0]
     end
@@ -386,10 +386,6 @@ function buildUIManager()
                 ['vertical_offset'] = vertical_offset,
             }
         end
-    end
-
-    function uim.flush()
-        uim.flushPopup()
     end
 
     function uim.flushPopup()
