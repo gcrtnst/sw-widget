@@ -8,11 +8,8 @@ g_spd_unit_tbl = {
     ['m/s'] = 60,
     ['mps'] = 60,
 
-    ['kn'] = 216000.0/1852.0,
     ['kt'] = 216000.0/1852.0,
-
-    ['mph'] = 60.0/0.44704,
-    ['mi/h'] = 60.0/0.44704,
+    ['kn'] = 216000.0/1852.0,
 }
 g_alt_unit_tbl = {
     ['m'] = 1,
@@ -187,7 +184,7 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args)
         name = 'spdunit'
         key = 'spd_unit'
         tbl = g_spd_unit_tbl
-        choices_txt = 'available units are "km/h", "m/s", "kn", "mph"'
+        choices_txt = 'available units are "km/h", "m/s", "kt"'
     elseif args[1] == 'altunit' then
         name = 'altunit'
         key = 'alt_unit'
