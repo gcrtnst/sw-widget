@@ -17,6 +17,7 @@ g_alt_unit_tbl = {
 }
 g_userdata = {}
 g_userhist = {}
+g_uim = nil
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
     local args = {...}
@@ -323,18 +324,17 @@ function onTick(game_ticks)
                     userdata['alt_unit']
                 )
             end
-            server.setPopupScreen(peer_id, g_savedata['spd_ui_id'], getAnnounceName(), true, spdtxt, userdata['spd_hofs'], userdata['spd_vofs'])
-            server.setPopupScreen(peer_id, g_savedata['alt_ui_id'], getAnnounceName(), true, alttxt, userdata['alt_hofs'], userdata['alt_vofs'])
+            g_uim.setPopupScreen(peer_id, g_savedata['spd_ui_id'], getAnnounceName(), true, spdtxt, userdata['spd_hofs'], userdata['spd_vofs'])
+            g_uim.setPopupScreen(peer_id, g_savedata['alt_ui_id'], getAnnounceName(), true, alttxt, userdata['alt_hofs'], userdata['alt_vofs'])
         else
             userhist = {}
-            server.removePopup(peer_id, g_savedata['spd_ui_id'])
-            server.removePopup(peer_id, g_savedata['alt_ui_id'])
         end
 
         g_userdata[peer_id] = userdata
         g_userhist[peer_id] = userhist
     end
 
+    g_uim.flush()
     if g_userdata[0] ~= nil then
         g_savedata['hostdata'] = g_userdata[0]
     end
@@ -353,6 +353,111 @@ function onCreate(is_world_create)
     if g_savedata['hostdata'] ~= nil then
         g_userdata[0] = g_savedata['hostdata']
     end
+
+    g_uim = buildUIManager()
+    server.removePopup(-1, g_savedata['spd_ui_id'])
+    server.removePopup(-1, g_savedata['alt_ui_id'])
+end
+
+function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+    g_uim.onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+end
+
+function onPlayerLeave(steam_id, name, peer_id, is_admin, is_auth)
+    g_uim.onPlayerLeave(steam_id, name, peer_id, is_admin, is_auth)
+end
+
+function buildUIManager()
+    local uim = {
+        ['_popup_1'] = {},
+        ['_popup_2'] = {},
+    }
+
+    function uim.setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
+        for _, peer_id in pairs(uim._getPeerIDList(peer_id)) do
+            local key = string.format('%d,%d', peer_id, ui_id)
+            uim['_popup_2'][key] = {
+                ['peer_id'] = peer_id,
+                ['ui_id'] = ui_id,
+                ['name'] = name,
+                ['is_show'] = is_show,
+                ['text'] = text,
+                ['horizontal_offset'] = horizontal_offset,
+                ['vertical_offset'] = vertical_offset,
+            }
+        end
+    end
+
+    function uim.flush()
+        uim.flushPopup()
+    end
+
+    function uim.flushPopup()
+        for key, popup in pairs(uim['_popup_1']) do
+            if uim['_popup_2'][key] == nil then
+                server.removePopup(popup['peer_id'], popup['ui_id'])
+            end
+        end
+
+        for key, popup_2 in pairs(uim['_popup_2']) do
+            local popup_1 = uim['_popup_1'][key]
+            if popup_1 == nil or
+                popup_2['name'] ~= popup_1['name'] or
+                popup_2['is_show'] ~= popup_1['is_show'] or
+                popup_2['text'] ~= popup_1['text'] or
+                popup_2['horizontal_offset'] ~= popup_1['horizontal_offset'] or
+                popup_2['vertical_offset'] ~= popup_1['vertical_offset'] then
+                server.setPopupScreen(
+                    popup_2['peer_id'],
+                    popup_2['ui_id'],
+                    popup_2['name'],
+                    popup_2['is_show'],
+                    popup_2['text'],
+                    popup_2['horizontal_offset'],
+                    popup_2['vertical_offset']
+                )
+            end
+        end
+
+        uim['_popup_1'] = uim['_popup_2']
+        uim['_popup_2'] = {}
+    end
+
+    function uim.onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+        for key, popup in pairs(uim['_popup_1']) do
+            if popup['peer_id'] == peer_id then
+                server.removePopup(popup['peer_id'], popup['ui_id'])
+                uim['_popup_1'][key] = nil
+            end
+        end
+    end
+
+    function uim.onPlayerLeave(steam_id, name, peer_id, is_admin, is_auth)
+        for key, popup in pairs(uim['_popup_1']) do
+            if popup['peer_id'] == peer_id then
+                uim['_popup_1'][key] = nil
+            end
+        end
+        for key, popup in pairs(uim['_popup_2']) do
+            if popup['peer_id'] == peer_id then
+                uim['_popup_2'][key] = nil
+            end
+        end
+    end
+
+    function uim._getPeerIDList(peer_id)
+        local peer_id_list = {}
+        if peer_id < 0 then
+            for _, player in pairs(server.getPlayers()) do
+                table.insert(peer_id_list, player['id'])
+            end
+        else
+            table.insert(peer_id_list, peer_id)
+        end
+        return peer_id_list
+    end
+
+    return uim
 end
 
 function getPlaylistName()
