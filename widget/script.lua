@@ -456,14 +456,14 @@ function buildUIManager()
     return uim
 end
 
-function getPlaylistName()
-    local playlist_index = server.getPlaylistIndexCurrent()
-    local playlist_data = server.getPlaylistData(playlist_index)
-    return playlist_data['name']
+function getAddonName()
+    local addon_index = server.getAddonIndex()
+    local addon_data = server.getAddonData(addon_index)
+    return addon_data['name']
 end
 
 function getAnnounceName()
-    return string.format('[%s]', getPlaylistName())
+    return string.format('[%s]', getAddonName())
 end
 
 function getPlayerTable()
