@@ -16,7 +16,7 @@ g_alt_unit_tbl = {
     ['ft'] = 1.0/0.3048,
 }
 g_userdata = {}
-g_userhist = {}
+g_poshist = {}
 g_uim = nil
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
@@ -263,19 +263,19 @@ function onTick(game_ticks)
         end
     end
     for _, player in pairs(player_tbl) do
-        if g_userhist[player['id']] == nil then
-            g_userhist[player['id']] = {}
+        if g_poshist[player['id']] == nil then
+            g_poshist[player['id']] = {}
         end
     end
-    for peer_id, _ in pairs(g_userhist) do
+    for peer_id, _ in pairs(g_poshist) do
         if player_tbl[peer_id] == nil then
-            g_userhist[peer_id] = nil
+            g_poshist[peer_id] = nil
         end
     end
 
     for peer_id, _ in pairs(g_userdata) do
         local userdata = g_userdata[peer_id]
-        local userhist = g_userhist[peer_id]
+        local poshist = g_poshist[peer_id]
 
         if userdata['enabled'] then
             local spd
@@ -287,15 +287,15 @@ function onTick(game_ticks)
                 _, alt, _ = matrix.position(player_matrix)
 
                 local num = (peer_id == 0) and 2 or 61
-                table.insert(userhist, player_matrix)
-                while #userhist > num do
-                    table.remove(userhist, 1)
+                table.insert(poshist, player_matrix)
+                while #poshist > num do
+                    table.remove(poshist, 1)
                 end
-                if #userhist >= num then
-                    spd = matrix.distance(userhist[1], userhist[num]) / (num - 1)
+                if #poshist >= num then
+                    spd = matrix.distance(poshist[1], poshist[num]) / (num - 1)
                 end
             else
-                userhist = {}
+                poshist = {}
             end
 
             local spdtxt
@@ -327,11 +327,11 @@ function onTick(game_ticks)
             g_uim.setPopupScreen(peer_id, g_savedata['spd_ui_id'], getAnnounceName(), true, spdtxt, userdata['spd_hofs'], userdata['spd_vofs'])
             g_uim.setPopupScreen(peer_id, g_savedata['alt_ui_id'], getAnnounceName(), true, alttxt, userdata['alt_hofs'], userdata['alt_vofs'])
         else
-            userhist = {}
+            poshist = {}
         end
 
         g_userdata[peer_id] = userdata
-        g_userhist[peer_id] = userhist
+        g_poshist[peer_id] = poshist
     end
 
     g_uim.flushPopup()
