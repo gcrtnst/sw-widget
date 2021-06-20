@@ -355,10 +355,6 @@ function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim.onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
 end
 
-function onPlayerLeave(steam_id, name, peer_id, is_admin, is_auth)
-    g_uim.onPlayerLeave(steam_id, name, peer_id, is_admin, is_auth)
-end
-
 function buildUIManager()
     local uim = {
         ['_popup_1'] = {},
@@ -416,19 +412,6 @@ function buildUIManager()
             if popup['peer_id'] == peer_id then
                 server.removePopup(popup['peer_id'], popup['ui_id'])
                 uim['_popup_1'][key] = nil
-            end
-        end
-    end
-
-    function uim.onPlayerLeave(steam_id, name, peer_id, is_admin, is_auth)
-        for key, popup in pairs(uim['_popup_1']) do
-            if popup['peer_id'] == peer_id then
-                uim['_popup_1'][key] = nil
-            end
-        end
-        for key, popup in pairs(uim['_popup_2']) do
-            if popup['peer_id'] == peer_id then
-                uim['_popup_2'][key] = nil
             end
         end
     end
