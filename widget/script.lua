@@ -274,67 +274,59 @@ function onTick(game_ticks)
     end
 
     for peer_id, _ in pairs(g_userdata) do
-        local userdata = g_userdata[peer_id]
-        local poshist = g_poshist[peer_id]
-
-        if userdata['enabled'] then
-            local spd
-            local alt
-
-            local player_matrix, is_success = server.getPlayerPos(peer_id)
-            if is_success then
-                local _
-                _, alt, _ = matrix.position(player_matrix)
-
-                local num = (peer_id == 0) and 2 or 61
-                table.insert(poshist, player_matrix)
-                while #poshist > num do
-                    table.remove(poshist, 1)
-                end
-                if #poshist >= num then
-                    spd = matrix.distance(poshist[1], poshist[num]) / (num - 1)
-                end
-            else
-                poshist = {}
-            end
-
-            local spdtxt
-            local alttxt
-            if spd ~= nil then
-                spdtxt = string.format(
-                    'SPD\n%.2f%s',
-                    spd*g_spd_unit_tbl[userdata['spd_unit']],
-                    userdata['spd_unit']
-                )
-            else
-                spdtxt = string.format(
-                    'SPD\n---%s',
-                    userdata['spd_unit']
-                )
-            end
-            if alt ~= nil then
-                alttxt = string.format(
-                    'ALT\n%.2f%s',
-                    alt*g_alt_unit_tbl[userdata['alt_unit']],
-                    userdata['alt_unit']
-                )
-            else
-                alttxt = string.format(
-                    'ALT\n---%s',
-                    userdata['alt_unit']
-                )
-            end
-            g_uim.setPopupScreen(peer_id, g_savedata['spd_ui_id'], getAnnounceName(), true, spdtxt, userdata['spd_hofs'], userdata['spd_vofs'])
-            g_uim.setPopupScreen(peer_id, g_savedata['alt_ui_id'], getAnnounceName(), true, alttxt, userdata['alt_hofs'], userdata['alt_vofs'])
-        else
-            poshist = {}
+        if not g_userdata[peer_id]['enabled'] then
+            g_poshist[peer_id] = {}
+            goto continue
         end
 
-        g_userdata[peer_id] = userdata
-        g_poshist[peer_id] = poshist
+        local player_matrix, is_success = server.getPlayerPos(peer_id)
+        if not is_success then
+            g_poshist[peer_id] = {}
+            goto continue
+        end
+
+        table.insert(g_poshist[peer_id], player_matrix)
+        local num = (peer_id == 0) and 2 or 61
+        while #g_poshist[peer_id] > num do
+            table.remove(g_poshist[peer_id], 1)
+        end
+
+        ::continue::
     end
 
+    for peer_id, _ in pairs(g_userdata) do
+        local userdata = g_userdata[peer_id]
+        local poshist = g_poshist[peer_id]
+        if not userdata['enabled'] then
+            goto continue
+        end
+
+        local spdtxt = 'SPD\n---'
+        if #poshist >= 2 then
+            local spd = matrix.distance(poshist[1], poshist[#poshist]) / (#poshist - 1)
+            spdtxt = string.format(
+                'SPD\n%.2f%s',
+                spd*g_spd_unit_tbl[userdata['spd_unit']],
+                userdata['spd_unit']
+            )
+        end
+
+        local alttxt = 'ALT\n---'
+        if #poshist >= 1 then
+            local _, alt, _ = matrix.position(poshist[#poshist])
+            alttxt = string.format(
+                'ALT\n%.2f%s',
+                alt*g_alt_unit_tbl[userdata['alt_unit']],
+                userdata['alt_unit']
+            )
+        end
+
+        g_uim.setPopupScreen(peer_id, g_savedata['spd_ui_id'], getAnnounceName(), true, spdtxt, userdata['spd_hofs'], userdata['spd_vofs'])
+        g_uim.setPopupScreen(peer_id, g_savedata['alt_ui_id'], getAnnounceName(), true, alttxt, userdata['alt_hofs'], userdata['alt_vofs'])
+        ::continue::
+    end
     g_uim.flushPopup()
+
     if g_userdata[0] ~= nil then
         g_savedata['hostdata'] = g_userdata[0]
     end
