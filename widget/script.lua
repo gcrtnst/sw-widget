@@ -328,7 +328,7 @@ function onTick(game_ticks)
     g_uim.flushPopup()
 
     if g_userdata[0] ~= nil then
-        g_savedata['hostdata'] = g_userdata[0]
+        g_savedata['hostdata'] = deepcopy(g_userdata[0])
     end
 end
 
@@ -343,7 +343,7 @@ function onCreate(is_world_create)
         }
     end
     if g_savedata['hostdata'] ~= nil then
-        g_userdata[0] = g_savedata['hostdata']
+        g_userdata[0] = deepcopy(g_savedata['hostdata'])
     end
 
     g_uim = buildUIManager()
@@ -464,4 +464,18 @@ function getPlayerTable()
         player_tbl[player['id']] = player
     end
     return player_tbl
+end
+
+function deepcopy(v)
+    if type(v) ~= 'table' then
+        return v
+    end
+
+    local tbl = {}
+    for key, val in pairs(v) do
+        key = deepcopy(key)
+        val = deepcopy(val)
+        tbl[key] = val
+    end
+    return tbl
 end
