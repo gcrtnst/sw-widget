@@ -18,6 +18,7 @@ g_alt_unit_tbl = {
 g_userdata = {}
 g_usertemp = {}
 g_uim = nil
+g_tick = 0
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
     local args = {...}
@@ -265,7 +266,7 @@ function onTick(game_ticks)
     for _, player in pairs(player_tbl) do
         if g_usertemp[player['id']] == nil then
             g_usertemp[player['id']] = {
-                ['pos_log'] = {},
+                ['log'] = {},
             }
         end
     end
@@ -277,20 +278,28 @@ function onTick(game_ticks)
 
     for peer_id, _ in pairs(g_userdata) do
         if not g_userdata[peer_id]['enabled'] then
-            g_usertemp[peer_id]['pos_log'] = {}
+            g_usertemp[peer_id]['log'] = {}
             goto continue
         end
 
         local player_matrix, is_success = server.getPlayerPos(peer_id)
         if not is_success then
-            g_usertemp[peer_id]['pos_log'] = {}
+            g_usertemp[peer_id]['log'] = {}
             goto continue
         end
 
-        table.insert(g_usertemp[peer_id]['pos_log'], player_matrix)
-        local num = (peer_id == 0) and 2 or 61
-        while #g_usertemp[peer_id]['pos_log'] > num do
-            table.remove(g_usertemp[peer_id]['pos_log'], 1)
+        if #g_usertemp[peer_id]['log'] > 0 and
+            g_tick - g_usertemp[peer_id]['log'][#g_usertemp[peer_id]['log']]['tick'] < 120 and
+            matrixEqual(player_matrix, g_usertemp[peer_id]['log'][#g_usertemp[peer_id]['log']]['pos']) then
+            goto continue
+        end
+
+        table.insert(g_usertemp[peer_id]['log'], {
+            ['pos'] = player_matrix,
+            ['tick'] = g_tick,
+        })
+        while #g_usertemp[peer_id]['log'] > 2 do
+            table.remove(g_usertemp[peer_id]['log'], 1)
         end
 
         ::continue::
@@ -298,14 +307,14 @@ function onTick(game_ticks)
 
     for peer_id, _ in pairs(g_userdata) do
         local userdata = g_userdata[peer_id]
-        local pos_log = g_usertemp[peer_id]['pos_log']
+        local log = g_usertemp[peer_id]['log']
         if not userdata['enabled'] then
             goto continue
         end
 
         local spdtxt = 'SPD\n---'
-        if #pos_log >= 2 then
-            local spd = matrix.distance(pos_log[1], pos_log[#pos_log]) / (#pos_log - 1)
+        if #log >= 2 then
+            local spd = matrix.distance(log[#log]['pos'], log[1]['pos']) / (log[#log]['tick'] - log[1]['tick'])
             spdtxt = string.format(
                 'SPD\n%.2f%s',
                 spd*g_spd_unit_tbl[userdata['spd_unit']],
@@ -314,8 +323,8 @@ function onTick(game_ticks)
         end
 
         local alttxt = 'ALT\n---'
-        if #pos_log >= 1 then
-            local _, alt, _ = matrix.position(pos_log[#pos_log])
+        if #log >= 1 then
+            local _, alt, _ = matrix.position(log[#log]['pos'])
             alttxt = string.format(
                 'ALT\n%.2f%s',
                 alt*g_alt_unit_tbl[userdata['alt_unit']],
@@ -332,6 +341,7 @@ function onTick(game_ticks)
     if g_userdata[0] ~= nil then
         g_savedata['hostdata'] = deepcopy(g_userdata[0])
     end
+    g_tick = g_tick + 1
 end
 
 function onCreate(is_world_create)
@@ -449,6 +459,12 @@ function getPlayerTable()
         player_tbl[player['id']] = player
     end
     return player_tbl
+end
+
+function matrixEqual(matrix1, matrix2)
+    local x1, y1, z1 = matrix.position(matrix1)
+    local x2, y2, z2 = matrix.position(matrix2)
+    return x1 == x2 and y1 == y2 and z1 == z2
 end
 
 function deepcopy(v)
