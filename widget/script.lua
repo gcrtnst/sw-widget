@@ -265,7 +265,7 @@ function onTick(game_ticks)
     for _, player in pairs(player_tbl) do
         if g_usertemp[player['id']] == nil then
             g_usertemp[player['id']] = {
-                ['poshist'] = {},
+                ['pos_log'] = {},
             }
         end
     end
@@ -277,20 +277,20 @@ function onTick(game_ticks)
 
     for peer_id, _ in pairs(g_userdata) do
         if not g_userdata[peer_id]['enabled'] then
-            g_usertemp[peer_id]['poshist'] = {}
+            g_usertemp[peer_id]['pos_log'] = {}
             goto continue
         end
 
         local player_matrix, is_success = server.getPlayerPos(peer_id)
         if not is_success then
-            g_usertemp[peer_id]['poshist'] = {}
+            g_usertemp[peer_id]['pos_log'] = {}
             goto continue
         end
 
-        table.insert(g_usertemp[peer_id]['poshist'], player_matrix)
+        table.insert(g_usertemp[peer_id]['pos_log'], player_matrix)
         local num = (peer_id == 0) and 2 or 61
-        while #g_usertemp[peer_id]['poshist'] > num do
-            table.remove(g_usertemp[peer_id]['poshist'], 1)
+        while #g_usertemp[peer_id]['pos_log'] > num do
+            table.remove(g_usertemp[peer_id]['pos_log'], 1)
         end
 
         ::continue::
@@ -298,14 +298,14 @@ function onTick(game_ticks)
 
     for peer_id, _ in pairs(g_userdata) do
         local userdata = g_userdata[peer_id]
-        local poshist = g_usertemp[peer_id]['poshist']
+        local pos_log = g_usertemp[peer_id]['pos_log']
         if not userdata['enabled'] then
             goto continue
         end
 
         local spdtxt = 'SPD\n---'
-        if #poshist >= 2 then
-            local spd = matrix.distance(poshist[1], poshist[#poshist]) / (#poshist - 1)
+        if #pos_log >= 2 then
+            local spd = matrix.distance(pos_log[1], pos_log[#pos_log]) / (#pos_log - 1)
             spdtxt = string.format(
                 'SPD\n%.2f%s',
                 spd*g_spd_unit_tbl[userdata['spd_unit']],
@@ -314,8 +314,8 @@ function onTick(game_ticks)
         end
 
         local alttxt = 'ALT\n---'
-        if #poshist >= 1 then
-            local _, alt, _ = matrix.position(poshist[#poshist])
+        if #pos_log >= 1 then
+            local _, alt, _ = matrix.position(pos_log[#pos_log])
             alttxt = string.format(
                 'ALT\n%.2f%s',
                 alt*g_alt_unit_tbl[userdata['alt_unit']],
