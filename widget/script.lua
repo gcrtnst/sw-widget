@@ -265,9 +265,7 @@ function onTick(game_ticks)
     end
     for _, player in pairs(player_tbl) do
         if g_usertemp[player['id']] == nil then
-            g_usertemp[player['id']] = {
-                ['log'] = {},
-            }
+            g_usertemp[player['id']] = {}
         end
     end
     for peer_id, _ in pairs(g_usertemp) do
@@ -278,56 +276,53 @@ function onTick(game_ticks)
 
     for peer_id, _ in pairs(g_userdata) do
         if not g_userdata[peer_id]['enabled'] then
-            g_usertemp[peer_id]['log'] = {}
+            g_usertemp[peer_id] = {}
             goto continue
         end
 
-        local player_matrix, is_success = server.getPlayerPos(peer_id)
+        local pos, is_success = server.getPlayerPos(peer_id)
         if not is_success then
-            g_usertemp[peer_id]['log'] = {}
+            g_usertemp[peer_id] = {}
             goto continue
         end
 
-        if #g_usertemp[peer_id]['log'] > 0 and
-            g_tick - g_usertemp[peer_id]['log'][#g_usertemp[peer_id]['log']]['tick'] < 120 and
-            matrixEquals(player_matrix, g_usertemp[peer_id]['log'][#g_usertemp[peer_id]['log']]['pos']) then
+        local old_pos = g_usertemp[peer_id]['pos']
+        local old_tick = g_usertemp[peer_id]['tick']
+
+        if old_pos ~= nil and old_tick ~= nil and g_tick - old_tick < 120 and matrixEquals(pos, old_pos) then
             goto continue
         end
 
-        table.insert(g_usertemp[peer_id]['log'], {
-            ['pos'] = player_matrix,
-            ['tick'] = g_tick,
-        })
-        while #g_usertemp[peer_id]['log'] > 2 do
-            table.remove(g_usertemp[peer_id]['log'], 1)
+        if old_pos ~= nil and old_tick ~= nil then
+            g_usertemp[peer_id]['spd'] = matrix.distance(pos, old_pos) / (g_tick - old_tick)
         end
-
+        g_usertemp[peer_id]['alt'] = table.pack(matrix.position(pos))[2]
+        g_usertemp[peer_id]['pos'] = pos
+        g_usertemp[peer_id]['tick'] = g_tick
         ::continue::
     end
 
     for peer_id, _ in pairs(g_userdata) do
         local userdata = g_userdata[peer_id]
-        local log = g_usertemp[peer_id]['log']
+        local usertemp = g_usertemp[peer_id]
         if not userdata['enabled'] then
             goto continue
         end
 
         local spdtxt = 'SPD\n---'
-        if #log >= 2 then
-            local spd = matrix.distance(log[#log]['pos'], log[1]['pos']) / (log[#log]['tick'] - log[1]['tick'])
+        if usertemp['spd'] ~= nil then
             spdtxt = string.format(
                 'SPD\n%.2f%s',
-                spd*g_spd_unit_tbl[userdata['spd_unit']],
+                usertemp['spd']*g_spd_unit_tbl[userdata['spd_unit']],
                 userdata['spd_unit']
             )
         end
 
         local alttxt = 'ALT\n---'
-        if #log >= 1 then
-            local _, alt, _ = matrix.position(log[#log]['pos'])
+        if usertemp['alt'] ~= nil then
             alttxt = string.format(
                 'ALT\n%.2f%s',
-                alt*g_alt_unit_tbl[userdata['alt_unit']],
+                usertemp['alt']*g_alt_unit_tbl[userdata['alt_unit']],
                 userdata['alt_unit']
             )
         end
