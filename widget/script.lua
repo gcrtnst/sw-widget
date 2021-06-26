@@ -290,7 +290,7 @@ function onTick(game_ticks)
 
         if #g_usertemp[peer_id]['log'] > 0 and
             g_tick - g_usertemp[peer_id]['log'][#g_usertemp[peer_id]['log']]['tick'] < 120 and
-            matrixEqual(player_matrix, g_usertemp[peer_id]['log'][#g_usertemp[peer_id]['log']]['pos']) then
+            matrixEquals(player_matrix, g_usertemp[peer_id]['log'][#g_usertemp[peer_id]['log']]['pos']) then
             goto continue
         end
 
@@ -461,7 +461,7 @@ function getPlayerTable()
     return player_tbl
 end
 
-function matrixEqual(matrix1, matrix2)
+function matrixEquals(matrix1, matrix2)
     local x1, y1, z1 = matrix.position(matrix1)
     local x2, y2, z2 = matrix.position(matrix2)
     return x1 == x2 and y1 == y2 and z1 == z2
