@@ -280,25 +280,52 @@ function onTick(game_ticks)
             goto continue
         end
 
-        local pos, is_success = server.getPlayerPos(peer_id)
+        local vehicle_id, is_success = getPlayerVehicle(peer_id)
         if not is_success then
-            g_usertemp[peer_id] = {}
-            goto continue
+            vehicle_id = nil
+        end
+        if vehicle_id ~= g_usertemp[peer_id]['vehicle_id'] then
+            g_usertemp[peer_id] = {
+                ['vehicle_id'] = vehicle_id,
+            }
         end
 
-        local old_pos = g_usertemp[peer_id]['pos']
-        local old_tick = g_usertemp[peer_id]['tick']
+        if vehicle_id ~= nil then
+            local vehicle_pos, is_success = server.getVehiclePos(vehicle_id)
+            if not is_success then
+                g_usertemp[peer_id] = {}
+                goto continue
+            end
 
-        if old_pos ~= nil and old_tick ~= nil and g_tick - old_tick < 120 and matrixEquals(pos, old_pos) then
-            goto continue
-        end
+            if g_usertemp[peer_id]['vehicle_pos'] ~= nil then
+                g_usertemp[peer_id]['spd'] = matrix.distance(vehicle_pos, g_usertemp[peer_id]['vehicle_pos'])
+            end
+            g_usertemp[peer_id]['alt'] = table.pack(matrix.position(vehicle_pos))[2]
+            g_usertemp[peer_id]['vehicle_pos'] = vehicle_pos
+        else
+            local player_pos_old = g_usertemp[peer_id]['player_pos']
+            local player_tick_old = g_usertemp[peer_id]['player_tick']
+            local player_cnt_old = g_usertemp[peer_id]['player_cnt']
+            local player_cnt = (player_cnt_old or 0) + 1
 
-        if old_pos ~= nil and old_tick ~= nil then
-            g_usertemp[peer_id]['spd'] = matrix.distance(pos, old_pos) / (g_tick - old_tick)
+            local player_pos, is_success = server.getPlayerPos(peer_id)
+            if not is_success then
+                g_usertemp[peer_id] = {}
+                goto continue
+            end
+
+            if player_pos_old ~= nil and player_tick_old ~= nil and g_tick - player_tick_old < 120 and matrixEquals(player_pos, player_pos_old) then
+                goto continue
+            end
+
+            if player_pos_old ~= nil and player_tick_old ~= nil and player_cnt >= 3 then
+                g_usertemp[peer_id]['spd'] = matrix.distance(player_pos, player_pos_old) / (g_tick - player_tick_old)
+            end
+            g_usertemp[peer_id]['alt'] = table.pack(matrix.position(player_pos))[2]
+            g_usertemp[peer_id]['player_pos'] = player_pos
+            g_usertemp[peer_id]['player_tick'] = g_tick
+            g_usertemp[peer_id]['player_cnt'] = player_cnt
         end
-        g_usertemp[peer_id]['alt'] = table.pack(matrix.position(pos))[2]
-        g_usertemp[peer_id]['pos'] = pos
-        g_usertemp[peer_id]['tick'] = g_tick
         ::continue::
     end
 
@@ -454,6 +481,14 @@ function getPlayerTable()
         player_tbl[player['id']] = player
     end
     return player_tbl
+end
+
+function getPlayerVehicle(peer_id)
+    local object_id, is_success = server.getPlayerCharacterID(peer_id)
+    if not is_success then
+        return 0, false
+    end
+    return server.getCharacterVehicle(object_id)
 end
 
 function matrixEquals(matrix1, matrix2)
