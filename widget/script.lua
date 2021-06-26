@@ -298,15 +298,14 @@ function onTick(game_ticks)
 
     for peer_id, _ in pairs(g_userdata) do
         local userdata = g_userdata[peer_id]
-        local usertemp = g_usertemp[peer_id]
+        local poshist = g_usertemp[peer_id]['poshist']
         if not userdata['enabled'] then
             goto continue
         end
 
         local spdtxt = 'SPD\n---'
-        if #usertemp['poshist'] >= 2 then
-            local num = #usertemp['poshist']
-            local spd = matrix.distance(usertemp['poshist'][1], usertemp['poshist'][num]) / (num - 1)
+        if #poshist >= 2 then
+            local spd = matrix.distance(poshist[1], poshist[#poshist]) / (#poshist - 1)
             spdtxt = string.format(
                 'SPD\n%.2f%s',
                 spd*g_spd_unit_tbl[userdata['spd_unit']],
@@ -315,8 +314,8 @@ function onTick(game_ticks)
         end
 
         local alttxt = 'ALT\n---'
-        if #usertemp['poshist'] >= 1 then
-            local _, alt, _ = matrix.position(usertemp['poshist'][#usertemp['poshist']])
+        if #poshist >= 1 then
+            local _, alt, _ = matrix.position(poshist[#poshist])
             alttxt = string.format(
                 'ALT\n%.2f%s',
                 alt*g_alt_unit_tbl[userdata['alt_unit']],
