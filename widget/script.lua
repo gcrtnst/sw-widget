@@ -36,8 +36,10 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         execOn(user_peer_id, is_admin, is_auth, args)
     elseif args[1] == 'off' then
         execOff(user_peer_id, is_admin, is_auth, args)
-    elseif args[1] == 'spdofs' or args[1] == 'altofs' then
-        execSetOfs(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == 'spdofs' then
+        execSpdOfs(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == 'altofs' then
+        execAltOfs(user_peer_id, is_admin, is_auth, args)
     elseif args[1] == 'spdunit' or args[1] == 'altunit' then
         execSetUnit(user_peer_id, is_admin, is_auth, args)
     else
@@ -90,20 +92,15 @@ function execOff(user_peer_id, is_admin, is_auth, args)
     server.announce(getAnnounceName(), 'widgets disabled', user_peer_id)
 end
 
-function execSetOfs(user_peer_id, is_admin, is_auth, args)
-    local param_name
-    local param_key_hofs
-    local param_key_vofs
-    if args[1] == 'spdofs' then
-        param_name = 'spdofs'
-        param_key_hofs = 'spd_hofs'
-        param_key_vofs = 'spd_vofs'
-    elseif args[1] == 'altofs' then
-        param_name = 'altofs'
-        param_key_hofs = 'alt_hofs'
-        param_key_vofs = 'alt_vofs'
-    end
+function execSpdOfs(user_peer_id, is_admin, is_auth, args)
+    return execSetOfs(user_peer_id, is_admin, is_auth, args, 'spdofs', 'spd_hofs', 'spd_vofs')
+end
 
+function execAltOfs(user_peer_id, is_admin, is_auth, args)
+    return execSetOfs(user_peer_id, is_admin, is_auth, args, 'altofs', 'alt_hofs', 'alt_vofs')
+end
+
+function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key_hofs, param_key_vofs)
     if #args == 1 then
         server.announce(
             getAnnounceName(),
