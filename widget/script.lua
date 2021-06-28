@@ -40,8 +40,10 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         execSpdOfs(user_peer_id, is_admin, is_auth, args)
     elseif args[1] == 'altofs' then
         execAltOfs(user_peer_id, is_admin, is_auth, args)
-    elseif args[1] == 'spdunit' or args[1] == 'altunit' then
-        execSetUnit(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == 'spdunit' then
+        execSpdUnit(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == 'altunit' then
+        execAltUnit(user_peer_id, is_admin, is_auth, args)
     else
         server.announce(
             getAnnounceName(),
@@ -155,23 +157,33 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
     )
 end
 
-function execSetUnit(user_peer_id, is_admin, is_auth, args)
-    local param_name
-    local param_key
-    local param_tbl
-    local param_choices
-    if args[1] == 'spdunit' then
-        param_name = 'spdunit'
-        param_key = 'spd_unit'
-        param_tbl = g_spd_unit_tbl
-        param_choices = 'available units are "km/h", "m/s", "kt"'
-    elseif args[1] == 'altunit' then
-        param_name = 'altunit'
-        param_key = 'alt_unit'
-        param_tbl = g_alt_unit_tbl
-        param_choices = 'available units are "m", "ft"'
-    end
+function execSpdUnit(user_peer_id, is_admin, is_auth, args)
+    return execSetUnit(
+        user_peer_id,
+        is_admin,
+        is_auth,
+        args,
+        'spdunit',
+        'spd_unit',
+        g_spd_unit_tbl,
+        'available units are "km/h", "m/s", "kt"'
+    )
+end
 
+function execAltUnit(user_peer_id, is_admin, is_auth, args)
+    return execSetUnit(
+        user_peer_id,
+        is_admin,
+        is_auth,
+        args,
+        'altunit',
+        'alt_unit',
+        g_alt_unit_tbl,
+        'available units are "m", "ft"'
+    )
+end
+
+function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_key, param_tbl, param_choices)
     if #args < 2 then
         server.announce(
             getAnnounceName(),
