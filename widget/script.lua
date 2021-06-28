@@ -74,19 +74,11 @@ end
 
 function execOn(user_peer_id, is_admin, is_auth, args)
     if #args > 1 then
-        server.announce(
-            getAnnounceName(),
-            'error: extra arguments',
-            user_peer_id
-        )
+        server.announce(getAnnounceName(), 'error: extra arguments', user_peer_id)
         return
     end
     g_userdata[user_peer_id]['enabled'] = true
-    server.announce(
-        getAnnounceName(),
-        'widgets enabled',
-        user_peer_id
-    )
+    server.announce(getAnnounceName(), 'widgets enabled', user_peer_id)
 end
 
 function execOff(user_peer_id, is_admin, is_auth, args)
