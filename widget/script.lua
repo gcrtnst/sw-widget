@@ -212,13 +212,7 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
     if param_tbl[unit] == nil then
         server.announce(
             getAnnounceName(),
-            string.format(
-                (
-                    'error: got undefined unit "%s"\n' ..
-                    param_choices
-                ),
-                unit
-            ),
+            string.format('error: got undefined unit "%s"\n%s', unit, param_choices),
             user_peer_id
         )
         return
