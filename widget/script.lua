@@ -21,36 +21,38 @@ g_uim = nil
 g_tick = 0
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
+    if cmd ~= g_cmd then
+        return
+    end
+
     local args = {...}
     if #args > 0 and args[#args] == '' then
         table.remove(args)
     end
 
-    if cmd == g_cmd then
-        if #args <= 0 or args[1] == 'help' then
-            execHelp(user_peer_id, is_admin, is_auth, args)
-        elseif args[1] == 'on' then
-            execOn(user_peer_id, is_admin, is_auth, args)
-        elseif args[1] == 'off' then
-            execOff(user_peer_id, is_admin, is_auth, args)
-        elseif args[1] == 'spdofs' or args[1] == 'altofs' then
-            execSetOfs(user_peer_id, is_admin, is_auth, args)
-        elseif args[1] == 'spdunit' or args[1] == 'altunit' then
-            execSetUnit(user_peer_id, is_admin, is_auth, args)
-        else
-            server.announce(
-                getAnnounceName(),
-                string.format(
-                    (
-                        'error: undefined subcommand "%s"\n' ..
-                        'see "%s help" for list of subcommands'
-                    ),
-                    args[1],
-                    g_cmd
+    if #args <= 0 or args[1] == 'help' then
+        execHelp(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == 'on' then
+        execOn(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == 'off' then
+        execOff(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == 'spdofs' or args[1] == 'altofs' then
+        execSetOfs(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == 'spdunit' or args[1] == 'altunit' then
+        execSetUnit(user_peer_id, is_admin, is_auth, args)
+    else
+        server.announce(
+            getAnnounceName(),
+            string.format(
+                (
+                    'error: undefined subcommand "%s"\n' ..
+                    'see "%s help" for list of subcommands'
                 ),
-                user_peer_id
-            )
-        end
+                args[1],
+                g_cmd
+            ),
+            user_peer_id
+        )
     end
 end
 
