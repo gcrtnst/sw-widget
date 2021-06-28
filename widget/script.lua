@@ -119,11 +119,7 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
         )
         return
     elseif #args ~= 3 then
-        server.announce(
-            getAnnounceName(),
-            'error: wrong number of arguments',
-            user_peer_id
-        )
+        server.announce(getAnnounceName(), 'error: wrong number of arguments', user_peer_id)
         return
     end
 
