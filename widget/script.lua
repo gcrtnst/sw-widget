@@ -91,17 +91,17 @@ function execOff(user_peer_id, is_admin, is_auth, args)
 end
 
 function execSetOfs(user_peer_id, is_admin, is_auth, args)
-    local name
-    local hofs_key
-    local vofs_key
+    local param_name
+    local param_key_hofs
+    local param_key_vofs
     if args[1] == 'spdofs' then
-        name = 'spdofs'
-        hofs_key = 'spd_hofs'
-        vofs_key = 'spd_vofs'
+        param_name = 'spdofs'
+        param_key_hofs = 'spd_hofs'
+        param_key_vofs = 'spd_vofs'
     elseif args[1] == 'altofs' then
-        name = 'altofs'
-        hofs_key = 'alt_hofs'
-        vofs_key = 'alt_vofs'
+        param_name = 'altofs'
+        param_key_hofs = 'alt_hofs'
+        param_key_vofs = 'alt_vofs'
     end
 
     if #args == 1 then
@@ -112,9 +112,9 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args)
                     'current %s is (%f, %f)\n' ..
                     'use "%s %s HOFS VOFS" to configure'
                 ),
-                name,
-                g_userdata[user_peer_id][hofs_key],
-                g_userdata[user_peer_id][vofs_key],
+                param_name,
+                g_userdata[user_peer_id][param_key_hofs],
+                g_userdata[user_peer_id][param_key_vofs],
                 g_cmd,
                 args[1]
             ),
@@ -154,11 +154,11 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args)
         )
         return
     end
-    g_userdata[user_peer_id][hofs_key] = hofs
-    g_userdata[user_peer_id][vofs_key] = vofs
+    g_userdata[user_peer_id][param_key_hofs] = hofs
+    g_userdata[user_peer_id][param_key_vofs] = vofs
     server.announce(
         getAnnounceName(),
-        string.format('set %s to (%f, %f)', name, hofs, vofs),
+        string.format('set %s to (%f, %f)', param_name, hofs, vofs),
         user_peer_id
     )
 end
