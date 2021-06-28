@@ -82,7 +82,7 @@ function execOn(user_peer_id, is_admin, is_auth, args)
         return
     end
     g_userdata[user_peer_id]['enabled'] = true
-    server.announce(getAnnounceName(), 'widgets enabled', user_peer_id)
+    server.announce(getAnnounceName(), 'widgets are now enabled', user_peer_id)
 end
 
 function execOff(user_peer_id, is_admin, is_auth, args)
@@ -91,7 +91,7 @@ function execOff(user_peer_id, is_admin, is_auth, args)
         return
     end
     g_userdata[user_peer_id]['enabled'] = false
-    server.announce(getAnnounceName(), 'widgets disabled', user_peer_id)
+    server.announce(getAnnounceName(), 'widgets are now disabled', user_peer_id)
 end
 
 function execSpdOfs(user_peer_id, is_admin, is_auth, args)
@@ -152,7 +152,7 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
     g_userdata[user_peer_id][param_key_vofs] = vofs
     server.announce(
         getAnnounceName(),
-        string.format('set %s to (%f, %f)', param_name, hofs, vofs),
+        string.format('%s is now set to (%f, %f)', param_name, hofs, vofs),
         user_peer_id
     )
 end
@@ -220,7 +220,7 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
     g_userdata[user_peer_id][param_key] = unit
     server.announce(
         getAnnounceName(),
-        string.format('set %s to "%s"', param_name, unit),
+        string.format('%s is now set to "%s"', param_name, unit),
         user_peer_id
     )
 end
