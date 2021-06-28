@@ -142,13 +142,10 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
         )
         return
     elseif hofs < -1 or 1 < hofs or vofs < -1 or 1 < vofs then
-        server.announce(
-            getAnnounceName(),
-            'error: offset must be within the range -1 to 1',
-            user_peer_id
-        )
+        server.announce(getAnnounceName(), 'error: offset must be within the range -1 to 1', user_peer_id)
         return
     end
+
     g_userdata[user_peer_id][param_key_hofs] = hofs
     g_userdata[user_peer_id][param_key_vofs] = vofs
     server.announce(
