@@ -156,20 +156,20 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
 end
 
 function execSetUnit(user_peer_id, is_admin, is_auth, args)
-    local name
-    local key
-    local tbl
-    local choices_txt
+    local param_name
+    local param_key
+    local param_tbl
+    local param_choices
     if args[1] == 'spdunit' then
-        name = 'spdunit'
-        key = 'spd_unit'
-        tbl = g_spd_unit_tbl
-        choices_txt = 'available units are "km/h", "m/s", "kt"'
+        param_name = 'spdunit'
+        param_key = 'spd_unit'
+        param_tbl = g_spd_unit_tbl
+        param_choices = 'available units are "km/h", "m/s", "kt"'
     elseif args[1] == 'altunit' then
-        name = 'altunit'
-        key = 'alt_unit'
-        tbl = g_alt_unit_tbl
-        choices_txt = 'available units are "m", "ft"'
+        param_name = 'altunit'
+        param_key = 'alt_unit'
+        param_tbl = g_alt_unit_tbl
+        param_choices = 'available units are "m", "ft"'
     end
 
     if #args < 2 then
@@ -180,8 +180,8 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args)
                     'current %s is "%s"\n' ..
                     'use "%s %s UNIT" to configure'
                 ),
-                name,
-                g_userdata[user_peer_id][key],
+                param_name,
+                g_userdata[user_peer_id][param_key],
                 g_cmd,
                 args[1]
             ),
@@ -199,13 +199,13 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args)
     end
 
     local unit = args[2]
-    if tbl[unit] == nil then
+    if param_tbl[unit] == nil then
         server.announce(
             getAnnounceName(),
             string.format(
                 (
                     'error: got undefined unit "%s"\n' ..
-                    choices_txt
+                    param_choices
                 ),
                 unit
             ),
@@ -213,10 +213,10 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args)
         )
         return
     end
-    g_userdata[user_peer_id][key] = unit
+    g_userdata[user_peer_id][param_key] = unit
     server.announce(
         getAnnounceName(),
-        string.format('set %s to "%s"', name, unit),
+        string.format('set %s to "%s"', param_name, unit),
         user_peer_id
     )
 end
