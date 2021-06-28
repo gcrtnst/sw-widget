@@ -204,11 +204,7 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
         return
     end
     if #args > 2 then
-        server.announce(
-            getAnnounceName(),
-            'error: too many arguments',
-            user_peer_id
-        )
+        server.announce(getAnnounceName(), 'error: too many arguments', user_peer_id)
         return
     end
 
