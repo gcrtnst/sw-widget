@@ -23,7 +23,7 @@ g_tick = 0
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
     local args = {...}
     if #args > 0 and args[#args] == '' then
-        table.remove(args, #args)
+        table.remove(args)
     end
 
     if cmd == g_cmd then
