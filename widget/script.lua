@@ -190,12 +190,14 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
             string.format(
                 (
                     'current %s is "%s"\n' ..
-                    'use "%s %s UNIT" to configure'
+                    'use "%s %s UNIT" to configure\n' ..
+                    '%s'
                 ),
                 param_name,
                 g_userdata[user_peer_id][param_key],
                 g_cmd,
-                args[1]
+                args[1],
+                param_choices
             ),
             user_peer_id
         )
