@@ -123,19 +123,21 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
         return
     end
 
-    local hofs = tonumber(args[2])
-    local vofs = tonumber(args[3])
+    local hofs_txt = args[2]
+    local vofs_txt = args[3]
+    local hofs = tonumber(hofs_txt)
+    local vofs = tonumber(vofs_txt)
     if not hofs then
         server.announce(
             getAnnounceName(),
-            string.format('error: got invalid number "%s"', args[2]),
+            string.format('error: got invalid number "%s"', hofs_txt),
             user_peer_id
         )
         return
     elseif not vofs then
         server.announce(
             getAnnounceName(),
-            string.format('error: got invalid number "%s"', args[3]),
+            string.format('error: got invalid number "%s"', vofs_txt),
             user_peer_id
         )
         return
