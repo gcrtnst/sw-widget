@@ -373,14 +373,14 @@ end
 
 function buildUIManager()
     local uim = {
-        ['_popup_1'] = {},
-        ['_popup_2'] = {},
+        ['_popup_old'] = {},
+        ['_popup_new'] = {},
     }
 
     function uim.setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
         for _, peer_id in pairs(uim._getPeerIDList(peer_id)) do
             local key = string.format('%d,%d', peer_id, ui_id)
-            uim['_popup_2'][key] = {
+            uim['_popup_new'][key] = {
                 ['peer_id'] = peer_id,
                 ['ui_id'] = ui_id,
                 ['name'] = name,
@@ -393,41 +393,41 @@ function buildUIManager()
     end
 
     function uim.flushPopup()
-        for key, popup in pairs(uim['_popup_1']) do
-            if uim['_popup_2'][key] == nil then
+        for key, popup in pairs(uim['_popup_old']) do
+            if uim['_popup_new'][key] == nil then
                 server.removePopup(popup['peer_id'], popup['ui_id'])
             end
         end
 
-        for key, popup_2 in pairs(uim['_popup_2']) do
-            local popup_1 = uim['_popup_1'][key]
-            if popup_1 == nil or
-                popup_2['name'] ~= popup_1['name'] or
-                popup_2['is_show'] ~= popup_1['is_show'] or
-                popup_2['text'] ~= popup_1['text'] or
-                popup_2['horizontal_offset'] ~= popup_1['horizontal_offset'] or
-                popup_2['vertical_offset'] ~= popup_1['vertical_offset'] then
+        for key, popup_new in pairs(uim['_popup_new']) do
+            local popup_old = uim['_popup_old'][key]
+            if popup_old == nil or
+                popup_new['name'] ~= popup_old['name'] or
+                popup_new['is_show'] ~= popup_old['is_show'] or
+                popup_new['text'] ~= popup_old['text'] or
+                popup_new['horizontal_offset'] ~= popup_old['horizontal_offset'] or
+                popup_new['vertical_offset'] ~= popup_old['vertical_offset'] then
                 server.setPopupScreen(
-                    popup_2['peer_id'],
-                    popup_2['ui_id'],
-                    popup_2['name'],
-                    popup_2['is_show'],
-                    popup_2['text'],
-                    popup_2['horizontal_offset'],
-                    popup_2['vertical_offset']
+                    popup_new['peer_id'],
+                    popup_new['ui_id'],
+                    popup_new['name'],
+                    popup_new['is_show'],
+                    popup_new['text'],
+                    popup_new['horizontal_offset'],
+                    popup_new['vertical_offset']
                 )
             end
         end
 
-        uim['_popup_1'] = uim['_popup_2']
-        uim['_popup_2'] = {}
+        uim['_popup_old'] = uim['_popup_new']
+        uim['_popup_new'] = {}
     end
 
     function uim.onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
-        for key, popup in pairs(uim['_popup_1']) do
+        for key, popup in pairs(uim['_popup_old']) do
             if popup['peer_id'] == peer_id then
                 server.removePopup(popup['peer_id'], popup['ui_id'])
-                uim['_popup_1'][key] = nil
+                uim['_popup_old'][key] = nil
             end
         end
     end
