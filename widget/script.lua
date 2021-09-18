@@ -25,9 +25,11 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         return
     end
 
-    local args = {...}
-    if #args > 0 and args[#args] == '' then
-        table.remove(args)
+    local args = {}
+    for _, s in ipairs({...}) do
+        if s ~= '' then
+            table.insert(args, s)
+        end
     end
 
     if #args <= 0 or args[1] == 'help' then
