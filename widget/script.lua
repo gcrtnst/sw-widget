@@ -18,7 +18,6 @@ g_alt_unit_tbl = {
 g_userdata = {}
 g_usertemp = {}
 g_uim = nil
-g_tick = 0
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
     if cmd ~= g_cmd then
@@ -287,28 +286,26 @@ function onTick(game_ticks)
             g_usertemp[peer_id]['alt'] = table.pack(matrix.position(vehicle_pos))[2]
             g_usertemp[peer_id]['vehicle_pos'] = vehicle_pos
         else
-            local player_pos_old = g_usertemp[peer_id]['player_pos']
-            local player_tick_old = g_usertemp[peer_id]['player_tick']
-            local player_cnt_old = g_usertemp[peer_id]['player_cnt']
-            local player_cnt = (player_cnt_old or 0) + 1
+            local player_log = g_usertemp[peer_id]['player_log'] or {}
+            local player_log_idx = g_usertemp[peer_id]['player_log_idx'] or 1
+            local player_log_len = peer_id == 0 and 2 or 61
 
-            local player_pos, is_success = server.getPlayerPos(peer_id)
+            local player_new_pos, is_success = server.getPlayerPos(peer_id)
             if not is_success then
                 g_usertemp[peer_id] = {}
                 goto continue
             end
 
-            if player_pos_old ~= nil and player_tick_old ~= nil and g_tick - player_tick_old < 120 and matrixEquals(player_pos, player_pos_old) then
-                goto continue
-            end
+            player_log[player_log_idx] = player_new_pos
+            player_log_idx = player_log_idx%player_log_len + 1
 
-            if player_pos_old ~= nil and player_tick_old ~= nil and player_cnt >= 3 then
-                g_usertemp[peer_id]['spd'] = matrix.distance(player_pos, player_pos_old) / (g_tick - player_tick_old)
+            if #player_log > 1 then
+                local player_old_pos = player_log[player_log_idx] or player_log[1]
+                g_usertemp[peer_id]['spd'] = matrix.distance(player_old_pos, player_new_pos)/(#player_log - 1)
             end
-            g_usertemp[peer_id]['alt'] = table.pack(matrix.position(player_pos))[2]
-            g_usertemp[peer_id]['player_pos'] = player_pos
-            g_usertemp[peer_id]['player_tick'] = g_tick
-            g_usertemp[peer_id]['player_cnt'] = player_cnt
+            g_usertemp[peer_id]['alt'] = table.pack(matrix.position(player_new_pos))[2]
+            g_usertemp[peer_id]['player_log'] = player_log
+            g_usertemp[peer_id]['player_log_idx'] = player_log_idx
         end
         ::continue::
     end
@@ -347,7 +344,6 @@ function onTick(game_ticks)
     if g_userdata[0] ~= nil then
         g_savedata['hostdata'] = deepcopy(g_userdata[0])
     end
-    g_tick = g_tick + 1
 end
 
 function onCreate(is_world_create)
