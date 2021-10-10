@@ -290,7 +290,12 @@ function onTick(game_ticks)
             local player_log_idx = g_usertemp[peer_id]['player_log_idx'] or 1
             local player_log_len = peer_id == 0 and 2 or 61
 
-            local player_new_pos, is_success = server.getPlayerPos(peer_id)
+            local player_object_id, is_success = server.getPlayerCharacterID(peer_id)
+            if not is_success then
+                g_usertemp[peer_id] = {}
+                goto continue
+            end
+            local player_new_pos, is_success = server.getObjectPos(player_object_id)
             if not is_success then
                 g_usertemp[peer_id] = {}
                 goto continue
