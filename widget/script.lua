@@ -340,11 +340,11 @@ function onTick(game_ticks)
             )
         end
 
-        g_uim.setPopupScreen(peer_id, g_savedata['spd_ui_id'], getAnnounceName(), true, spdtxt, userdata['spd_hofs'], userdata['spd_vofs'])
-        g_uim.setPopupScreen(peer_id, g_savedata['alt_ui_id'], getAnnounceName(), true, alttxt, userdata['alt_hofs'], userdata['alt_vofs'])
+        g_uim:setPopupScreen(peer_id, g_savedata['spd_ui_id'], getAnnounceName(), true, spdtxt, userdata['spd_hofs'], userdata['spd_vofs'])
+        g_uim:setPopupScreen(peer_id, g_savedata['alt_ui_id'], getAnnounceName(), true, alttxt, userdata['alt_hofs'], userdata['alt_vofs'])
         ::continue::
     end
-    g_uim.flushPopup()
+    g_uim:flushPopup()
 
     if g_userdata[0] ~= nil then
         g_savedata['hostdata'] = deepcopy(g_userdata[0])
@@ -371,7 +371,7 @@ function onCreate(is_world_create)
 end
 
 function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
-    g_uim.onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+    g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
 end
 
 function buildUIManager()
@@ -380,14 +380,14 @@ function buildUIManager()
         ['_popup_new'] = {},
     }
 
-    function uim.setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
+    function uim:setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
         if peer_id < 0 then
             -- peer_id=-1 is not supported
             return
         end
 
         local key = string.format('%d,%d', peer_id, ui_id)
-        uim['_popup_new'][key] = {
+        self['_popup_new'][key] = {
             ['peer_id'] = peer_id,
             ['ui_id'] = ui_id,
             ['name'] = name,
@@ -398,15 +398,15 @@ function buildUIManager()
         }
     end
 
-    function uim.flushPopup()
-        for key, popup in pairs(uim['_popup_old']) do
-            if uim['_popup_new'][key] == nil then
+    function uim:flushPopup()
+        for key, popup in pairs(self['_popup_old']) do
+            if self['_popup_new'][key] == nil then
                 server.removePopup(popup['peer_id'], popup['ui_id'])
             end
         end
 
-        for key, popup_new in pairs(uim['_popup_new']) do
-            local popup_old = uim['_popup_old'][key]
+        for key, popup_new in pairs(self['_popup_new']) do
+            local popup_old = self['_popup_old'][key]
             if popup_old == nil or
                 popup_new['name'] ~= popup_old['name'] or
                 popup_new['is_show'] ~= popup_old['is_show'] or
@@ -425,15 +425,15 @@ function buildUIManager()
             end
         end
 
-        uim['_popup_old'] = uim['_popup_new']
-        uim['_popup_new'] = {}
+        self['_popup_old'] = self['_popup_new']
+        self['_popup_new'] = {}
     end
 
-    function uim.onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
-        for key, popup in pairs(uim['_popup_old']) do
+    function uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+        for key, popup in pairs(self['_popup_old']) do
             if popup['peer_id'] == peer_id then
                 server.removePopup(popup['peer_id'], popup['ui_id'])
-                uim['_popup_old'][key] = nil
+                self['_popup_old'][key] = nil
             end
         end
     end
