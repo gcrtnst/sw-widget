@@ -381,18 +381,21 @@ function buildUIManager()
     }
 
     function uim.setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
-        for _, peer_id in pairs(uim._getPeerIDList(peer_id)) do
-            local key = string.format('%d,%d', peer_id, ui_id)
-            uim['_popup_new'][key] = {
-                ['peer_id'] = peer_id,
-                ['ui_id'] = ui_id,
-                ['name'] = name,
-                ['is_show'] = is_show,
-                ['text'] = text,
-                ['horizontal_offset'] = horizontal_offset,
-                ['vertical_offset'] = vertical_offset,
-            }
+        if peer_id < 0 then
+            -- peer_id=-1 is not supported
+            return
         end
+
+        local key = string.format('%d,%d', peer_id, ui_id)
+        uim['_popup_new'][key] = {
+            ['peer_id'] = peer_id,
+            ['ui_id'] = ui_id,
+            ['name'] = name,
+            ['is_show'] = is_show,
+            ['text'] = text,
+            ['horizontal_offset'] = horizontal_offset,
+            ['vertical_offset'] = vertical_offset,
+        }
     end
 
     function uim.flushPopup()
@@ -433,18 +436,6 @@ function buildUIManager()
                 uim['_popup_old'][key] = nil
             end
         end
-    end
-
-    function uim._getPeerIDList(peer_id)
-        local peer_id_list = {}
-        if peer_id < 0 then
-            for _, player in pairs(server.getPlayers()) do
-                table.insert(peer_id_list, player['id'])
-            end
-        else
-            table.insert(peer_id_list, peer_id)
-        end
-        return peer_id_list
     end
 
     return uim
