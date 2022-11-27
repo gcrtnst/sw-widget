@@ -475,12 +475,6 @@ function getPlayerVehicle(peer_id)
     return server.getCharacterVehicle(object_id)
 end
 
-function matrixEquals(matrix1, matrix2)
-    local x1, y1, z1 = matrix.position(matrix1)
-    local x2, y2, z2 = matrix.position(matrix2)
-    return x1 == x2 and y1 == y2 and z1 == z2
-end
-
 function deepcopy(v)
     if type(v) ~= 'table' then
         return v
