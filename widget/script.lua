@@ -442,9 +442,17 @@ function buildUIManager()
 end
 
 function getAddonName()
-    local addon_index = server.getAddonIndex()
+    local addon_index, is_success = server.getAddonIndex()
+    if not is_success then
+        return "???"
+    end
+
     local addon_data = server.getAddonData(addon_index)
-    return addon_data['name']
+    if addon_data == nil then
+        return "???"
+    end
+
+    return addon_data.name
 end
 
 function getAnnounceName()
