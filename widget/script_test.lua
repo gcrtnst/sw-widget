@@ -545,6 +545,56 @@ function test_decl.testGetAnnounceName(t)
     assertEqual("[name]", announce_name)
 end
 
+function test_decl.testGetPlayerTable(t)
+    local tests = {
+        {{}, {}},
+        {
+            {
+                [0] = {
+                    id = 2,
+                    name = "name0",
+                    admin = false,
+                    auth = false,
+                    steam_id = 70000000000000000,
+                },
+                [1] = {
+                    id = 3,
+                    name = "name1",
+                    admin = true,
+                    auth = true,
+                    steam_id = 70000000000000001,
+                },
+            },
+            {
+                [2] = {
+                    id = 2,
+                    name = "name0",
+                    admin = false,
+                    auth = false,
+                    steam_id = 70000000000000000,
+                },
+                [3] = {
+                    id = 3,
+                    name = "name1",
+                    admin = true,
+                    auth = true,
+                    steam_id = 70000000000000001,
+                },
+            },
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_player_list, want_player_tbl = table.unpack(tt)
+        t:reset()
+        t.env.server._player_list = in_player_list
+        t.fn()
+
+        local got_player_tbl = t.env.getPlayerTable()
+        assertEqual(want_player_tbl, got_player_tbl)
+    end
+end
+
 local function buildMockServer()
     local server = {
         _addon_idx = 0,
@@ -552,6 +602,7 @@ local function buildMockServer()
         _addon_tbl = {},
         _popup = {},
         _popup_update_cnt = 0,
+        _player_list = {},
     }
 
     function server.getAddonIndex(name)
@@ -578,6 +629,10 @@ local function buildMockServer()
         local key = string.pack("jj", peer_id, ui_id)
         server._popup[key] = nil
         server._popup_update_cnt = server._popup_update_cnt + 1
+    end
+
+    function server.getPlayers()
+        return server._player_list
     end
 
     return server
