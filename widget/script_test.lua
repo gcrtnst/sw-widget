@@ -495,11 +495,54 @@ function test_decl.testUIMPopupJoin(t)
     assertEqual(8, t.env.server._popup_update_cnt)
 end
 
+function test_decl.testGetAddonName(t)
+    local tests = {
+        {0, false, {}, "???"},
+        {0, true, {}, "???"},
+        {
+            0,
+            true,
+            {
+                [0] = {
+                    name = "name",
+                    path_id = "folder_path",
+                    file_store = "is_app_data",
+                    location_count = "location_count",
+                },
+            },
+            "name"
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_addon_idx, in_addon_idx_exists, in_addon_tbl, want_addon_name = table.unpack(tt)
+        t:reset()
+        t.env.server._addon_idx = in_addon_idx
+        t.env.server._addon_idx_exists = in_addon_idx_exists
+        t.env.server._addon_tbl = in_addon_tbl
+        t.fn()
+
+        local got_addon_name = t.env.getAddonName()
+        assertEqual(got_addon_name, want_addon_name)
+    end
+end
+
 local function buildMockServer()
     local server = {
+        _addon_idx = 0,
+        _addon_idx_exists = false,
+        _addon_tbl = {},
         _popup = {},
         _popup_update_cnt = 0,
     }
+
+    function server.getAddonIndex(name)
+        return server._addon_idx, server._addon_idx_exists
+    end
+
+    function server.getAddonData(addon_index)
+        return server._addon_tbl[addon_index]
+    end
 
     function server.setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
         local key = string.pack("jj", peer_id, ui_id)
