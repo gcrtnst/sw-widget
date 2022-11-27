@@ -462,7 +462,7 @@ end
 function getPlayerTable()
     local player_tbl = {}
     for _, player in pairs(server.getPlayers()) do
-        player_tbl[player['id']] = player
+        player_tbl[player.id] = player
     end
     return player_tbl
 end
