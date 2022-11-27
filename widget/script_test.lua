@@ -595,6 +595,36 @@ function test_decl.testGetPlayerTable(t)
     end
 end
 
+function test_decl.testGetPlayerVehicle(t)
+    local tests = {
+        {{}, {}, 0, false},
+        {
+            {[1] = 2},
+            {},
+            0,
+            false,
+        },
+        {
+            {[1] = 2},
+            {[2] = 3},
+            3,
+            true,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_player_character_tbl, in_character_vehicle_tbl, want_vehicle_id, want_is_success = table.unpack(tt)
+        t:reset()
+        t.env.server._player_character_tbl = in_player_character_tbl
+        t.env.server._character_vehicle_tbl = in_character_vehicle_tbl
+        t.fn()
+
+        local got_vehicle_id, got_is_success = t.env.getPlayerVehicle(1)
+        assertEqual(want_vehicle_id, got_vehicle_id)
+        assertEqual(want_is_success, got_is_success)
+    end
+end
+
 local function buildMockServer()
     local server = {
         _addon_idx = 0,
@@ -603,6 +633,8 @@ local function buildMockServer()
         _popup = {},
         _popup_update_cnt = 0,
         _player_list = {},
+        _player_character_tbl = {},
+        _character_vehicle_tbl = {},
     }
 
     function server.getAddonIndex(name)
@@ -633,6 +665,22 @@ local function buildMockServer()
 
     function server.getPlayers()
         return server._player_list
+    end
+
+    function server.getPlayerCharacterID(peer_id)
+        local object_id = server._player_character_tbl[peer_id]
+        if object_id == nil then
+            return 0, false
+        end
+        return object_id, true
+    end
+
+    function server.getCharacterVehicle(object_id)
+        local vehicle_id = server._character_vehicle_tbl[object_id]
+        if vehicle_id == nil then
+            return 0, false
+        end
+        return vehicle_id, true
     end
 
     return server
