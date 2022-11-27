@@ -386,7 +386,7 @@ function buildUIManager()
             return
         end
 
-        local key = string.pack("jj", peer_id, ui_id)
+        local key = string.pack('jj', peer_id, ui_id)
         self._popup_new[key] = {
             peer_id = peer_id,
             ui_id = ui_id,
