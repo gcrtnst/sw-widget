@@ -527,6 +527,24 @@ function test_decl.testGetAddonName(t)
     end
 end
 
+function test_decl.testGetAnnounceName(t)
+    t:reset()
+    t.env.server._addon_idx = 0
+    t.env.server._addon_idx_exists = true
+    t.env.server._addon_tbl = {
+        [0] = {
+            name = "name",
+            path_id = "folder_path",
+            file_store = "is_app_data",
+            location_count = "location_count",
+        },
+    }
+    t.fn()
+
+    local announce_name = t.env.getAnnounceName()
+    assertEqual("[name]", announce_name)
+end
+
 local function buildMockServer()
     local server = {
         _addon_idx = 0,
