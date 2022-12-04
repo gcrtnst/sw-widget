@@ -488,3 +488,36 @@ function deepcopy(v)
     end
     return tbl
 end
+
+function ringNew(cap)
+    if math.type(cap) ~= "integer" or cap <= 0 then
+        return nil
+    end
+
+    return {
+        buf = {},
+        idx = 1,
+        len = 0,
+        cap = cap,
+    }
+end
+
+function ringSet(ring, item)
+    if ring.len < ring.cap then
+        ring.idx = 1
+        ring.len = ring.len + 1
+        ring.buf[ring.len] = item
+    else
+        ring.idx = ring.idx%ring.cap + 1
+        ring.len = ring.cap
+        ring.buf[(ring.idx - 2)%ring.cap + 1] = item
+    end
+end
+
+function ringGet(ring, idx)
+    if math.type(idx) ~= "integer" or idx < 1 or ring.len < idx then
+        return nil
+    end
+
+    return ring.buf[(ring.idx + idx - 2)%ring.cap + 1]
+end

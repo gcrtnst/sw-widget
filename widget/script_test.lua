@@ -625,6 +625,269 @@ function test_decl.testGetPlayerVehicle(t)
     end
 end
 
+function test_decl.testRingNew(t)
+    local tests = {
+        {2, {buf = {}, idx = 1, len = 0, cap = 2}},
+        {1, {buf = {}, idx = 1, len = 0, cap = 1}},
+        {"1", nil},
+        {1.1, nil},
+        {0, nil},
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_cap, want_ring = table.unpack(tt)
+        t:reset()
+        t.fn()
+
+        local got_ring = t.env.ringNew(in_cap)
+        assertEqual(want_ring, got_ring)
+    end
+end
+
+function test_decl.testRingSet(t)
+    local tests = {
+        {
+            {buf = {}, idx = 1, len = 0, cap = 1},
+            "A",
+            {buf = {"A"}, idx = 1, len = 1, cap = 1},
+        },
+        {
+            {buf = {}, idx = 2, len = 0, cap = 1},
+            "A",
+            {buf = {"A"}, idx = 1, len = 1, cap = 1},
+        },
+        {
+            {buf = {"A"}, idx = 1, len = 1, cap = 1},
+            "B",
+            {buf = {"B"}, idx = 1, len = 1, cap = 1},
+        },
+        {
+            {buf = {"A"}, idx = 1, len = 2, cap = 1},
+            "B",
+            {buf = {"B"}, idx = 1, len = 1, cap = 1},
+        },
+        {
+            {buf = {"A"}, idx = 2, len = 1, cap = 1},
+            "B",
+            {buf = {"B"}, idx = 1, len = 1, cap = 1},
+        },
+        {
+            {buf = {}, idx = 1, len = 0, cap = 3},
+            "A",
+            {buf = {"A"}, idx = 1, len = 1, cap = 3},
+        },
+        {
+            {buf = {"A"}, idx = 1, len = 1, cap = 3},
+            "B",
+            {buf = {"A", "B"}, idx = 1, len = 2, cap = 3},
+        },
+        {
+            {buf = {"A", "B"}, idx = 1, len = 2, cap = 3},
+            "C",
+            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
+            "D",
+            {buf = {"D", "B", "C"}, idx = 2, len = 3, cap = 3},
+        },
+        {
+            {buf = {"D", "B", "C"}, idx = 2, len = 3, cap = 3},
+            "E",
+            {buf = {"D", "E", "C"}, idx = 3, len = 3, cap = 3},
+        },
+        {
+            {buf = {"D", "E", "C"}, idx = 3, len = 3, cap = 3},
+            "F",
+            {buf = {"D", "E", "F"}, idx = 1, len = 3, cap = 3},
+        },
+        {
+            {buf = {}, idx = 1, len = 0, cap = 2},
+            nil,
+            {buf = {}, idx = 1, len = 1, cap = 2},
+        },
+        {
+            {buf = {}, idx = 1, len = 1, cap = 2},
+            "A",
+            {buf = {[2] = "A"}, idx = 1, len = 2, cap = 2},
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local got_ring, in_item, want_ring = table.unpack(tt)
+        t:reset()
+        t.fn()
+
+        t.env.ringSet(got_ring, in_item)
+        assertEqual(want_ring, got_ring)
+    end
+end
+
+function test_decl.testRingGet(t)
+    local tests = {
+        {
+            {buf = {"A"}, idx = 1, len = 1, cap = 1},
+            1,
+            "A",
+        },
+        {
+            {buf = {"A"}, idx = 1, len = 0, cap = 1},
+            1,
+            nil,
+        },
+        {
+            {buf = {"A"}, idx = 1, len = 1, cap = 1},
+            "1",
+            nil,
+        },
+        {
+            {buf = {"A"}, idx = 1, len = 1, cap = 1},
+            1.1,
+            nil,
+        },
+        {
+            {buf = {"A"}, idx = 1, len = 1, cap = 1},
+            0,
+            nil,
+        },
+        {
+            {buf = {"A"}, idx = 1, len = 1, cap = 1},
+            2,
+            nil,
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 1, cap = 3},
+            0,
+            nil,
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 0, cap = 3},
+            1,
+            nil,
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 1, cap = 3},
+            1,
+            "A",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 1, cap = 3},
+            2,
+            nil,
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 2, cap = 3},
+            2,
+            "B",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 2, cap = 3},
+            3,
+            nil,
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
+            3,
+            "C",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
+            4,
+            nil,
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
+            1,
+            "A",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 2, len = 3, cap = 3},
+            1,
+            "B",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 3, len = 3, cap = 3},
+            1,
+            "C",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
+            2,
+            "B",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 2, len = 3, cap = 3},
+            2,
+            "C",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 3, len = 3, cap = 3},
+            2,
+            "A",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
+            3,
+            "C",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 2, len = 3, cap = 3},
+            3,
+            "A",
+        },
+        {
+            {buf = {"A", "B", "C"}, idx = 3, len = 3, cap = 3},
+            3,
+            "B",
+        },
+    }
+end
+
+function test_decl.testRingGetSet(t)
+    t:reset()
+    t.fn()
+
+    local ring = t.env.ringNew(3)
+    assertEqual(nil, t.env.ringGet(ring, 1))
+    assertEqual(nil, t.env.ringGet(ring, 2))
+    assertEqual(nil, t.env.ringGet(ring, 3))
+
+    t.env.ringSet(ring, "A")
+    assertEqual("A", t.env.ringGet(ring, 1))
+    assertEqual(nil, t.env.ringGet(ring, 2))
+    assertEqual(nil, t.env.ringGet(ring, 3))
+
+    t.env.ringSet(ring, "B")
+    assertEqual("A", t.env.ringGet(ring, 1))
+    assertEqual("B", t.env.ringGet(ring, 2))
+    assertEqual(nil, t.env.ringGet(ring, 3))
+
+    t.env.ringSet(ring, "C")
+    assertEqual("A", t.env.ringGet(ring, 1))
+    assertEqual("B", t.env.ringGet(ring, 2))
+    assertEqual("C", t.env.ringGet(ring, 3))
+
+    t.env.ringSet(ring, "D")
+    assertEqual("B", t.env.ringGet(ring, 1))
+    assertEqual("C", t.env.ringGet(ring, 2))
+    assertEqual("D", t.env.ringGet(ring, 3))
+
+    t.env.ringSet(ring, "E")
+    assertEqual("C", t.env.ringGet(ring, 1))
+    assertEqual("D", t.env.ringGet(ring, 2))
+    assertEqual("E", t.env.ringGet(ring, 3))
+
+    t.env.ringSet(ring, "F")
+    assertEqual("D", t.env.ringGet(ring, 1))
+    assertEqual("E", t.env.ringGet(ring, 2))
+    assertEqual("F", t.env.ringGet(ring, 3))
+
+    t.env.ringSet(ring, "G")
+    assertEqual("E", t.env.ringGet(ring, 1))
+    assertEqual("F", t.env.ringGet(ring, 2))
+    assertEqual("G", t.env.ringGet(ring, 3))
+end
+
 local function buildMockServer()
     local server = {
         _addon_idx = 0,
