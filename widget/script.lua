@@ -1,5 +1,5 @@
-g_cmd = '?widget'
-g_spd_unit_tbl = {
+c_cmd = '?widget'
+c_spd_unit_tbl = {
     ['km/h'] = 216,
     ['kph'] = 216,
     ['kmph'] = 216,
@@ -11,7 +11,7 @@ g_spd_unit_tbl = {
     ['kt'] = 216000.0/1852.0,
     ['kn'] = 216000.0/1852.0,
 }
-g_alt_unit_tbl = {
+c_alt_unit_tbl = {
     ['m'] = 1,
     ['ft'] = 1.0/0.3048,
 }
@@ -20,7 +20,7 @@ g_usertemp = {}
 g_uim = nil
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
-    if cmd ~= g_cmd then
+    if cmd ~= c_cmd then
         return
     end
 
@@ -54,7 +54,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
                     'see "%s help" for list of subcommands'
                 ),
                 args[1],
-                g_cmd
+                c_cmd
             ),
             user_peer_id
         )
@@ -65,13 +65,13 @@ function execHelp(user_peer_id, is_admin, is_auth, args)
     server.announce(
         getAnnounceName(),
         (
-            g_cmd .. ' on\n' ..
-            g_cmd .. ' off\n' ..
-            g_cmd .. ' spdofs HOFS VOFS\n' ..
-            g_cmd .. ' altofs HOFS VOFS\n' ..
-            g_cmd .. ' spdunit UNIT\n' ..
-            g_cmd .. ' altunit UNIT\n' ..
-            g_cmd .. ' help'
+            c_cmd .. ' on\n' ..
+            c_cmd .. ' off\n' ..
+            c_cmd .. ' spdofs HOFS VOFS\n' ..
+            c_cmd .. ' altofs HOFS VOFS\n' ..
+            c_cmd .. ' spdunit UNIT\n' ..
+            c_cmd .. ' altunit UNIT\n' ..
+            c_cmd .. ' help'
         ),
         user_peer_id
     )
@@ -115,7 +115,7 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
                 param_name,
                 g_userdata[user_peer_id][param_key_hofs],
                 g_userdata[user_peer_id][param_key_vofs],
-                g_cmd,
+                c_cmd,
                 args[1]
             ),
             user_peer_id
@@ -166,7 +166,7 @@ function execSpdUnit(user_peer_id, is_admin, is_auth, args)
         args,
         'spdunit',
         'spd_unit',
-        g_spd_unit_tbl,
+        c_spd_unit_tbl,
         'available units are "km/h", "m/s", "kt"'
     )
 end
@@ -179,7 +179,7 @@ function execAltUnit(user_peer_id, is_admin, is_auth, args)
         args,
         'altunit',
         'alt_unit',
-        g_alt_unit_tbl,
+        c_alt_unit_tbl,
         'available units are "m", "ft"'
     )
 end
@@ -196,7 +196,7 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
                 ),
                 param_name,
                 g_userdata[user_peer_id][param_key],
-                g_cmd,
+                c_cmd,
                 args[1],
                 param_choices
             ),
@@ -326,7 +326,7 @@ function onTick(game_ticks)
         if usertemp['spd'] ~= nil then
             spdtxt = string.format(
                 'SPD\n%.2f%s',
-                usertemp['spd']*g_spd_unit_tbl[userdata['spd_unit']],
+                usertemp['spd']*c_spd_unit_tbl[userdata['spd_unit']],
                 userdata['spd_unit']
             )
         end
@@ -335,7 +335,7 @@ function onTick(game_ticks)
         if usertemp['alt'] ~= nil then
             alttxt = string.format(
                 'ALT\n%.2f%s',
-                usertemp['alt']*g_alt_unit_tbl[userdata['alt_unit']],
+                usertemp['alt']*c_alt_unit_tbl[userdata['alt_unit']],
                 userdata['alt_unit']
             )
         end
