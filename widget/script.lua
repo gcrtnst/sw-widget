@@ -82,7 +82,7 @@ function execOn(user_peer_id, is_admin, is_auth, args)
         server.announce(getAnnounceName(), "error: extra arguments", user_peer_id)
         return
     end
-    g_userdata[user_peer_id]["enabled"] = true
+    g_userdata[user_peer_id].enabled = true
     server.announce(getAnnounceName(), "widgets are now enabled", user_peer_id)
 end
 
@@ -91,7 +91,7 @@ function execOff(user_peer_id, is_admin, is_auth, args)
         server.announce(getAnnounceName(), "error: extra arguments", user_peer_id)
         return
     end
-    g_userdata[user_peer_id]["enabled"] = false
+    g_userdata[user_peer_id].enabled = false
     server.announce(getAnnounceName(), "widgets are now disabled", user_peer_id)
 end
 
@@ -229,15 +229,15 @@ end
 function onTick(game_ticks)
     local player_tbl = getPlayerTable()
     for _, player in pairs(player_tbl) do
-        if g_userdata[player["id"]] == nil then
-            g_userdata[player["id"]] = {
-                ["enabled"] = true,
-                ["spd_hofs"] = 0.8,
-                ["spd_vofs"] = -0.9,
-                ["spd_unit"] = "km/h",
-                ["alt_hofs"] = 0.9,
-                ["alt_vofs"] = -0.8,
-                ["alt_unit"] = "m",
+        if g_userdata[player.id] == nil then
+            g_userdata[player.id] = {
+                enabled = true,
+                spd_hofs = 0.8,
+                spd_vofs = -0.9,
+                spd_unit = "km/h",
+                alt_hofs = 0.9,
+                alt_vofs = -0.8,
+                alt_unit = "m",
             }
         end
     end
@@ -247,8 +247,8 @@ function onTick(game_ticks)
         end
     end
     for _, player in pairs(player_tbl) do
-        if g_usertemp[player["id"]] == nil then
-            g_usertemp[player["id"]] = {}
+        if g_usertemp[player.id] == nil then
+            g_usertemp[player.id] = {}
         end
     end
     for peer_id, _ in pairs(g_usertemp) do
@@ -258,7 +258,7 @@ function onTick(game_ticks)
     end
 
     for peer_id, _ in pairs(g_userdata) do
-        if not g_userdata[peer_id]["enabled"] then
+        if not g_userdata[peer_id].enabled then
             g_usertemp[peer_id] = {}
             goto continue
         end
@@ -267,9 +267,9 @@ function onTick(game_ticks)
         if not is_success then
             vehicle_id = nil
         end
-        if vehicle_id ~= g_usertemp[peer_id]["vehicle_id"] then
+        if vehicle_id ~= g_usertemp[peer_id].vehicle_id then
             g_usertemp[peer_id] = {
-                ["vehicle_id"] = vehicle_id,
+                vehicle_id = vehicle_id,
             }
         end
 
@@ -280,14 +280,14 @@ function onTick(game_ticks)
                 goto continue
             end
 
-            if g_usertemp[peer_id]["vehicle_pos"] ~= nil then
-                g_usertemp[peer_id]["spd"] = matrix.distance(vehicle_pos, g_usertemp[peer_id]["vehicle_pos"])
+            if g_usertemp[peer_id].vehicle_pos ~= nil then
+                g_usertemp[peer_id].spd = matrix.distance(vehicle_pos, g_usertemp[peer_id].vehicle_pos)
             end
-            g_usertemp[peer_id]["alt"] = table.pack(matrix.position(vehicle_pos))[2]
-            g_usertemp[peer_id]["vehicle_pos"] = vehicle_pos
+            g_usertemp[peer_id].alt = table.pack(matrix.position(vehicle_pos))[2]
+            g_usertemp[peer_id].vehicle_pos = vehicle_pos
         else
-            local player_log = g_usertemp[peer_id]["player_log"] or {}
-            local player_log_idx = g_usertemp[peer_id]["player_log_idx"] or 1
+            local player_log = g_usertemp[peer_id].player_log or {}
+            local player_log_idx = g_usertemp[peer_id].player_log_idx or 1
             local player_log_len = peer_id == 0 and 2 or 61
 
             local player_object_id, is_success = server.getPlayerCharacterID(peer_id)
@@ -306,11 +306,11 @@ function onTick(game_ticks)
 
             if #player_log > 1 then
                 local player_old_pos = player_log[player_log_idx] or player_log[1]
-                g_usertemp[peer_id]["spd"] = matrix.distance(player_old_pos, player_new_pos)/(#player_log - 1)
+                g_usertemp[peer_id].spd = matrix.distance(player_old_pos, player_new_pos)/(#player_log - 1)
             end
-            g_usertemp[peer_id]["alt"] = table.pack(matrix.position(player_new_pos))[2]
-            g_usertemp[peer_id]["player_log"] = player_log
-            g_usertemp[peer_id]["player_log_idx"] = player_log_idx
+            g_usertemp[peer_id].alt = table.pack(matrix.position(player_new_pos))[2]
+            g_usertemp[peer_id].player_log = player_log
+            g_usertemp[peer_id].player_log_idx = player_log_idx
         end
         ::continue::
     end
@@ -318,56 +318,56 @@ function onTick(game_ticks)
     for peer_id, _ in pairs(g_userdata) do
         local userdata = g_userdata[peer_id]
         local usertemp = g_usertemp[peer_id]
-        if not userdata["enabled"] then
+        if not userdata.enabled then
             goto continue
         end
 
         local spdtxt = "SPD\n---"
-        if usertemp["spd"] ~= nil then
+        if usertemp.spd ~= nil then
             spdtxt = string.format(
                 "SPD\n%.2f%s",
-                usertemp["spd"]*c_spd_unit_tbl[userdata["spd_unit"]],
-                userdata["spd_unit"]
+                usertemp.spd*c_spd_unit_tbl[userdata.spd_unit],
+                userdata.spd_unit
             )
         end
 
         local alttxt = "ALT\n---"
-        if usertemp["alt"] ~= nil then
+        if usertemp.alt ~= nil then
             alttxt = string.format(
                 "ALT\n%.2f%s",
-                usertemp["alt"]*c_alt_unit_tbl[userdata["alt_unit"]],
-                userdata["alt_unit"]
+                usertemp.alt*c_alt_unit_tbl[userdata.alt_unit],
+                userdata.alt_unit
             )
         end
 
-        g_uim:setPopupScreen(peer_id, g_savedata["spd_ui_id"], getAnnounceName(), true, spdtxt, userdata["spd_hofs"], userdata["spd_vofs"])
-        g_uim:setPopupScreen(peer_id, g_savedata["alt_ui_id"], getAnnounceName(), true, alttxt, userdata["alt_hofs"], userdata["alt_vofs"])
+        g_uim:setPopupScreen(peer_id, g_savedata.spd_ui_id, getAnnounceName(), true, spdtxt, userdata.spd_hofs, userdata.spd_vofs)
+        g_uim:setPopupScreen(peer_id, g_savedata.alt_ui_id, getAnnounceName(), true, alttxt, userdata.alt_hofs, userdata.alt_vofs)
         ::continue::
     end
     g_uim:flushPopup()
 
     if g_userdata[0] ~= nil then
-        g_savedata["hostdata"] = deepcopy(g_userdata[0])
+        g_savedata.hostdata = deepcopy(g_userdata[0])
     end
 end
 
 function onCreate(is_world_create)
     local version = 1
-    if g_savedata["version"] ~= version then
+    if g_savedata.version ~= version then
         g_savedata = {
-            ["version"] = version,
-            ["spd_ui_id"] = server.getMapID(),
-            ["alt_ui_id"] = server.getMapID(),
-            ["hostdata"] = nil,
+            version = version,
+            spd_ui_id = server.getMapID(),
+            alt_ui_id = server.getMapID(),
+            hostdata = nil,
         }
     end
-    if g_savedata["hostdata"] ~= nil then
-        g_userdata[0] = deepcopy(g_savedata["hostdata"])
+    if g_savedata.hostdata ~= nil then
+        g_userdata[0] = deepcopy(g_savedata.hostdata)
     end
 
     g_uim = buildUIManager()
-    server.removePopup(-1, g_savedata["spd_ui_id"])
-    server.removePopup(-1, g_savedata["alt_ui_id"])
+    server.removePopup(-1, g_savedata.spd_ui_id)
+    server.removePopup(-1, g_savedata.alt_ui_id)
 end
 
 function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
