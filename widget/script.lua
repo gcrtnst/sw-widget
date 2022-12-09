@@ -286,9 +286,10 @@ function onTick(game_ticks)
             g_usertemp[peer_id].alt = table.pack(matrix.position(vehicle_pos))[2]
             g_usertemp[peer_id].vehicle_pos = vehicle_pos
         else
-            local player_log = g_usertemp[peer_id].player_log or {}
-            local player_log_idx = g_usertemp[peer_id].player_log_idx or 1
-            local player_log_len = peer_id == 0 and 2 or 61
+            local player_pos_ring = g_usertemp[peer_id].player_pos_ring
+            if player_pos_ring == nil then
+                player_pos_ring = ringNew(peer_id == 0 and 2 or 61)
+            end
 
             local player_object_id, is_success = server.getPlayerCharacterID(peer_id)
             if not is_success then
@@ -300,17 +301,14 @@ function onTick(game_ticks)
                 g_usertemp[peer_id] = {}
                 goto continue
             end
+            ringSet(player_pos_ring, player_new_pos)
 
-            player_log[player_log_idx] = player_new_pos
-            player_log_idx = player_log_idx%player_log_len + 1
-
-            if #player_log > 1 then
-                local player_old_pos = player_log[player_log_idx] or player_log[1]
-                g_usertemp[peer_id].spd = matrix.distance(player_old_pos, player_new_pos)/(#player_log - 1)
+            if player_pos_ring.len > 1 then
+                local player_old_pos = ringGet(player_pos_ring, 1)
+                g_usertemp[peer_id].spd = matrix.distance(player_old_pos, player_new_pos)/(player_pos_ring.len - 1)
             end
             g_usertemp[peer_id].alt = table.pack(matrix.position(player_new_pos))[2]
-            g_usertemp[peer_id].player_log = player_log
-            g_usertemp[peer_id].player_log_idx = player_log_idx
+            g_usertemp[peer_id].player_pos_ring = player_pos_ring
         end
         ::continue::
     end
