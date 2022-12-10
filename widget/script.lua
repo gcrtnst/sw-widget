@@ -372,17 +372,6 @@ function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
 end
 
-function init()
-    g_userdata = {}
-    g_spd_ui_id = nil
-    g_alt_ui_id = nil
-    g_uim = buildUIManager()
-
-    local savedata = deepcopy(g_savedata)
-    if type(savedata) == "table" then
-    end
-end
-
 function buildUIManager()
     local uim = {
         _popup_old = {},
