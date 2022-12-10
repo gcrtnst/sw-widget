@@ -346,9 +346,7 @@ function onTick(game_ticks)
     end
     g_uim:flushPopup()
 
-    if g_userdata[0] ~= nil then
-        g_savedata.hostdata = deepcopy(g_userdata[0])
-    end
+    saveAddon()
 end
 
 function onCreate(is_world_create)
@@ -375,6 +373,30 @@ end
 
 function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+end
+
+function saveAddon()
+    local savedata = {
+        version = 1,
+        spd_ui_id = g_spd_ui_id,
+        alt_ui_id = g_alt_ui_id,
+        hostdata = nil,
+    }
+
+    local hostdata = g_userdata[0]
+    if hostdata ~= nil then
+        savedata.hostdata = {
+            enabled = hostdata.enabled,
+            spd_hofs = hostdata.spd_hofs,
+            spd_vofs = hostdata.spd_vofs,
+            spd_unit = hostdata.spd_unit,
+            alt_hofs = hostdata.alt_hofs,
+            alt_vofs = hostdata.alt_vofs,
+            alt_unit = hostdata.alt_unit,
+        }
+    end
+
+    g_savedata = savedata
 end
 
 function buildUIManager()
