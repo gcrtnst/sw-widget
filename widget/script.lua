@@ -17,6 +17,8 @@ c_alt_unit_tbl = {
 }
 g_userdata = {}
 g_usertemp = {}
+g_spd_ui_id = nil
+g_alt_ui_id = nil
 g_uim = nil
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
@@ -338,8 +340,8 @@ function onTick(game_ticks)
             )
         end
 
-        g_uim:setPopupScreen(peer_id, g_savedata.spd_ui_id, getAnnounceName(), true, spdtxt, userdata.spd_hofs, userdata.spd_vofs)
-        g_uim:setPopupScreen(peer_id, g_savedata.alt_ui_id, getAnnounceName(), true, alttxt, userdata.alt_hofs, userdata.alt_vofs)
+        g_uim:setPopupScreen(peer_id, g_spd_ui_id, getAnnounceName(), true, spdtxt, userdata.spd_hofs, userdata.spd_vofs)
+        g_uim:setPopupScreen(peer_id, g_alt_ui_id, getAnnounceName(), true, alttxt, userdata.alt_hofs, userdata.alt_vofs)
         ::continue::
     end
     g_uim:flushPopup()
@@ -359,13 +361,16 @@ function onCreate(is_world_create)
             hostdata = nil,
         }
     end
+
+    g_spd_ui_id = g_savedata.spd_ui_id
+    g_alt_ui_id = g_savedata.alt_ui_id
     if g_savedata.hostdata ~= nil then
         g_userdata[0] = deepcopy(g_savedata.hostdata)
     end
 
     g_uim = buildUIManager()
-    server.removePopup(-1, g_savedata.spd_ui_id)
-    server.removePopup(-1, g_savedata.alt_ui_id)
+    server.removePopup(-1, g_spd_ui_id)
+    server.removePopup(-1, g_alt_ui_id)
 end
 
 function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
