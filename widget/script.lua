@@ -375,6 +375,40 @@ function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
 end
 
+function loadAddon()
+    if type(g_savedata) == "table" and g_savedata.version == 1 then
+        if type(g_savedata.spd_ui_id) == "number" then
+            g_spd_ui_id = g_savedata.spd_ui_id
+        end
+        if type(g_savedata.alt_ui_id) == "number" then
+            g_alt_ui_id = g_savedata.alt_ui_id
+        end
+        if type(g_savedata.hostdata) == "table" and g_userdata[0] ~= nil then
+            if type(g_savedata.hostdata.enabled) == "boolean" then
+                g_userdata[0].enabled = g_savedata.hostdata.enabled
+            end
+            if type(g_savedata.hostdata.spd_hofs) == "number" and -1 <= g_savedata.hostdata.spd_hofs and g_savedata.hostdata.spd_hofs <= 1 then
+                g_userdata[0].spd_hofs = g_savedata.hostdata.spd_hofs
+            end
+            if type(g_savedata.hostdata.spd_vofs) == "number" and -1 <= g_savedata.hostdata.spd_vofs and g_savedata.hostdata.spd_vofs <= 1 then
+                g_userdata[0].spd_vofs = g_savedata.hostdata.spd_vofs
+            end
+            if type(g_savedata.hostdata.spd_unit) == "string" and c_spd_unit_tbl[g_savedata.hostdata.spd_unit] ~= nil then
+                g_userdata[0].spd_unit = g_savedata.hostdata.spd_unit
+            end
+            if type(g_savedata.hostdata.alt_hofs) == "number" and -1 <= g_savedata.hostdata.alt_hofs and g_savedata.hostdata.alt_hofs <= 1 then
+                g_userdata[0].alt_hofs = g_savedata.hostdata.alt_hofs
+            end
+            if type(g_savedata.hostdata.alt_vofs) == "number" and -1 <= g_savedata.hostdata.alt_vofs and g_savedata.hostdata.alt_vofs <= 1 then
+                g_userdata[0].alt_vofs = g_savedata.hostdata.alt_vofs
+            end
+            if type(g_savedata.hostdata.alt_unit) == "string" and c_alt_unit_tbl[g_savedata.hostdata.alt_unit] ~= nil then
+                g_userdata[0].alt_unit = g_savedata.hostdata.alt_unit
+            end
+        end
+    end
+end
+
 function saveAddon()
     local savedata = {
         version = 1,
