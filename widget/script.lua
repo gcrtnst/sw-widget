@@ -15,11 +15,6 @@ c_alt_unit_tbl = {
     ["m"] = 1,
     ["ft"] = 1.0/0.3048,
 }
-g_userdata = {}
-g_usertemp = {}
-g_spd_ui_id = nil
-g_alt_ui_id = nil
-g_uim = nil
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
     if cmd ~= c_cmd then
@@ -342,23 +337,22 @@ function onTick(game_ticks)
 end
 
 function onCreate(is_world_create)
-    local version = 1
-    if g_savedata.version ~= version then
-        g_savedata = {
-            version = version,
-            spd_ui_id = server.getMapID(),
-            alt_ui_id = server.getMapID(),
-            hostdata = nil,
-        }
-    end
-
-    g_spd_ui_id = g_savedata.spd_ui_id
-    g_alt_ui_id = g_savedata.alt_ui_id
-    if g_savedata.hostdata ~= nil then
-        g_userdata[0] = deepcopy(g_savedata.hostdata)
-    end
-
+    g_userdata = {[0] = newUserData()}
+    g_usertemp = {[0] = {}}
+    g_spd_ui_id = nil
+    g_alt_ui_id = nil
     g_uim = buildUIManager()
+
+    loadAddon()
+
+    if g_spd_ui_id == nil then
+        g_spd_ui_id = server.getMapID()
+    end
+    if g_alt_ui_id == nil then
+        g_alt_ui_id = server.getMapID()
+    end
+    saveAddon()
+
     server.removePopup(-1, g_spd_ui_id)
     server.removePopup(-1, g_alt_ui_id)
 end
@@ -535,20 +529,6 @@ function getPlayerVehicle(peer_id)
         return 0, false
     end
     return server.getCharacterVehicle(object_id)
-end
-
-function deepcopy(v)
-    if type(v) ~= "table" then
-        return v
-    end
-
-    local tbl = {}
-    for key, val in pairs(v) do
-        key = deepcopy(key)
-        val = deepcopy(val)
-        tbl[key] = val
-    end
-    return tbl
 end
 
 function ringNew(cap)
