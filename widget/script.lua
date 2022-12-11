@@ -256,11 +256,10 @@ function onTick(game_ticks)
         if not is_success then
             vehicle_id = nil
         end
-        if vehicle_id ~= g_usertemp[peer_id].vehicle_id then
-            g_usertemp[peer_id] = {
-                vehicle_id = vehicle_id,
-            }
+        if vehicle_id ~= g_userdata[peer_id].vehicle_id then
+            g_usertemp[peer_id] = {}
         end
+        g_userdata[peer_id].vehicle_id = vehicle_id
 
         if vehicle_id ~= nil then
             local vehicle_pos, is_success = server.getVehiclePos(vehicle_id)
@@ -370,6 +369,8 @@ function newUserData()
         alt_hofs = 0.9,
         alt_vofs = -0.8,
         alt_unit = "m",
+
+        vehicle_id = nil,
     }
 end
 
