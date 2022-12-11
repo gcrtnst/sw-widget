@@ -417,16 +417,15 @@ function saveAddon()
         hostdata = nil,
     }
 
-    local hostdata = g_userdata[0]
-    if hostdata ~= nil then
+    if g_userdata[0] ~= nil then
         savedata.hostdata = {
-            enabled = hostdata.enabled,
-            spd_hofs = hostdata.spd_hofs,
-            spd_vofs = hostdata.spd_vofs,
-            spd_unit = hostdata.spd_unit,
-            alt_hofs = hostdata.alt_hofs,
-            alt_vofs = hostdata.alt_vofs,
-            alt_unit = hostdata.alt_unit,
+            enabled = g_userdata[0].enabled,
+            spd_hofs = g_userdata[0].spd_hofs,
+            spd_vofs = g_userdata[0].spd_vofs,
+            spd_unit = g_userdata[0].spd_unit,
+            alt_hofs = g_userdata[0].alt_hofs,
+            alt_vofs = g_userdata[0].alt_vofs,
+            alt_unit = g_userdata[0].alt_unit,
         }
     end
 
