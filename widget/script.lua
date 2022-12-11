@@ -232,15 +232,7 @@ function onTick(game_ticks)
     local player_tbl = getPlayerTable()
     for _, player in pairs(player_tbl) do
         if g_userdata[player.id] == nil then
-            g_userdata[player.id] = {
-                enabled = true,
-                spd_hofs = 0.8,
-                spd_vofs = -0.9,
-                spd_unit = "km/h",
-                alt_hofs = 0.9,
-                alt_vofs = -0.8,
-                alt_unit = "m",
-            }
+            g_userdata[player.id] = newUserData()
         end
     end
     for peer_id, _ in pairs(g_userdata) do
@@ -373,6 +365,18 @@ end
 
 function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+end
+
+function newUserData()
+    return {
+        enabled = true,
+        spd_hofs = 0.8,
+        spd_vofs = -0.9,
+        spd_unit = "km/h",
+        alt_hofs = 0.9,
+        alt_vofs = -0.8,
+        alt_unit = "m",
+    }
 end
 
 function loadAddon()
