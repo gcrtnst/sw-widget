@@ -248,6 +248,8 @@ function onTick(game_ticks)
 
     for peer_id, _ in pairs(g_userdata) do
         if not g_userdata[peer_id].enabled then
+            g_userdata[peer_id].vehicle_id = nil
+            g_userdata[peer_id].vehicle_pos = nil
             g_usertemp[peer_id] = {}
             goto continue
         end
@@ -257,6 +259,7 @@ function onTick(game_ticks)
             vehicle_id = nil
         end
         if vehicle_id ~= g_userdata[peer_id].vehicle_id then
+            g_userdata[peer_id].vehicle_pos = nil
             g_usertemp[peer_id] = {}
         end
         g_userdata[peer_id].vehicle_id = vehicle_id
@@ -264,15 +267,16 @@ function onTick(game_ticks)
         if vehicle_id ~= nil then
             local vehicle_pos, is_success = server.getVehiclePos(vehicle_id)
             if not is_success then
+                g_userdata[peer_id].vehicle_pos = nil
                 g_usertemp[peer_id] = {}
                 goto continue
             end
 
-            if g_usertemp[peer_id].vehicle_pos ~= nil then
-                g_usertemp[peer_id].spd = matrix.distance(vehicle_pos, g_usertemp[peer_id].vehicle_pos)
+            if g_userdata[peer_id].vehicle_pos ~= nil then
+                g_usertemp[peer_id].spd = matrix.distance(vehicle_pos, g_userdata[peer_id].vehicle_pos)
             end
             g_usertemp[peer_id].alt = table.pack(matrix.position(vehicle_pos))[2]
-            g_usertemp[peer_id].vehicle_pos = vehicle_pos
+            g_userdata[peer_id].vehicle_pos = vehicle_pos
         else
             local player_pos_ring = g_usertemp[peer_id].player_pos_ring
             if player_pos_ring == nil then
@@ -371,6 +375,7 @@ function newUserData()
         alt_unit = "m",
 
         vehicle_id = nil,
+        vehicle_pos = nil,
     }
 end
 
