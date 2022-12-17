@@ -227,7 +227,7 @@ function onTick(game_ticks)
     local player_tbl = getPlayerTable()
     for _, player in pairs(player_tbl) do
         if g_userdata[player.id] == nil then
-            g_userdata[player.id] = newUserData()
+            g_userdata[player.id] = newUserData(player.id ~= 0)
         end
     end
     for peer_id, _ in pairs(g_userdata) do
@@ -250,6 +250,7 @@ function onTick(game_ticks)
         if not g_userdata[peer_id].enabled then
             g_userdata[peer_id].vehicle_id = nil
             g_userdata[peer_id].vehicle_pos = nil
+            ringClear(g_userdata[peer_id].player_pos_ring)
             g_usertemp[peer_id] = {}
             goto continue
         end
@@ -260,6 +261,7 @@ function onTick(game_ticks)
         end
         if vehicle_id ~= g_userdata[peer_id].vehicle_id then
             g_userdata[peer_id].vehicle_pos = nil
+            ringClear(g_usertemp[peer_id].player_pos_ring)
             g_usertemp[peer_id] = {}
         end
         g_userdata[peer_id].vehicle_id = vehicle_id
@@ -278,18 +280,17 @@ function onTick(game_ticks)
             g_usertemp[peer_id].alt = table.pack(matrix.position(vehicle_pos))[2]
             g_userdata[peer_id].vehicle_pos = vehicle_pos
         else
-            local player_pos_ring = g_usertemp[peer_id].player_pos_ring
-            if player_pos_ring == nil then
-                player_pos_ring = ringNew(peer_id == 0 and 2 or 61)
-            end
+            local player_pos_ring = g_userdata[peer_id].player_pos_ring
 
             local player_object_id, is_success = server.getPlayerCharacterID(peer_id)
             if not is_success then
+                ringClear(player_pos_ring)
                 g_usertemp[peer_id] = {}
                 goto continue
             end
             local player_new_pos, is_success = server.getObjectPos(player_object_id)
             if not is_success then
+                ringClear(player_pos_ring)
                 g_usertemp[peer_id] = {}
                 goto continue
             end
@@ -300,7 +301,6 @@ function onTick(game_ticks)
                 g_usertemp[peer_id].spd = matrix.distance(player_old_pos, player_new_pos)/(player_pos_ring.len - 1)
             end
             g_usertemp[peer_id].alt = table.pack(matrix.position(player_new_pos))[2]
-            g_usertemp[peer_id].player_pos_ring = player_pos_ring
         end
         ::continue::
     end
@@ -340,7 +340,7 @@ function onTick(game_ticks)
 end
 
 function onCreate(is_world_create)
-    g_userdata = {[0] = newUserData()}
+    g_userdata = {[0] = newUserData(false)}
     g_usertemp = {[0] = {}}
     g_spd_ui_id = nil
     g_alt_ui_id = nil
@@ -364,7 +364,7 @@ function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
 end
 
-function newUserData()
+function newUserData(is_guest)
     return {
         enabled = true,
         spd_hofs = 0.8,
@@ -376,6 +376,7 @@ function newUserData()
 
         vehicle_id = nil,
         vehicle_pos = nil,
+        player_pos_ring = ringNew(is_guest and 61 or 2),
     }
 end
 
