@@ -542,12 +542,20 @@ function ringNew(cap)
         return nil
     end
 
-    return {
-        buf = {},
-        idx = 1,
-        len = 0,
+    ring = {
+        buf = nil,
+        idx = nil,
+        len = nil,
         cap = cap,
     }
+    ringClear(ring)
+    return ring
+end
+
+function ringClear(ring)
+    ring.buf = {}
+    ring.idx = 1
+    ring.len = 0
 end
 
 function ringSet(ring, item)

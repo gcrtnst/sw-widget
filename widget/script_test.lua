@@ -644,6 +644,32 @@ function test_decl.testRingNew(t)
     end
 end
 
+function test_decl.testRingClear(t)
+    local tests = {
+        {
+            {buf = {}, idx = 1, len = 0, cap = 4},
+            {buf = {}, idx = 1, len = 0, cap = 4},
+        },
+        {
+            {buf = {"A", "B"}, idx = 1, len = 2, cap = 4},
+            {buf = {}, idx = 1, len = 0, cap = 4},
+        },
+        {
+            {buf = {"E", "B", "C", "D"}, idx = 2, len = 4, cap = 4},
+            {buf = {}, idx = 1, len = 0, cap = 4},
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local got_ring, want_ring = table.unpack(tt)
+        t:reset()
+        t.fn()
+
+        t.env.ringClear(got_ring)
+        assertEqual(want_ring, got_ring)
+    end
+end
+
 function test_decl.testRingSet(t)
     local tests = {
         {
