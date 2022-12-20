@@ -437,6 +437,13 @@ function saveAddon()
     g_savedata = savedata
 end
 
+function buildTracker()
+    local tracker = {
+    }
+
+    return tracker
+end
+
 function buildUIManager()
     local uim = {
         _popup_old = {},
