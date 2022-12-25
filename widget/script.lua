@@ -376,6 +376,18 @@ function formatSpd(spd, spd_unit)
     )
 end
 
+function formatAlt(alt, alt_unit)
+    if type(alt) ~= "number" or type(alt_unit) ~= "string" or c_alt_unit_tbl[alt_unit] == nil then
+        return "ALT\n---"
+    end
+
+    return string.format(
+        "ALT\n%.2f%s",
+        alt*c_alt_unit_tbl[alt_unit],
+        alt_unit
+    )
+end
+
 function newUserData(is_guest)
     return {
         enabled = true,

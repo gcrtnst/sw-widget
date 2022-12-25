@@ -49,6 +49,28 @@ function test_decl.testFormatSpd(t)
     end
 end
 
+function test_decl.testFormatAlt(t)
+    local tests = {
+        {nil, "m", "ALT\n---"},
+        {0, nil, "ALT\n---"},
+        {0, "invalid", "ALT\n---"},
+        {1.5, "m", "ALT\n1.50m"},
+        {1.5/(1.0/0.3048), "ft", "ALT\n1.50ft"},
+        {0.0/0.0, "m", "ALT\nnanm"},
+        {1.0/0.0, "m", "ALT\ninfm"},
+        {-1.0/0.0, "m", "ALT\n-infm"},
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_alt, in_alt_unit, want_txt = table.unpack(tt)
+        t:reset()
+        t.fn()
+
+        local got_txt = t.env.formatAlt(in_alt, in_alt_unit)
+        assertEqual(want_txt, got_txt)
+    end
+end
+
 function test_decl.testTrackerPlayerGet(t)
     t:reset()
     t.fn()
