@@ -227,7 +227,7 @@ function onTick(game_ticks)
     local player_tbl = getPlayerTable()
     for _, player in pairs(player_tbl) do
         if g_userdata[player.id] == nil then
-            g_userdata[player.id] = newUserData(player.id ~= 0)
+            g_userdata[player.id] = newUserData()
         end
     end
     for peer_id, _ in pairs(g_userdata) do
@@ -235,115 +235,53 @@ function onTick(game_ticks)
             g_userdata[peer_id] = nil
         end
     end
-    for _, player in pairs(player_tbl) do
-        if g_usertemp[player.id] == nil then
-            g_usertemp[player.id] = {}
-        end
-    end
-    for peer_id, _ in pairs(g_usertemp) do
-        if player_tbl[peer_id] == nil then
-            g_usertemp[peer_id] = nil
-        end
-    end
 
     for peer_id, _ in pairs(g_userdata) do
         if not g_userdata[peer_id].enabled then
-            g_userdata[peer_id].vehicle_id = nil
-            g_userdata[peer_id].vehicle_pos = nil
-            ringClear(g_userdata[peer_id].player_pos_ring)
-            g_usertemp[peer_id] = {}
             goto continue
         end
 
+        local spd = nil
+        local alt = nil
         local vehicle_id, is_success = getPlayerVehicle(peer_id)
-        if not is_success then
-            vehicle_id = nil
-        end
-        if vehicle_id ~= g_userdata[peer_id].vehicle_id then
-            g_userdata[peer_id].vehicle_pos = nil
-            ringClear(g_usertemp[peer_id].player_pos_ring)
-            g_usertemp[peer_id] = {}
-        end
-        g_userdata[peer_id].vehicle_id = vehicle_id
-
-        if vehicle_id ~= nil then
-            local vehicle_pos, is_success = server.getVehiclePos(vehicle_id)
-            if not is_success then
-                g_userdata[peer_id].vehicle_pos = nil
-                g_usertemp[peer_id] = {}
-                goto continue
-            end
-
-            if g_userdata[peer_id].vehicle_pos ~= nil then
-                g_usertemp[peer_id].spd = matrix.distance(vehicle_pos, g_userdata[peer_id].vehicle_pos)
-            end
-            g_usertemp[peer_id].alt = table.pack(matrix.position(vehicle_pos))[2]
-            g_userdata[peer_id].vehicle_pos = vehicle_pos
+        if is_success then
+            spd, alt = g_tracker:getVehicleSpdAlt(vehicle_id)
         else
-            local player_pos_ring = g_userdata[peer_id].player_pos_ring
-
-            local player_object_id, is_success = server.getPlayerCharacterID(peer_id)
-            if not is_success then
-                ringClear(player_pos_ring)
-                g_usertemp[peer_id] = {}
-                goto continue
-            end
-            local player_new_pos, is_success = server.getObjectPos(player_object_id)
-            if not is_success then
-                ringClear(player_pos_ring)
-                g_usertemp[peer_id] = {}
-                goto continue
-            end
-            ringSet(player_pos_ring, player_new_pos)
-
-            if player_pos_ring.len > 1 then
-                local player_old_pos = ringGet(player_pos_ring, 1)
-                g_usertemp[peer_id].spd = matrix.distance(player_old_pos, player_new_pos)/(player_pos_ring.len - 1)
-            end
-            g_usertemp[peer_id].alt = table.pack(matrix.position(player_new_pos))[2]
+            spd, alt = g_tracker:getPlayerSpdAlt(peer_id)
         end
+
+        g_uim:setPopupScreen(
+            peer_id,
+            g_spd_ui_id,
+            getAnnounceName(),
+            true,
+            formatSpd(spd, g_userdata[peer_id].spd_unit),
+            g_userdata[peer_id].spd_hofs,
+            g_userdata[peer_id].spd_vofs
+        )
+        g_uim:setPopupScreen(
+            peer_id,
+            g_alt_ui_id,
+            getAnnounceName(),
+            true,
+            formatAlt(alt, g_userdata[peer_id].alt_unit),
+            g_userdata[peer_id].alt_hofs,
+            g_userdata[peer_id].alt_vofs
+        )
         ::continue::
     end
 
-    for peer_id, _ in pairs(g_userdata) do
-        local userdata = g_userdata[peer_id]
-        local usertemp = g_usertemp[peer_id]
-        if not userdata.enabled then
-            goto continue
-        end
-
-        local spdtxt = "SPD\n---"
-        if usertemp.spd ~= nil then
-            spdtxt = string.format(
-                "SPD\n%.2f%s",
-                usertemp.spd*c_spd_unit_tbl[userdata.spd_unit],
-                userdata.spd_unit
-            )
-        end
-
-        local alttxt = "ALT\n---"
-        if usertemp.alt ~= nil then
-            alttxt = string.format(
-                "ALT\n%.2f%s",
-                usertemp.alt*c_alt_unit_tbl[userdata.alt_unit],
-                userdata.alt_unit
-            )
-        end
-
-        g_uim:setPopupScreen(peer_id, g_spd_ui_id, getAnnounceName(), true, spdtxt, userdata.spd_hofs, userdata.spd_vofs)
-        g_uim:setPopupScreen(peer_id, g_alt_ui_id, getAnnounceName(), true, alttxt, userdata.alt_hofs, userdata.alt_vofs)
-        ::continue::
-    end
+    g_tracker:tick()
     g_uim:flushPopup()
 
     saveAddon()
 end
 
 function onCreate(is_world_create)
-    g_userdata = {[0] = newUserData(false)}
-    g_usertemp = {[0] = {}}
+    g_userdata = {[0] = newUserData()}
     g_spd_ui_id = nil
     g_alt_ui_id = nil
+    g_tracker = buildTracker()
     g_uim = buildUIManager()
 
     loadAddon()
@@ -388,7 +326,7 @@ function formatAlt(alt, alt_unit)
     )
 end
 
-function newUserData(is_guest)
+function newUserData()
     return {
         enabled = true,
         spd_hofs = 0.8,
@@ -397,10 +335,6 @@ function newUserData(is_guest)
         alt_hofs = 0.9,
         alt_vofs = -0.8,
         alt_unit = "m",
-
-        vehicle_id = nil,
-        vehicle_pos = nil,
-        player_pos_ring = ringNew(is_guest and 61 or 2),
     }
 end
 
@@ -659,19 +593,12 @@ function ringNew(cap)
     end
 
     ring = {
-        buf = nil,
-        idx = nil,
-        len = nil,
+        buf = {},
+        idx = 1,
+        len = 0,
         cap = cap,
     }
-    ringClear(ring)
     return ring
-end
-
-function ringClear(ring)
-    ring.buf = {}
-    ring.idx = 1
-    ring.len = 0
 end
 
 function ringSet(ring, item)
