@@ -364,6 +364,18 @@ function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
 end
 
+function formatSpd(spd, spd_unit)
+    if type(spd) ~= "number" or type(spd_unit) ~= "string" or c_spd_unit_tbl[spd_unit] == nil then
+        return "SPD\n---"
+    end
+
+    return string.format(
+        "SPD\n%.2f%s",
+        spd*c_spd_unit_tbl[spd_unit],
+        spd_unit
+    )
+end
+
 function newUserData(is_guest)
     return {
         enabled = true,

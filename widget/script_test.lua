@@ -26,6 +26,29 @@ local function assertEqual(want, got)
     end
 end
 
+function test_decl.testFormatSpd(t)
+    local tests = {
+        {nil, "km/h", "SPD\n---"},
+        {0, nil, "SPD\n---"},
+        {0, "invalid", "SPD\n---"},
+        {1.5/216, "km/h", "SPD\n1.50km/h"},
+        {1.5/60, "m/s", "SPD\n1.50m/s"},
+        {1.5/(216000.0/1852.0), "kt", "SPD\n1.50kt"},
+        {0.0/0.0, "km/h", "SPD\nnankm/h"},
+        {1.0/0.0, "km/h", "SPD\ninfkm/h"},
+        {-1.0/0.0, "km/h", "SPD\n-infkm/h"},
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_spd, in_spd_unit, want_txt = table.unpack(tt)
+        t:reset()
+        t.fn()
+
+        local got_txt = t.env.formatSpd(in_spd, in_spd_unit)
+        assertEqual(want_txt, got_txt)
+    end
+end
+
 function test_decl.testTrackerPlayerGet(t)
     t:reset()
     t.fn()
