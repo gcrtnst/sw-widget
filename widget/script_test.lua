@@ -768,6 +768,63 @@ function test_decl.testUIMPopupJoin(t)
     assertEqual(8, t.env.server._popup_update_cnt)
 end
 
+function test_decl.testGetPlayerPos(t)
+    local tests = {
+        {
+            {[0] = 1},
+            {
+                [1] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    2, 3, 4, 1,
+                },
+            },
+            0,
+            {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                2, 3, 4, 1,
+            },
+            true,
+        },
+        {
+            {},
+            {
+                [1] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    2, 3, 4, 1,
+                },
+            },
+            0,
+            nil,
+            false,
+        },
+        {
+            {[0] = 1},
+            {},
+            0,
+            nil,
+            false,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_player_character_tbl, in_object_pos_tbl, in_peer_id, want_object_pos, want_is_success = table.unpack(tt)
+        t:reset()
+        t.fn()
+        t.env.server._player_character_tbl = in_player_character_tbl
+        t.env.server._object_pos_tbl = in_object_pos_tbl
+
+        local got_object_pos, got_is_success = t.env.getPlayerPos(in_peer_id)
+        assertEqual(want_object_pos, got_object_pos)
+        assertEqual(want_is_success, got_is_success)
+    end
+end
+
 function test_decl.testGetAddonName(t)
     local tests = {
         {0, false, {}, "???"},
@@ -1213,6 +1270,7 @@ local function buildMockServer()
         _player_list = {},
         _player_character_tbl = {},
         _character_vehicle_tbl = {},
+        _object_pos_tbl = {},
         _vehicle_pos_tbl = {},
     }
 
@@ -1260,6 +1318,11 @@ local function buildMockServer()
             return 0, false
         end
         return vehicle_id, true
+    end
+
+    function server.getObjectPos(object_id)
+        local object_pos = server._object_pos_tbl[object_id]
+        return object_pos, object_pos ~= nil
     end
 
     function server.getVehiclePos(vehicle_id, voxel_x, voxel_y, voxel_z)

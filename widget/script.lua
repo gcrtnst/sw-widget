@@ -542,6 +542,20 @@ function buildUIManager()
     return uim
 end
 
+function getPlayerPos(peer_id)
+    local object_id, is_success = server.getPlayerCharacterID(peer_id)
+    if not is_success then
+        return nil, false
+    end
+
+    local object_pos, is_success = server.getObjectPos(object_id)
+    if not is_success then
+        return nil, false
+    end
+
+    return object_pos, true
+end
+
 function getAddonName()
     local addon_index, is_success = server.getAddonIndex()
     if not is_success then
