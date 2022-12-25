@@ -26,6 +26,431 @@ local function assertEqual(want, got)
     end
 end
 
+function test_decl.testTrackerPlayerGet(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[0] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 3, 4, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+end
+
+function test_decl.testTrackerPlayerCache(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[0] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 3, 4, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+
+    t.env.server._object_pos_tbl[1] = nil
+
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+end
+
+function test_decl.testTrackerPlayerCacheExpiry(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[0] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 3, 4, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+
+    t.env.server._object_pos_tbl[1] = nil
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(nil, alt)
+end
+
+function test_decl.testTrackerPlayerCacheMulti(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[1] = 2
+    t.env.server._player_character_tbl[3] = 4
+    t.env.server._object_pos_tbl[2] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        5, 6, 7, 1,
+    }
+    t.env.server._object_pos_tbl[4] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        8, 9, 10, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(1)
+    assertEqual(nil, spd)
+    assertEqual(6, alt)
+    spd, alt = tracker:getPlayerSpdAlt(3)
+    assertEqual(nil, spd)
+    assertEqual(9, alt)
+
+    t.env.server._object_pos_tbl[2] = nil
+    t.env.server._object_pos_tbl[4] = nil
+
+    spd, alt = tracker:getPlayerSpdAlt(1)
+    assertEqual(nil, spd)
+    assertEqual(6, alt)
+    spd, alt = tracker:getPlayerSpdAlt(3)
+    assertEqual(nil, spd)
+    assertEqual(9, alt)
+end
+
+function test_decl.testTrackerPlayerFail(t)
+    t:reset()
+    t.fn()
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(nil, alt)
+end
+
+function test_decl.testTrackerPlayerFailCache(t)
+    t:reset()
+    t.fn()
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(nil, alt)
+
+    t.env.server._player_character_tbl[0] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 3, 4, 1,
+    }
+
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+end
+
+function test_decl.testTrackerPlayerFailTrackContinue(t)
+    t:reset()
+    t.fn()
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(nil, alt)
+
+    t.env.server._player_character_tbl[0] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 3, 4, 1,
+    }
+
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 8, 4, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(5, spd)
+    assertEqual(8, alt)
+end
+
+function test_decl.testTrackerPlayerFailTrackStopHost(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[0] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 3, 4, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+
+    t.env.server._object_pos_tbl[1] = nil
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(nil, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 8, 4, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(8, alt)
+end
+
+function test_decl.testTrackerPlayerFailTrackStopGuest(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[9] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 3, 4, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(9)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+
+    t.env.server._object_pos_tbl[1] = nil
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(9)
+    assertEqual(nil, spd)
+    assertEqual(nil, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 8, 4, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(9)
+    assertEqual(nil, spd)
+    assertEqual(8, alt)
+end
+
+function test_decl.testTrackerPlayerTrackHost(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[0] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 3, 4, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        2, 8, 4, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(5, spd)
+    assertEqual(8, alt)
+end
+
+function test_decl.testTrackerPlayerTrackHostExpiry(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[0] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 2, 0, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(nil, spd)
+    assertEqual(2, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 3, 0, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(1, spd)
+    assertEqual(3, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 5, 0, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(0)
+    assertEqual(2, spd)
+    assertEqual(5, alt)
+end
+
+function test_decl.testTrackerPlayerTrackGuest(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[2] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 3, 0, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(2)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1,
+    }
+
+    for i = 2, 60 do
+        tracker:tickPlayer()
+        tracker:getPlayerSpdAlt(2)
+    end
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 63, 0, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(2)
+    assertEqual(1, spd)
+    assertEqual(63, alt)
+end
+
+function test_decl.testTrackerPlayerTrackGuestExpiry(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[2] = 1
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 3, 0, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(2)
+    assertEqual(nil, spd)
+    assertEqual(3, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 4, 0, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(2)
+    assertEqual(1, spd)
+    assertEqual(4, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1,
+    }
+
+    for i = 3, 60 do
+        tracker:tickPlayer()
+        tracker:getPlayerSpdAlt(2)
+    end
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 63, 0, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(2)
+    assertEqual(1, spd)
+    assertEqual(63, alt)
+
+    t.env.server._object_pos_tbl[1] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 124, 0, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(2)
+    assertEqual(2, spd)
+    assertEqual(124, alt)
+end
+
 function test_decl.testTrackerVehicleGet(t)
     t:reset()
     t.fn()

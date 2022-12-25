@@ -439,9 +439,47 @@ end
 
 function buildTracker()
     local tracker = {
+        _player_pos_ring = {},
+        _player_pos = {},
         _vehicle_pos_old = {},
         _vehicle_pos_new = {},
     }
+
+    function tracker:getPlayerSpdAlt(peer_id)
+        local player_pos_new = self._player_pos[peer_id]
+        if player_pos_new == nil then
+            local is_success
+            player_pos_new, is_success = getPlayerPos(peer_id)
+            if not is_success then
+                return nil, nil
+            end
+            self._player_pos[peer_id] = player_pos_new
+        end
+
+        local spd = nil
+        local _, alt, _ = matrix.position(player_pos_new)
+        local player_pos_ring = self._player_pos_ring[peer_id]
+        if player_pos_ring ~= nil and player_pos_ring.len > 0 then
+            local player_pos_old = ringGet(player_pos_ring, 1)
+            spd = matrix.distance(player_pos_old, player_pos_new)/player_pos_ring.len
+        end
+        return spd, alt
+    end
+
+    function tracker:tickPlayer()
+        local player_pos_ring_tbl = {}
+        for peer_id, player_pos in pairs(self._player_pos) do
+            local player_pos_ring = self._player_pos_ring[peer_id]
+            if player_pos_ring == nil then
+                player_pos_ring = ringNew(peer_id == 0 and 1 or 60)
+            end
+            ringSet(player_pos_ring, player_pos)
+            player_pos_ring_tbl[peer_id] = player_pos_ring
+        end
+
+        self._player_pos_ring = player_pos_ring_tbl
+        self._player_pos = {}
+    end
 
     function tracker:getVehicleSpdAlt(vehicle_id)
         local vehicle_pos_new = self._vehicle_pos_new[vehicle_id]
@@ -469,6 +507,7 @@ function buildTracker()
     end
 
     function tracker:tick()
+        self:tickPlayer()
         self:tickVehicle()
     end
 
