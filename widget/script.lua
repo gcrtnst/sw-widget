@@ -298,6 +298,11 @@ function onCreate(is_world_create)
     server.removePopup(-1, g_alt_ui_id)
 end
 
+function onDestroy()
+    server.removePopup(-1, g_spd_ui_id)
+    server.removePopup(-1, g_alt_ui_id)
+end
+
 function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
 end
