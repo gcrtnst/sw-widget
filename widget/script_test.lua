@@ -26,6 +26,324 @@ local function assertEqual(want, got)
     end
 end
 
+function test_decl.testSyncPlayers(t)
+    local tests = {
+        {   -- add guest
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+            },
+            {
+                { id = 0 },
+                { id = 1 },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 0.8,
+                    spd_vofs = -0.9,
+                    spd_unit = "km/h",
+                    alt_hofs = 0.9,
+                    alt_vofs = -0.8,
+                    alt_unit = "m",
+                },
+            },
+        },
+        {   -- add host
+            {},
+            {},
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.8,
+                    spd_vofs = -0.9,
+                    spd_unit = "km/h",
+                    alt_hofs = 0.9,
+                    alt_vofs = -0.8,
+                    alt_unit = "m",
+                },
+            },
+        },
+        {   -- add multi
+            {},
+            {
+                { id = 1 },
+                { id = 2 },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.8,
+                    spd_vofs = -0.9,
+                    spd_unit = "km/h",
+                    alt_hofs = 0.9,
+                    alt_vofs = -0.8,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 0.8,
+                    spd_vofs = -0.9,
+                    spd_unit = "km/h",
+                    alt_hofs = 0.9,
+                    alt_vofs = -0.8,
+                    alt_unit = "m",
+                },
+                [2] = {
+                    enabled = true,
+                    spd_hofs = 0.8,
+                    spd_vofs = -0.9,
+                    spd_unit = "km/h",
+                    alt_hofs = 0.9,
+                    alt_vofs = -0.8,
+                    alt_unit = "m",
+                },
+            },
+        },
+        {   -- remove guest
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 1,
+                    spd_vofs = 1,
+                    spd_unit = "km/h",
+                    alt_hofs = 1,
+                    alt_vofs = 1,
+                    alt_unit = "m",
+                },
+            },
+            {
+                { id = 0 },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+            },
+        },
+        {   -- remove host
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+            },
+            {},
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+            },
+        },
+        {   -- remove multi
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 1,
+                    spd_vofs = 1,
+                    spd_unit = "km/h",
+                    alt_hofs = 1,
+                    alt_vofs = 1,
+                    alt_unit = "m",
+                },
+                [2] = {
+                    enabled = true,
+                    spd_hofs = 2,
+                    spd_vofs = 2,
+                    spd_unit = "km/h",
+                    alt_hofs = 2,
+                    alt_vofs = 2,
+                    alt_unit = "m",
+                },
+            },
+            {},
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+            },
+        },
+        {   -- keep
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 1,
+                    spd_vofs = 1,
+                    spd_unit = "km/h",
+                    alt_hofs = 1,
+                    alt_vofs = 1,
+                    alt_unit = "m",
+                },
+            },
+            {
+                { id = 0 },
+                { id = 1 },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 1,
+                    spd_vofs = 1,
+                    spd_unit = "km/h",
+                    alt_hofs = 1,
+                    alt_vofs = 1,
+                    alt_unit = "m",
+                },
+            },
+        },
+        {   -- mix
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 1,
+                    spd_vofs = 1,
+                    spd_unit = "km/h",
+                    alt_hofs = 1,
+                    alt_vofs = 1,
+                    alt_unit = "m",
+                },
+                [2] = {
+                    enabled = true,
+                    spd_hofs = 2,
+                    spd_vofs = 2,
+                    spd_unit = "km/h",
+                    alt_hofs = 2,
+                    alt_vofs = 2,
+                    alt_unit = "m",
+                },
+            },
+            {
+                { id = 1 },
+                { id = 3 },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0,
+                    spd_vofs = 0,
+                    spd_unit = "km/h",
+                    alt_hofs = 0,
+                    alt_vofs = 0,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 1,
+                    spd_vofs = 1,
+                    spd_unit = "km/h",
+                    alt_hofs = 1,
+                    alt_vofs = 1,
+                    alt_unit = "m",
+                },
+                [3] = {
+                    enabled = true,
+                    spd_hofs = 0.8,
+                    spd_vofs = -0.9,
+                    spd_unit = "km/h",
+                    alt_hofs = 0.9,
+                    alt_vofs = -0.8,
+                    alt_unit = "m",
+                },
+            },
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_userdata, in_player_list, want_userdata = table.unpack(tt)
+        t:reset()
+        t.fn()
+
+        t.env.g_userdata = in_userdata
+        t.env.server._player_list = in_player_list
+        t.env.syncPlayers()
+        assertEqual(want_userdata, t.env.g_userdata)
+    end
+end
+
 function test_decl.testFormatSpd(t)
     local tests = {
         {nil, "km/h", "SPD\n---"},
@@ -1343,56 +1661,6 @@ function test_decl.testGetAnnounceName(t)
 
     local announce_name = t.env.getAnnounceName()
     assertEqual("[name]", announce_name)
-end
-
-function test_decl.testGetPlayerTable(t)
-    local tests = {
-        {{}, {}},
-        {
-            {
-                [0] = {
-                    id = 2,
-                    name = "name0",
-                    admin = false,
-                    auth = false,
-                    steam_id = 70000000000000000,
-                },
-                [1] = {
-                    id = 3,
-                    name = "name1",
-                    admin = true,
-                    auth = true,
-                    steam_id = 70000000000000001,
-                },
-            },
-            {
-                [2] = {
-                    id = 2,
-                    name = "name0",
-                    admin = false,
-                    auth = false,
-                    steam_id = 70000000000000000,
-                },
-                [3] = {
-                    id = 3,
-                    name = "name1",
-                    admin = true,
-                    auth = true,
-                    steam_id = 70000000000000001,
-                },
-            },
-        },
-    }
-
-    for i, tt in ipairs(tests) do
-        local in_player_list, want_player_tbl = table.unpack(tt)
-        t:reset()
-        t.env.server._player_list = in_player_list
-        t.fn()
-
-        local got_player_tbl = t.env.getPlayerTable()
-        assertEqual(want_player_tbl, got_player_tbl)
-    end
 end
 
 function test_decl.testGetPlayerVehicle(t)

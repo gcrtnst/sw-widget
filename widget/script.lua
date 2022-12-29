@@ -224,17 +224,7 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
 end
 
 function onTick(game_ticks)
-    local player_tbl = getPlayerTable()
-    for _, player in pairs(player_tbl) do
-        if g_userdata[player.id] == nil then
-            g_userdata[player.id] = newUserData()
-        end
-    end
-    for peer_id, _ in pairs(g_userdata) do
-        if player_tbl[peer_id] == nil then
-            g_userdata[peer_id] = nil
-        end
-    end
+    syncPlayers()
 
     for peer_id, _ in pairs(g_userdata) do
         if not g_userdata[peer_id].enabled then
@@ -306,6 +296,24 @@ end
 
 function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+end
+
+function syncPlayers()
+    local player_exists = { [0] = true }
+    local player_list = server.getPlayers()
+    for _, player in pairs(player_list) do
+        player_exists[player.id] = true
+    end
+
+    local userdata_tbl = {}
+    for peer_id, _ in pairs(player_exists) do
+        local userdata = g_userdata[peer_id]
+        if userdata == nil then
+            userdata = newUserData()
+        end
+        userdata_tbl[peer_id] = userdata
+    end
+    g_userdata = userdata_tbl
 end
 
 function formatSpd(spd, spd_unit)
@@ -575,14 +583,6 @@ end
 
 function getAnnounceName()
     return string.format("[%s]", getAddonName())
-end
-
-function getPlayerTable()
-    local player_tbl = {}
-    for _, player in pairs(server.getPlayers()) do
-        player_tbl[player.id] = player
-    end
-    return player_tbl
 end
 
 function getPlayerVehicle(peer_id)
