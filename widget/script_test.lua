@@ -389,6 +389,61 @@ function test_decl.testFormatAlt(t)
     end
 end
 
+function test_decl.testSaveAddon(t)
+    local tests = {
+        {
+            2,
+            3,
+            nil,
+            {
+                version = 1,
+                spd_ui_id = 2,
+                alt_ui_id = 3,
+                hostdata = nil,
+            },
+        },
+        {
+            2,
+            3,
+            {
+                enabled = true,
+                spd_hofs = 0.1,
+                spd_vofs = -0.1,
+                spd_unit = "kph",
+                alt_hofs = 0.2,
+                alt_vofs = -0.2,
+                alt_unit = "ft",
+            },
+            {
+                version = 1,
+                spd_ui_id = 2,
+                alt_ui_id = 3,
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                },
+            },
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_spd_ui_id, in_alt_ui_id, in_hostdata, want_savedata = table.unpack(tt)
+        t:reset()
+        t.fn()
+
+        t.env.g_spd_ui_id = in_spd_ui_id
+        t.env.g_alt_ui_id = in_alt_ui_id
+        t.env.g_userdata = { [0] = in_hostdata }
+        t.env.saveAddon()
+        assertEqual(want_savedata, t.env.g_savedata)
+    end
+end
+
 function test_decl.testTrackerPlayerGet(t)
     t:reset()
     t.fn()
