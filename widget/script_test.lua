@@ -26,6 +26,192 @@ local function assertEqual(want, got)
     end
 end
 
+function test_decl.testOnCreate(t)
+    local tests = {
+        {
+            {
+                version = 1,
+                spd_ui_id = 1,
+                alt_ui_id = 2,
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                }
+            },
+            1,
+            2,
+            {
+                version = 1,
+                spd_ui_id = 1,
+                alt_ui_id = 2,
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                },
+            },
+            10,
+            {
+                [string.pack("jj", -1, 10)] = {},
+                [string.pack("jj", -1, 11)] = {},
+            },
+        },
+        {
+            {
+                version = 1,
+                spd_ui_id = nil,    -- !
+                alt_ui_id = 2,
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                }
+            },
+            10,
+            2,
+            {
+                version = 1,
+                spd_ui_id = 10,
+                alt_ui_id = 2,
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                },
+            },
+            11,
+            {
+                [string.pack("jj", -1, 1)] = {},
+                [string.pack("jj", -1, 11)] = {},
+            },
+        },
+        {
+            {
+                version = 1,
+                spd_ui_id = 1,
+                alt_ui_id = nil,    -- !
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                }
+            },
+            1,
+            10,
+            {
+                version = 1,
+                spd_ui_id = 1,
+                alt_ui_id = 10,
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                },
+            },
+            11,
+            {
+                [string.pack("jj", -1, 2)] = {},
+                [string.pack("jj", -1, 11)] = {},
+            },
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_savedata = tt[1]
+        local want_userdata = tt[2]
+        local want_spd_ui_id = tt[3]
+        local want_alt_ui_id = tt[4]
+        local want_savedata = tt[5]
+        local want_ui_id_cnt = tt[6]
+        local want_popup = tt[7]
+        t:reset()
+        t.fn()
+
+        t.env.server._addon_idx = 9
+        t.env.server._addon_idx_exists = true
+        t.env.server._addon_tbl = {
+            [9] = {
+                name = "Meter Widget",
+            },
+        }
+        t.env.server._ui_id_cnt = 10
+        t.env.server._popup = {
+            [string.pack("jj", -1, 1)] = {},
+            [string.pack("jj", -1, 2)] = {},
+            [string.pack("jj", -1, 10)] = {},
+            [string.pack("jj", -1, 11)] = {},
+        }
+        t.env.g_savedata = in_savedata
+        t.env.onCreate(false)
+        assertEqual(want_userdata, t.env.g_userdata)
+        assertEqual(want_spd_ui_id, t.env.g_spd_ui_id)
+        assertEqual(want_alt_ui_id, t.env.g_alt_ui_id)
+        assertEqual("[Meter Widget]", t.env.g_announce_name)
+        assertEqual(want_savedata, t.env.g_savedata)
+        assertEqual(want_ui_id_cnt, t.env.server._ui_id_cnt)
+        assertEqual(want_popup, t.env.server._popup)
+        assertEqual(2, t.env.server._popup_update_cnt)
+    end
+end
+
 function test_decl.testSyncPlayers(t)
     local tests = {
         {   -- add guest
@@ -3769,6 +3955,7 @@ local function buildMockServer()
         _addon_idx = 0,
         _addon_idx_exists = false,
         _addon_tbl = {},
+        _ui_id_cnt = 0,
         _popup = {},
         _popup_update_cnt = 0,
         _player_list = {},
@@ -3784,6 +3971,12 @@ local function buildMockServer()
 
     function server.getAddonData(addon_index)
         return server._addon_tbl[addon_index]
+    end
+
+    function server.getMapID()
+        local ui_id = server._ui_id_cnt
+        server._ui_id_cnt = server._ui_id_cnt + 1
+        return ui_id
     end
 
     function server.setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
