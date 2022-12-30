@@ -354,10 +354,10 @@ end
 
 function loadAddon()
     if type(g_savedata) == "table" and g_savedata.version == 1 then
-        if type(g_savedata.spd_ui_id) == "number" then
+        if type(g_savedata.spd_ui_id) == "number" and g_savedata.spd_ui_id%1 == 0 then
             g_spd_ui_id = g_savedata.spd_ui_id
         end
-        if type(g_savedata.alt_ui_id) == "number" then
+        if type(g_savedata.alt_ui_id) == "number" and g_savedata.alt_ui_id%1 == 0 then
             g_alt_ui_id = g_savedata.alt_ui_id
         end
         if type(g_savedata.hostdata) == "table" and g_userdata[0] ~= nil then
