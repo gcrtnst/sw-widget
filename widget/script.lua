@@ -56,6 +56,8 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
             user_peer_id
         )
     end
+
+    saveAddon()
 end
 
 function execHelp(user_peer_id, is_admin, is_auth, args)
@@ -263,8 +265,6 @@ function onTick(game_ticks)
 
     g_tracker:tick()
     g_uim:flushPopup()
-
-    saveAddon()
 end
 
 function onCreate(is_world_create)
