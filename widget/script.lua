@@ -598,7 +598,7 @@ function ringNew(cap)
         return nil
     end
 
-    ring = {
+    local ring = {
         buf = {},
         idx = 1,
         len = 0,
