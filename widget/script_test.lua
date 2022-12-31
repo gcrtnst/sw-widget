@@ -26,6 +26,552 @@ local function assertEqual(want, got)
     end
 end
 
+function test_decl.testOnTick(t)
+    local tests = {
+        {
+            {},
+            {},
+            {
+                [8] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.1, 0, 1,
+                },
+                [9] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.1, 0, 1,
+                },
+            },
+            {},
+            {
+                [8] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.2, 0, 1,
+                },
+                [9] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.3, 0, 1,
+                },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "m/s",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "mps",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            {
+                [string.pack("jj", 0, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n---",
+                    horizontal_offset = 0.1,
+                    vertical_offset = -0.1,
+                },
+                [string.pack("jj", 0, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n1.10m",
+                    horizontal_offset = 0.2,
+                    vertical_offset = -0.2,
+                },
+                [string.pack("jj", 1, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n---",
+                    horizontal_offset = 0.3,
+                    vertical_offset = -0.3,
+                },
+                [string.pack("jj", 1, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n6.89ft",
+                    horizontal_offset = 0.4,
+                    vertical_offset = -0.4,
+                },
+            },
+            {
+                [string.pack("jj", 0, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n6.00m/s",
+                    horizontal_offset = 0.1,
+                    vertical_offset = -0.1,
+                },
+                [string.pack("jj", 0, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n1.20m",
+                    horizontal_offset = 0.2,
+                    vertical_offset = -0.2,
+                },
+                [string.pack("jj", 1, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n12.00mps",
+                    horizontal_offset = 0.3,
+                    vertical_offset = -0.3,
+                },
+                [string.pack("jj", 1, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n7.55ft",
+                    horizontal_offset = 0.4,
+                    vertical_offset = -0.4,
+                },
+            },
+        },
+        {
+            {},
+            {},
+            {
+                [8] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.1, 0, 1,
+                },
+                [9] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.1, 0, 1,
+                },
+            },
+            {},
+            {
+                [8] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.2, 0, 1,
+                },
+                [9] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.3, 0, 1,
+                },
+            },
+            {
+                [0] = {
+                    enabled = false,    -- !
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "m/s",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "mps",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            {
+                [string.pack("jj", 1, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n---",
+                    horizontal_offset = 0.3,
+                    vertical_offset = -0.3,
+                },
+                [string.pack("jj", 1, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n6.89ft",
+                    horizontal_offset = 0.4,
+                    vertical_offset = -0.4,
+                },
+            },
+            {
+                [string.pack("jj", 1, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n12.00mps",
+                    horizontal_offset = 0.3,
+                    vertical_offset = -0.3,
+                },
+                [string.pack("jj", 1, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n7.55ft",
+                    horizontal_offset = 0.4,
+                    vertical_offset = -0.4,
+                },
+            },
+        },
+        {
+            {},
+            {},
+            {
+                [8] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.1, 0, 1,
+                },
+                [9] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.1, 0, 1,
+                },
+            },
+            {},
+            {
+                [8] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.2, 0, 1,
+                },
+                [9] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.3, 0, 1,
+                },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "m/s",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = false,    -- !
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "mps",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            {
+                [string.pack("jj", 0, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n---",
+                    horizontal_offset = 0.1,
+                    vertical_offset = -0.1,
+                },
+                [string.pack("jj", 0, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n1.10m",
+                    horizontal_offset = 0.2,
+                    vertical_offset = -0.2,
+                },
+            },
+            {
+                [string.pack("jj", 0, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n6.00m/s",
+                    horizontal_offset = 0.1,
+                    vertical_offset = -0.1,
+                },
+                [string.pack("jj", 0, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n1.20m",
+                    horizontal_offset = 0.2,
+                    vertical_offset = -0.2,
+                },
+            },
+        },
+        {
+            { [8] = 16 },   -- !
+            {
+                [16] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.1, 0, 1,
+                },
+            },
+            {
+                [9] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.1, 0, 1,
+                },
+            },
+            {
+                [16] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.2, 0, 1,
+                },
+            },
+            {
+                [9] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.3, 0, 1,
+                },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "m/s",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "mps",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            {
+                [string.pack("jj", 0, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n---",
+                    horizontal_offset = 0.1,
+                    vertical_offset = -0.1,
+                },
+                [string.pack("jj", 0, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n1.10m",
+                    horizontal_offset = 0.2,
+                    vertical_offset = -0.2,
+                },
+                [string.pack("jj", 1, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n---",
+                    horizontal_offset = 0.3,
+                    vertical_offset = -0.3,
+                },
+                [string.pack("jj", 1, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n6.89ft",
+                    horizontal_offset = 0.4,
+                    vertical_offset = -0.4,
+                },
+            },
+            {
+                [string.pack("jj", 0, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n6.00m/s",
+                    horizontal_offset = 0.1,
+                    vertical_offset = -0.1,
+                },
+                [string.pack("jj", 0, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n1.20m",
+                    horizontal_offset = 0.2,
+                    vertical_offset = -0.2,
+                },
+                [string.pack("jj", 1, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n12.00mps",
+                    horizontal_offset = 0.3,
+                    vertical_offset = -0.3,
+                },
+                [string.pack("jj", 1, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n7.55ft",
+                    horizontal_offset = 0.4,
+                    vertical_offset = -0.4,
+                },
+            },
+        },
+        {
+            { [9] = 17 },   -- !
+            {
+                [17] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.1, 0, 1,
+                },
+            },
+            {
+                [8] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.1, 0, 1,
+                },
+            },
+            {
+                [17] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 2.3, 0, 1,
+                },
+            },
+            {
+                [8] = {
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 1.2, 0, 1,
+                },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "m/s",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "m",
+                },
+                [1] = {
+                    enabled = true,
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "mps",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            {
+                [string.pack("jj", 0, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n---",
+                    horizontal_offset = 0.1,
+                    vertical_offset = -0.1,
+                },
+                [string.pack("jj", 0, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n1.10m",
+                    horizontal_offset = 0.2,
+                    vertical_offset = -0.2,
+                },
+                [string.pack("jj", 1, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n---",
+                    horizontal_offset = 0.3,
+                    vertical_offset = -0.3,
+                },
+                [string.pack("jj", 1, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n6.89ft",
+                    horizontal_offset = 0.4,
+                    vertical_offset = -0.4,
+                },
+            },
+            {
+                [string.pack("jj", 0, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n6.00m/s",
+                    horizontal_offset = 0.1,
+                    vertical_offset = -0.1,
+                },
+                [string.pack("jj", 0, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n1.20m",
+                    horizontal_offset = 0.2,
+                    vertical_offset = -0.2,
+                },
+                [string.pack("jj", 1, 256)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "SPD\n12.00mps",
+                    horizontal_offset = 0.3,
+                    vertical_offset = -0.3,
+                },
+                [string.pack("jj", 1, 257)] = {
+                    name = "[???]",
+                    is_show = true,
+                    text = "ALT\n7.55ft",
+                    horizontal_offset = 0.4,
+                    vertical_offset = -0.4,
+                },
+            },
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_character_vehicle_tbl = tt[1]
+        local in_vehicle_pos_tbl_1 = tt[2]
+        local in_object_pos_tbl_1 = tt[3]
+        local in_vehicle_pos_tbl_2 = tt[4]
+        local in_object_pos_tbl_2 = tt[5]
+        local in_userdata = tt[6]
+        local want_popup_1 = tt[7]
+        local want_popup_2 = tt[8]
+        t:reset()
+        t.fn()
+
+        t.env.server._ui_id_cnt = 256
+        t.env.onCreate()
+        t.env.server._player_list = { { id = 1 } }
+        t.env.server._player_character_tbl = { [0] = 8, [1] = 9 }
+        t.env.server._character_vehicle_tbl = in_character_vehicle_tbl
+        t.env.server._vehicle_pos_tbl = in_vehicle_pos_tbl_1
+        t.env.server._object_pos_tbl = in_object_pos_tbl_1
+        t.env.g_userdata = in_userdata
+        t.env.onTick(1)
+        assertEqual(want_popup_1, t.env.server._popup)
+        t.env.server._vehicle_pos_tbl = in_vehicle_pos_tbl_2
+        t.env.server._object_pos_tbl = in_object_pos_tbl_2
+        t.env.onTick(1)
+        assertEqual(want_popup_2, t.env.server._popup)
+    end
+end
+
 function test_decl.testOnCreate(t)
     local tests = {
         {
