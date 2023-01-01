@@ -6183,6 +6183,9 @@ local function buildMockServer()
     }
 
     function server.getAddonIndex(name)
+        if name ~= nil then
+            error()
+        end
         return server._addon_idx, server._addon_idx_exists
     end
 
