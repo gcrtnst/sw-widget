@@ -26,6 +26,1600 @@ local function assertEqual(want, got)
     end
 end
 
+function test_decl.testOnCustomCommandOther(t)
+    t:reset()
+    t.fn()
+
+    t.env.onCreate(false)
+    t.env.onCustomCommand("", 0, false, false, "?other")
+    assertEqual({}, t.env.server._announce_log)
+end
+
+function test_decl.testOnCustomCommandWidgetHelp(t)
+    local tests = {
+        {
+            0,
+            {},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        "?widget on\n" ..
+                        "?widget off\n" ..
+                        "?widget spdofs HOFS VOFS\n" ..
+                        "?widget altofs HOFS VOFS\n" ..
+                        "?widget spdunit UNIT\n" ..
+                        "?widget altunit UNIT\n" ..
+                        "?widget help",
+                    peer_id = 0,
+                },
+            },
+        },
+        {
+            0,
+            {""},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        "?widget on\n" ..
+                        "?widget off\n" ..
+                        "?widget spdofs HOFS VOFS\n" ..
+                        "?widget altofs HOFS VOFS\n" ..
+                        "?widget spdunit UNIT\n" ..
+                        "?widget altunit UNIT\n" ..
+                        "?widget help",
+                    peer_id = 0,
+                },
+            },
+        },
+        {
+            0,
+            {"help"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        "?widget on\n" ..
+                        "?widget off\n" ..
+                        "?widget spdofs HOFS VOFS\n" ..
+                        "?widget altofs HOFS VOFS\n" ..
+                        "?widget spdunit UNIT\n" ..
+                        "?widget altunit UNIT\n" ..
+                        "?widget help",
+                    peer_id = 0,
+                },
+            },
+        },
+        {
+            0,
+            {"help", ""},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        "?widget on\n" ..
+                        "?widget off\n" ..
+                        "?widget spdofs HOFS VOFS\n" ..
+                        "?widget altofs HOFS VOFS\n" ..
+                        "?widget spdunit UNIT\n" ..
+                        "?widget altunit UNIT\n" ..
+                        "?widget help",
+                    peer_id = 0,
+                },
+            },
+        },
+        {
+            1,
+            {},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        "?widget on\n" ..
+                        "?widget off\n" ..
+                        "?widget spdofs HOFS VOFS\n" ..
+                        "?widget altofs HOFS VOFS\n" ..
+                        "?widget spdunit UNIT\n" ..
+                        "?widget altunit UNIT\n" ..
+                        "?widget help",
+                    peer_id = 1,
+                },
+            },
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_user_peer_id = tt[1]
+        local in_args = tt[2]
+        local want_announce_log = tt[3]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_list = {
+            { id = 0 },
+            { id = 1 },
+        }
+
+        t.env.onCreate(false)
+        t.env.syncPlayers()
+        t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
+        assertEqual(want_announce_log, t.env.server._announce_log)
+    end
+end
+
+function test_decl.testOnCustomCommandWidgetOn(t)
+    local tests = {
+        {
+            0,
+            {"on"},
+            {
+                {
+                    name = "[???]",
+                    message = "widgets are now enabled",
+                    peer_id = 0,
+                },
+            },
+            true,
+            false,
+        },
+        {
+            0,
+            {"on", ""},
+            {
+                {
+                    name = "[???]",
+                    message = "widgets are now enabled",
+                    peer_id = 0,
+                },
+            },
+            true,
+            false,
+        },
+        {
+            0,
+            {"on", "extra"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: extra arguments",
+                    peer_id = 0,
+                },
+            },
+            false,
+            false,
+        },
+        {
+            1,
+            {"on"},
+            {
+                {
+                    name = "[???]",
+                    message = "widgets are now enabled",
+                    peer_id = 1,
+                },
+            },
+            false,
+            true,
+        },
+        {
+            1,
+            {"on", "extra"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: extra arguments",
+                    peer_id = 1,
+                },
+            },
+            false,
+            false,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_user_peer_id = tt[1]
+        local in_args = tt[2]
+        local want_announce_log = tt[3]
+        local want_enabled_0 = tt[4]
+        local want_enabled_1 = tt[5]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_list = {
+            { id = 0 },
+            { id = 1 },
+        }
+
+        t.env.onCreate(false)
+        t.env.syncPlayers()
+
+        t.env.g_userdata[0].enabled = false
+        t.env.g_userdata[1].enabled = false
+        t.env.saveAddon()
+
+        t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
+        assertEqual(want_announce_log, t.env.server._announce_log)
+        assertEqual(want_enabled_0, t.env.g_userdata[0].enabled)
+        assertEqual(want_enabled_1, t.env.g_userdata[1].enabled)
+        assertEqual(want_enabled_0, t.env.g_savedata.hostdata.enabled)
+    end
+end
+
+function test_decl.testOnCustomCommandWidgetOff(t)
+    local tests = {
+        {
+            0,
+            {"off"},
+            {
+                {
+                    name = "[???]",
+                    message = "widgets are now disabled",
+                    peer_id = 0,
+                },
+            },
+            false,
+            true,
+        },
+        {
+            0,
+            {"off", ""},
+            {
+                {
+                    name = "[???]",
+                    message = "widgets are now disabled",
+                    peer_id = 0,
+                },
+            },
+            false,
+            true,
+        },
+        {
+            0,
+            {"off", "extra"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: extra arguments",
+                    peer_id = 0,
+                },
+            },
+            true,
+            true,
+        },
+        {
+            1,
+            {"off"},
+            {
+                {
+                    name = "[???]",
+                    message = "widgets are now disabled",
+                    peer_id = 1,
+                },
+            },
+            true,
+            false,
+        },
+        {
+            1,
+            {"off", "extra"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: extra arguments",
+                    peer_id = 1,
+                },
+            },
+            true,
+            true,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_user_peer_id = tt[1]
+        local in_args = tt[2]
+        local want_announce_log = tt[3]
+        local want_enabled_0 = tt[4]
+        local want_enabled_1 = tt[5]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_list = {
+            { id = 0 },
+            { id = 1 },
+        }
+
+        t.env.onCreate(false)
+        t.env.syncPlayers()
+
+        t.env.g_userdata[0].enabled = true
+        t.env.g_userdata[1].enabled = true
+        t.env.saveAddon()
+
+        t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
+        assertEqual(want_announce_log, t.env.server._announce_log)
+        assertEqual(want_enabled_0, t.env.g_userdata[0].enabled)
+        assertEqual(want_enabled_1, t.env.g_userdata[1].enabled)
+        assertEqual(want_enabled_0, t.env.g_savedata.hostdata.enabled)
+    end
+end
+
+function test_decl.testOnCustomCommandWidgetSpdOfs(t)
+    local tests = {
+        {
+            0,
+            {"spdofs"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        "current spdofs is (0.100000, 0.200000)\n" ..
+                        'use "?widget spdofs HOFS VOFS" to configure',
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "0.5", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "spdofs is now set to (0.500000, 0.600000)",
+                    peer_id = 0,
+                },
+            },
+            0.5,
+            0.6,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "-1", "-1"},
+            {
+                {
+                    name = "[???]",
+                    message = "spdofs is now set to (-1.000000, -1.000000)",
+                    peer_id = 0,
+                },
+            },
+            -1,
+            -1,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "1", "1"},
+            {
+                {
+                    name = "[???]",
+                    message = "spdofs is now set to (1.000000, 1.000000)",
+                    peer_id = 0,
+                },
+            },
+            1,
+            1,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "0.5", "0.6", ""},
+            {
+                {
+                    name = "[???]",
+                    message = "spdofs is now set to (0.500000, 0.600000)",
+                    peer_id = 0,
+                },
+            },
+            0.5,
+            0.6,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "0.5", "0.6", "0.7"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: wrong number of arguments",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "0.5"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: wrong number of arguments",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "0.5", "nan"},
+            {
+                {
+                    name = "[???]",
+                    message = 'error: got invalid number "nan"',
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "nan", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = 'error: got invalid number "nan"',
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "0.5", "-1.1"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "0.5", "1.1"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "-1.1", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"spdofs", "1.1", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"spdofs"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        "current spdofs is (0.300000, 0.400000)\n" ..
+                        'use "?widget spdofs HOFS VOFS" to configure',
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"spdofs", "0.5", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "spdofs is now set to (0.500000, 0.600000)",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.5,
+            0.6,
+        },
+        {
+            1,
+            {"spdofs", "-1", "-1"},
+            {
+                {
+                    name = "[???]",
+                    message = "spdofs is now set to (-1.000000, -1.000000)",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            -1,
+            -1,
+        },
+        {
+            1,
+            {"spdofs", "1", "1"},
+            {
+                {
+                    name = "[???]",
+                    message = "spdofs is now set to (1.000000, 1.000000)",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            1,
+            1,
+        },
+        {
+            1,
+            {"spdofs", "0.5", "0.6", ""},
+            {
+                {
+                    name = "[???]",
+                    message = "spdofs is now set to (0.500000, 0.600000)",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.5,
+            0.6,
+        },
+        {
+            1,
+            {"spdofs", "0.5", "0.6", "0.7"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: wrong number of arguments",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"spdofs", "0.5"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: wrong number of arguments",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"spdofs", "0.5", "nan"},
+            {
+                {
+                    name = "[???]",
+                    message = 'error: got invalid number "nan"',
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"spdofs", "nan", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = 'error: got invalid number "nan"',
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"spdofs", "0.5", "-1.1"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"spdofs", "0.5", "1.1"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"spdofs", "-1.1", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"spdofs", "1.1", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_user_peer_id = tt[1]
+        local in_args = tt[2]
+        local want_announce_log = tt[3]
+        local want_host_spd_hofs = tt[4]
+        local want_host_spd_vofs = tt[5]
+        local want_guest_spd_hofs = tt[6]
+        local want_guest_spd_vofs = tt[7]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_list = {
+            { id = 0 },
+            { id = 1 },
+        }
+
+        t.env.onCreate(false)
+        t.env.syncPlayers()
+
+        t.env.g_userdata[0].spd_hofs = 0.1
+        t.env.g_userdata[0].spd_vofs = 0.2
+        t.env.g_userdata[1].spd_hofs = 0.3
+        t.env.g_userdata[1].spd_vofs = 0.4
+        t.env.saveAddon()
+
+        t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
+        assertEqual(want_announce_log, t.env.server._announce_log)
+        assertEqual(want_host_spd_hofs, t.env.g_userdata[0].spd_hofs)
+        assertEqual(want_host_spd_vofs, t.env.g_userdata[0].spd_vofs)
+        assertEqual(want_guest_spd_hofs, t.env.g_userdata[1].spd_hofs)
+        assertEqual(want_guest_spd_vofs, t.env.g_userdata[1].spd_vofs)
+        assertEqual(want_host_spd_hofs, t.env.g_savedata.hostdata.spd_hofs)
+        assertEqual(want_host_spd_vofs, t.env.g_savedata.hostdata.spd_vofs)
+    end
+end
+
+function test_decl.testOnCustomCommandWidgetAltOfs(t)
+    local tests = {
+        {
+            0,
+            {"altofs"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        "current altofs is (0.100000, 0.200000)\n" ..
+                        'use "?widget altofs HOFS VOFS" to configure',
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "0.5", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "altofs is now set to (0.500000, 0.600000)",
+                    peer_id = 0,
+                },
+            },
+            0.5,
+            0.6,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "-1", "-1"},
+            {
+                {
+                    name = "[???]",
+                    message = "altofs is now set to (-1.000000, -1.000000)",
+                    peer_id = 0,
+                },
+            },
+            -1,
+            -1,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "1", "1"},
+            {
+                {
+                    name = "[???]",
+                    message = "altofs is now set to (1.000000, 1.000000)",
+                    peer_id = 0,
+                },
+            },
+            1,
+            1,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "0.5", "0.6", ""},
+            {
+                {
+                    name = "[???]",
+                    message = "altofs is now set to (0.500000, 0.600000)",
+                    peer_id = 0,
+                },
+            },
+            0.5,
+            0.6,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "0.5", "0.6", "0.7"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: wrong number of arguments",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "0.5"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: wrong number of arguments",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "0.5", "nan"},
+            {
+                {
+                    name = "[???]",
+                    message = 'error: got invalid number "nan"',
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "nan", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = 'error: got invalid number "nan"',
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "0.5", "-1.1"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "0.5", "1.1"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "-1.1", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            0,
+            {"altofs", "1.1", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 0,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"altofs"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        "current altofs is (0.300000, 0.400000)\n" ..
+                        'use "?widget altofs HOFS VOFS" to configure',
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"altofs", "0.5", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "altofs is now set to (0.500000, 0.600000)",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.5,
+            0.6,
+        },
+        {
+            1,
+            {"altofs", "-1", "-1"},
+            {
+                {
+                    name = "[???]",
+                    message = "altofs is now set to (-1.000000, -1.000000)",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            -1,
+            -1,
+        },
+        {
+            1,
+            {"altofs", "1", "1"},
+            {
+                {
+                    name = "[???]",
+                    message = "altofs is now set to (1.000000, 1.000000)",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            1,
+            1,
+        },
+        {
+            1,
+            {"altofs", "0.5", "0.6", ""},
+            {
+                {
+                    name = "[???]",
+                    message = "altofs is now set to (0.500000, 0.600000)",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.5,
+            0.6,
+        },
+        {
+            1,
+            {"altofs", "0.5", "0.6", "0.7"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: wrong number of arguments",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"altofs", "0.5"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: wrong number of arguments",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"altofs", "0.5", "nan"},
+            {
+                {
+                    name = "[???]",
+                    message = 'error: got invalid number "nan"',
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"altofs", "nan", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = 'error: got invalid number "nan"',
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"altofs", "0.5", "-1.1"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"altofs", "0.5", "1.1"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"altofs", "-1.1", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+        {
+            1,
+            {"altofs", "1.1", "0.6"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: offset must be within the range -1 to 1",
+                    peer_id = 1,
+                },
+            },
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_user_peer_id = tt[1]
+        local in_args = tt[2]
+        local want_announce_log = tt[3]
+        local want_host_alt_hofs = tt[4]
+        local want_host_alt_vofs = tt[5]
+        local want_guest_alt_hofs = tt[6]
+        local want_guest_alt_vofs = tt[7]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_list = {
+            { id = 0 },
+            { id = 1 },
+        }
+
+        t.env.onCreate(false)
+        t.env.syncPlayers()
+
+        t.env.g_userdata[0].alt_hofs = 0.1
+        t.env.g_userdata[0].alt_vofs = 0.2
+        t.env.g_userdata[1].alt_hofs = 0.3
+        t.env.g_userdata[1].alt_vofs = 0.4
+        t.env.saveAddon()
+
+        t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
+        assertEqual(want_announce_log, t.env.server._announce_log)
+        assertEqual(want_host_alt_hofs, t.env.g_userdata[0].alt_hofs)
+        assertEqual(want_host_alt_vofs, t.env.g_userdata[0].alt_vofs)
+        assertEqual(want_guest_alt_hofs, t.env.g_userdata[1].alt_hofs)
+        assertEqual(want_guest_alt_vofs, t.env.g_userdata[1].alt_vofs)
+        assertEqual(want_host_alt_hofs, t.env.g_savedata.hostdata.alt_hofs)
+        assertEqual(want_host_alt_vofs, t.env.g_savedata.hostdata.alt_vofs)
+    end
+end
+
+function test_decl.testOnCustomCommandWidgetSpdUnit(t)
+    local tests = {
+        {
+            0,
+            {"spdunit"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'current spdunit is "km/h"\n' ..
+                        'use "?widget spdunit UNIT" to configure\n' ..
+                        'available units are "km/h", "m/s", "kt"',
+                    peer_id = 0,
+                },
+            },
+            "km/h",
+            "kmph",
+        },
+        {
+            0,
+            {"spdunit", "m/s"},
+            {
+                {
+                    name = "[???]",
+                    message = 'spdunit is now set to "m/s"',
+                    peer_id = 0,
+                },
+            },
+            "m/s",
+            "kmph",
+        },
+        {
+            0,
+            {"spdunit", "m/s", ""},
+            {
+                {
+                    name = "[???]",
+                    message = 'spdunit is now set to "m/s"',
+                    peer_id = 0,
+                },
+            },
+            "m/s",
+            "kmph",
+        },
+        {
+            0,
+            {"spdunit", "m/s", "m/s"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: too many arguments",
+                    peer_id = 0,
+                },
+            },
+            "km/h",
+            "kmph",
+        },
+        {
+            0,
+            {"spdunit", "m/h"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'error: got undefined unit "m/h"\n' ..
+                        'available units are "km/h", "m/s", "kt"',
+                    peer_id = 0,
+                },
+            },
+            "km/h",
+            "kmph",
+        },
+        {
+            1,
+            {"spdunit"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'current spdunit is "kmph"\n' ..
+                        'use "?widget spdunit UNIT" to configure\n' ..
+                        'available units are "km/h", "m/s", "kt"',
+                    peer_id = 1,
+                },
+            },
+            "km/h",
+            "kmph",
+        },
+        {
+            1,
+            {"spdunit", "m/s"},
+            {
+                {
+                    name = "[???]",
+                    message = 'spdunit is now set to "m/s"',
+                    peer_id = 1,
+                },
+            },
+            "km/h",
+            "m/s",
+        },
+        {
+            1,
+            {"spdunit", "m/s", ""},
+            {
+                {
+                    name = "[???]",
+                    message = 'spdunit is now set to "m/s"',
+                    peer_id = 1,
+                },
+            },
+            "km/h",
+            "m/s",
+        },
+        {
+            1,
+            {"spdunit", "m/s", "m/s"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: too many arguments",
+                    peer_id = 1,
+                },
+            },
+            "km/h",
+            "kmph",
+        },
+        {
+            1,
+            {"spdunit", "m/h"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'error: got undefined unit "m/h"\n' ..
+                        'available units are "km/h", "m/s", "kt"',
+                    peer_id = 1,
+                },
+            },
+            "km/h",
+            "kmph",
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_user_peer_id = tt[1]
+        local in_args = tt[2]
+        local want_announce_log = tt[3]
+        local want_spd_unit_0 = tt[4]
+        local want_spd_unit_1 = tt[5]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_list = {
+            { id = 0 },
+            { id = 1 },
+        }
+
+        t.env.onCreate(false)
+        t.env.syncPlayers()
+
+        t.env.g_userdata[0].spd_unit = "km/h"
+        t.env.g_userdata[1].spd_unit = "kmph"
+        t.env.saveAddon()
+
+        t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
+        assertEqual(want_announce_log, t.env.server._announce_log)
+        assertEqual(want_spd_unit_0, t.env.g_userdata[0].spd_unit)
+        assertEqual(want_spd_unit_1, t.env.g_userdata[1].spd_unit)
+        assertEqual(want_spd_unit_0, t.env.g_savedata.hostdata.spd_unit)
+    end
+end
+
+function test_decl.testOnCustomCommandWidgetAltUnit(t)
+    local tests = {
+        {
+            0,
+            {"altunit"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'current altunit is "m"\n' ..
+                        'use "?widget altunit UNIT" to configure\n' ..
+                        'available units are "m", "ft"',
+                    peer_id = 0,
+                },
+            },
+            "m",
+            "ft",
+        },
+        {
+            0,
+            {"altunit", "ft"},
+            {
+                {
+                    name = "[???]",
+                    message = 'altunit is now set to "ft"',
+                    peer_id = 0,
+                },
+            },
+            "ft",
+            "ft",
+        },
+        {
+            0,
+            {"altunit", "ft", ""},
+            {
+                {
+                    name = "[???]",
+                    message = 'altunit is now set to "ft"',
+                    peer_id = 0,
+                },
+            },
+            "ft",
+            "ft",
+        },
+        {
+            0,
+            {"altunit", "ft", "ft"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: too many arguments",
+                    peer_id = 0,
+                },
+            },
+            "m",
+            "ft",
+        },
+        {
+            0,
+            {"altunit", "kt"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'error: got undefined unit "kt"\n' ..
+                        'available units are "m", "ft"',
+                    peer_id = 0,
+                },
+            },
+            "m",
+            "ft",
+        },
+        {
+            1,
+            {"altunit"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'current altunit is "ft"\n' ..
+                        'use "?widget altunit UNIT" to configure\n' ..
+                        'available units are "m", "ft"',
+                    peer_id = 1,
+                },
+            },
+            "m",
+            "ft",
+        },
+        {
+            1,
+            {"altunit", "m"},
+            {
+                {
+                    name = "[???]",
+                    message = 'altunit is now set to "m"',
+                    peer_id = 1,
+                },
+            },
+            "m",
+            "m",
+        },
+        {
+            1,
+            {"altunit", "m", ""},
+            {
+                {
+                    name = "[???]",
+                    message = 'altunit is now set to "m"',
+                    peer_id = 1,
+                },
+            },
+            "m",
+            "m",
+        },
+        {
+            1,
+            {"altunit", "m", "m"},
+            {
+                {
+                    name = "[???]",
+                    message = "error: too many arguments",
+                    peer_id = 1,
+                },
+            },
+            "m",
+            "ft",
+        },
+        {
+            1,
+            {"altunit", "m/s"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'error: got undefined unit "m/s"\n' ..
+                        'available units are "m", "ft"',
+                    peer_id = 1,
+                },
+            },
+            "m",
+            "ft",
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_user_peer_id = tt[1]
+        local in_args = tt[2]
+        local want_announce_log = tt[3]
+        local want_alt_unit_0 = tt[4]
+        local want_alt_unit_1 = tt[5]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_list = {
+            { id = 0 },
+            { id = 1 },
+        }
+
+        t.env.onCreate(false)
+        t.env.syncPlayers()
+
+        t.env.g_userdata[0].alt_unit = "m"
+        t.env.g_userdata[1].alt_unit = "ft"
+        t.env.saveAddon()
+
+        t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
+        assertEqual(want_announce_log, t.env.server._announce_log)
+        assertEqual(want_alt_unit_0, t.env.g_userdata[0].alt_unit)
+        assertEqual(want_alt_unit_1, t.env.g_userdata[1].alt_unit)
+        assertEqual(want_alt_unit_0, t.env.g_savedata.hostdata.alt_unit)
+    end
+end
+
+function test_decl.testOnCustomCommandWidgetUndefined(t)
+    local tests = {
+        {
+            0,
+            {"undefined"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'error: undefined subcommand "undefined"\n' ..
+                        'see "?widget help" for list of subcommands',
+                    peer_id = 0,
+                },
+            },
+        },
+        {
+            0,
+            {"invalid"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'error: undefined subcommand "invalid"\n' ..
+                        'see "?widget help" for list of subcommands',
+                    peer_id = 0,
+                },
+            },
+        },
+        {
+            1,
+            {"undefined"},
+            {
+                {
+                    name = "[???]",
+                    message = "" ..
+                        'error: undefined subcommand "undefined"\n' ..
+                        'see "?widget help" for list of subcommands',
+                    peer_id = 1,
+                },
+            },
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_user_peer_id = tt[1]
+        local in_args = tt[2]
+        local want_announce_log = tt[3]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_list = {
+            { id = 0 },
+            { id = 1 },
+        }
+
+        t.env.onCreate(false)
+        t.env.syncPlayers()
+        t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
+        assertEqual(want_announce_log, t.env.server._announce_log)
+    end
+end
+
 function test_decl.testOnTick(t)
     local tests = {
         {
@@ -4568,6 +6162,7 @@ local function buildMockServer()
         _addon_idx = 0,
         _addon_idx_exists = false,
         _addon_tbl = {},
+        _announce_log = {},
         _ui_id_cnt = 0,
         _popup = {},
         _popup_update_cnt = 0,
@@ -4584,6 +6179,14 @@ local function buildMockServer()
 
     function server.getAddonData(addon_index)
         return server._addon_tbl[addon_index]
+    end
+
+    function server.announce(name, message, peer_id)
+        table.insert(server._announce_log, {
+            name = name,
+            message = message,
+            peer_id = peer_id,
+        })
     end
 
     function server.getMapID()
