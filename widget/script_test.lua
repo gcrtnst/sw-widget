@@ -6094,6 +6094,15 @@ function test_decl.testRingGet(t)
             "B",
         },
     }
+
+    for i, tt in ipairs(tests) do
+        local in_ring, in_idx, want_ret = table.unpack(tt)
+        t:reset()
+        t.fn()
+
+        local got_ret = t.env.ringGet(in_ring, in_idx)
+        assertEqual(want_ret, got_ret)
+    end
 end
 
 function test_decl.testRingGetSet(t)
