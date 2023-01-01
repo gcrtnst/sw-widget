@@ -2913,6 +2913,73 @@ function test_decl.testSaveAddon(t)
     end
 end
 
+function test_decl.testTrackerUserGet(t)
+    local tests = {
+        {
+            { [1] = 2 },
+            8,
+            4,
+        },
+        {
+            {},
+            9,
+            5,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local in_character_vehicle_tbl = tt[1]
+        local want_spd = tt[2]
+        local want_alt = tt[3]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_character_tbl = { [0] = 1 }
+        t.env.server._character_vehicle_tbl = in_character_vehicle_tbl
+        t.env.server._vehicle_pos_tbl = {
+            [2] = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 4, 0, 1,
+            },
+        }
+        t.env.server._object_pos_tbl = {
+            [1] = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 5, 0, 1,
+            },
+        }
+
+        local tracker = t.env.buildTracker()
+        tracker:getUserSpdAlt(0)
+
+        t.env.server._vehicle_pos_tbl = {
+            [2] = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                8, 4, 0, 1,
+            },
+        }
+        t.env.server._object_pos_tbl = {
+            [1] = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                9, 5, 0, 1,
+            },
+        }
+
+        tracker:tick()
+        local got_spd, got_alt = tracker:getUserSpdAlt(0)
+        assertEqual(want_spd, got_spd)
+        assertEqual(want_alt, got_alt)
+    end
+end
+
 function test_decl.testTrackerPlayerGet(t)
     t:reset()
     t.fn()

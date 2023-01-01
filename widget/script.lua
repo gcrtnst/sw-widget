@@ -233,15 +233,7 @@ function onTick(game_ticks)
             goto continue
         end
 
-        local spd = nil
-        local alt = nil
-        local vehicle_id, is_success = getPlayerVehicle(peer_id)
-        if is_success then
-            spd, alt = g_tracker:getVehicleSpdAlt(vehicle_id)
-        else
-            spd, alt = g_tracker:getPlayerSpdAlt(peer_id)
-        end
-
+        local spd, alt = g_tracker:getUserSpdAlt(peer_id)
         g_uim:setPopupScreen(
             peer_id,
             g_spd_ui_id,
@@ -416,6 +408,14 @@ function buildTracker()
         _vehicle_pos_old = {},
         _vehicle_pos_new = {},
     }
+
+    function tracker:getUserSpdAlt(peer_id)
+        local vehicle_id, is_success = getPlayerVehicle(peer_id)
+        if is_success then
+            return self:getVehicleSpdAlt(vehicle_id)
+        end
+        return self:getPlayerSpdAlt(peer_id)
+    end
 
     function tracker:getPlayerSpdAlt(peer_id)
         local player_pos_new = self._player_pos[peer_id]
