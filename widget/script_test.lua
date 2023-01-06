@@ -236,7 +236,7 @@ function test_decl.testOnCustomCommandWidgetOn(t)
 
         t.env.g_userdata[0].enabled = false
         t.env.g_userdata[1].enabled = false
-        t.env.saveAddon()
+        t.env.saveMemory()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
         assertEqual(want_announce_log, t.env.server._announce_log)
@@ -334,7 +334,7 @@ function test_decl.testOnCustomCommandWidgetOff(t)
 
         t.env.g_userdata[0].enabled = true
         t.env.g_userdata[1].enabled = true
-        t.env.saveAddon()
+        t.env.saveMemory()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
         assertEqual(want_announce_log, t.env.server._announce_log)
@@ -765,7 +765,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
         t.env.g_userdata[0].spd_vofs = 0.2
         t.env.g_userdata[1].spd_hofs = 0.3
         t.env.g_userdata[1].spd_vofs = 0.4
-        t.env.saveAddon()
+        t.env.saveMemory()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
         assertEqual(want_announce_log, t.env.server._announce_log)
@@ -1199,7 +1199,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
         t.env.g_userdata[0].alt_vofs = 0.2
         t.env.g_userdata[1].alt_hofs = 0.3
         t.env.g_userdata[1].alt_vofs = 0.4
-        t.env.saveAddon()
+        t.env.saveMemory()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
         assertEqual(want_announce_log, t.env.server._announce_log)
@@ -1375,7 +1375,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
 
         t.env.g_userdata[0].spd_unit = "km/h"
         t.env.g_userdata[1].spd_unit = "kmph"
-        t.env.saveAddon()
+        t.env.saveMemory()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
         assertEqual(want_announce_log, t.env.server._announce_log)
@@ -1548,7 +1548,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
 
         t.env.g_userdata[0].alt_unit = "m"
         t.env.g_userdata[1].alt_unit = "ft"
-        t.env.saveAddon()
+        t.env.saveMemory()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
         assertEqual(want_announce_log, t.env.server._announce_log)
@@ -2715,7 +2715,7 @@ function test_decl.testFormatAlt(t)
     end
 end
 
-function test_decl.testLoadAddon(t)
+function test_decl.testLoadMemory(t)
     local tests = {
         {
             2,
@@ -4445,14 +4445,14 @@ function test_decl.testLoadAddon(t)
         t.env.g_alt_ui_id = in_alt_ui_id
         t.env.g_userdata = { [0] = in_hostdata }
         t.env.g_savedata = in_savedata
-        t.env.loadAddon()
+        t.env.loadMemory()
         assertEqual(want_spd_ui_id, t.env.g_spd_ui_id)
         assertEqual(want_alt_ui_id, t.env.g_alt_ui_id)
         assertEqual(want_hostdata, t.env.g_userdata[0])
     end
 end
 
-function test_decl.testSaveAddon(t)
+function test_decl.testSaveMemory(t)
     local tests = {
         {
             2,
@@ -4502,7 +4502,7 @@ function test_decl.testSaveAddon(t)
         t.env.g_spd_ui_id = in_spd_ui_id
         t.env.g_alt_ui_id = in_alt_ui_id
         t.env.g_userdata = { [0] = in_hostdata }
-        t.env.saveAddon()
+        t.env.saveMemory()
         assertEqual(want_savedata, t.env.g_savedata)
     end
 end

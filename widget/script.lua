@@ -57,7 +57,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         )
     end
 
-    saveAddon()
+    saveMemory()
 end
 
 function execHelp(user_peer_id, is_admin, is_auth, args)
@@ -267,7 +267,7 @@ function onCreate(is_world_create)
     g_tracker = buildTracker()
     g_uim = buildUIManager()
 
-    loadAddon()
+    loadMemory()
 
     if g_spd_ui_id == nil then
         g_spd_ui_id = server.getMapID()
@@ -275,7 +275,7 @@ function onCreate(is_world_create)
     if g_alt_ui_id == nil then
         g_alt_ui_id = server.getMapID()
     end
-    saveAddon()
+    saveMemory()
 
     server.removePopup(-1, g_spd_ui_id)
     server.removePopup(-1, g_alt_ui_id)
@@ -344,7 +344,7 @@ function newUserData()
     }
 end
 
-function loadAddon()
+function loadMemory()
     if type(g_savedata) == "table" and g_savedata.version == 1 then
         if type(g_savedata.spd_ui_id) == "number" and g_savedata.spd_ui_id%1 == 0 then
             g_spd_ui_id = g_savedata.spd_ui_id
@@ -378,7 +378,7 @@ function loadAddon()
     end
 end
 
-function saveAddon()
+function saveMemory()
     local savedata = {
         version = 1,
         spd_ui_id = g_spd_ui_id,
