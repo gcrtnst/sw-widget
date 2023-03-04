@@ -17,7 +17,7 @@ c_alt_unit_tbl = {
 }
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
-    if cmd ~= c_cmd then
+    if cmd ~= c_cmd or user_peer_id < 0 then
         return
     end
 

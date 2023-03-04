@@ -32,6 +32,7 @@ function test_decl.testOnCustomCommandOther(t)
 
     t.env.onCreate(false)
     t.env.onCustomCommand("", 0, false, false, "?other")
+    t.env.onCustomCommand("", -1, false, false, "?widget")
     assertEqual({}, t.env.server._announce_log)
 end
 
