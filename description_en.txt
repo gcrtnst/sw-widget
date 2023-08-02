@@ -27,7 +27,7 @@ These widgets allow you to know your speed and altitude even in vehicle third pe
 
     [*][b]?widget spdunit UNIT[/b]
        Sets the speed unit.
-       Available units are "km/h", "m/s", "kt".
+       Available units are "km/h", "m/s", "mph", "kt".
 
     [*][b]?widget altunit UNIT[/b]
        Set the altitude unit.

@@ -32,6 +32,7 @@ function test_decl.testOnCustomCommandOther(t)
 
     t.env.onCreate(false)
     t.env.onCustomCommand("", 0, false, false, "?other")
+    t.env.onCustomCommand("", -1, false, false, "?widget")
     assertEqual({}, t.env.server._announce_log)
 end
 
@@ -1223,7 +1224,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
                     message = "" ..
                         'current spdunit is "km/h"\n' ..
                         'use "?widget spdunit UNIT" to configure\n' ..
-                        'available units are "km/h", "m/s", "kt"',
+                        'available units are "km/h", "m/s", "mph", "kt"',
                     peer_id = 0,
                 },
             },
@@ -1277,7 +1278,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
                     name = "[???]",
                     message = "" ..
                         'error: got undefined unit "m/h"\n' ..
-                        'available units are "km/h", "m/s", "kt"',
+                        'available units are "km/h", "m/s", "mph", "kt"',
                     peer_id = 0,
                 },
             },
@@ -1293,7 +1294,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
                     message = "" ..
                         'current spdunit is "kmph"\n' ..
                         'use "?widget spdunit UNIT" to configure\n' ..
-                        'available units are "km/h", "m/s", "kt"',
+                        'available units are "km/h", "m/s", "mph", "kt"',
                     peer_id = 1,
                 },
             },
@@ -1347,7 +1348,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
                     name = "[???]",
                     message = "" ..
                         'error: got undefined unit "m/h"\n' ..
-                        'available units are "km/h", "m/s", "kt"',
+                        'available units are "km/h", "m/s", "mph", "kt"',
                     peer_id = 1,
                 },
             },
@@ -2677,6 +2678,7 @@ function test_decl.testFormatSpd(t)
         {0, "invalid", "SPD\n---"},
         {1.5/216, "km/h", "SPD\n1.50km/h"},
         {1.5/60, "m/s", "SPD\n1.50m/s"},
+        {1.5/(216000.0/1609.344), "mph", "SPD\n1.50mph"},
         {1.5/(216000.0/1852.0), "kt", "SPD\n1.50kt"},
         {0.0/0.0, "km/h", "SPD\nnankm/h"},
         {1.0/0.0, "km/h", "SPD\ninfkm/h"},

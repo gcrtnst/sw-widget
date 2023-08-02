@@ -8,6 +8,9 @@ c_spd_unit_tbl = {
     ["m/s"] = 60,
     ["mps"] = 60,
 
+    ["mph"] = 216000.0/1609.344,
+    ["MPH"] = 216000.0/1609.344,
+
     ["kt"] = 216000.0/1852.0,
     ["kn"] = 216000.0/1852.0,
 }
@@ -17,7 +20,7 @@ c_alt_unit_tbl = {
 }
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...)
-    if cmd ~= c_cmd then
+    if cmd ~= c_cmd or user_peer_id < 0 then
         return
     end
 
@@ -166,7 +169,7 @@ function execSpdUnit(user_peer_id, is_admin, is_auth, args)
         "spdunit",
         "spd_unit",
         c_spd_unit_tbl,
-        'available units are "km/h", "m/s", "kt"'
+        'available units are "km/h", "m/s", "mph", "kt"'
     )
 end
 

@@ -27,7 +27,7 @@ TPS 視点でも速度と高度を確認したいがために作りました。
 
     [*][b]?widget spdunit UNIT[/b]
        速度単位を設定します。
-       設定可能な単位: "km/h", "m/s", "kt"
+       設定可能な単位: "km/h", "m/s", "mph", "kt"
 
     [*][b]?widget altunit UNIT[/b]
        高度単位を設定します。
