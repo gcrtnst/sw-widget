@@ -8,6 +8,9 @@ c_spd_unit_tbl = {
     ["m/s"] = 60,
     ["mps"] = 60,
 
+    ["mph"] = 216000.0/1609.344,
+    ["MPH"] = 216000.0/1609.344,
+
     ["kt"] = 216000.0/1852.0,
     ["kn"] = 216000.0/1852.0,
 }
@@ -166,7 +169,7 @@ function execSpdUnit(user_peer_id, is_admin, is_auth, args)
         "spdunit",
         "spd_unit",
         c_spd_unit_tbl,
-        'available units are "km/h", "m/s", "kt"'
+        'available units are "km/h", "m/s", "mph", "kt"'
     )
 end
 
