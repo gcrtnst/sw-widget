@@ -1278,7 +1278,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
                     name = "[???]",
                     message = "" ..
                         'error: got undefined unit "m/h"\n' ..
-                        'available units are "km/h", "m/s", "kt"',
+                        'available units are "km/h", "m/s", "mph", "kt"',
                     peer_id = 0,
                 },
             },
