@@ -4757,65 +4757,67 @@ function test_decl.testTrackerPlayerGet(t)
     t:reset()
     t.fn()
 
-    t.env.server._player_character_tbl[0] = 1
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        2, 3, 4, 1,
+        3, 4, 5, 1,
     }
 
     local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(0)
+    local spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
+    assertEqual(nil, "alt", 4, alt)
 end
 
 function test_decl.testTrackerPlayerCache(t)
     t:reset()
     t.fn()
 
-    t.env.server._player_character_tbl[0] = 1
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        2, 3, 4, 1,
+        3, 4, 5, 1,
     }
 
     local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(0)
+    local spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
+    assertEqual(nil, "alt", 4, alt)
 
-    t.env.server._object_pos_tbl[1] = nil
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = nil
 
-    spd, alt = tracker:getPlayerSpdAlt(0)
+    spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
+    assertEqual(nil, "alt", 4, alt)
 end
 
 function test_decl.testTrackerPlayerCacheExpiry(t)
     t:reset()
     t.fn()
 
-    t.env.server._player_character_tbl[0] = 1
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        2, 3, 4, 1,
+        3, 4, 5, 1,
     }
 
     local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(0)
+    local spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
+    assertEqual(nil, "alt", 4, alt)
 
-    t.env.server._object_pos_tbl[1] = nil
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = nil
 
     tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(0)
+    spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", nil, alt)
 end
@@ -4824,38 +4826,40 @@ function test_decl.testTrackerPlayerCacheMulti(t)
     t:reset()
     t.fn()
 
-    t.env.server._player_character_tbl[1] = 2
-    t.env.server._player_character_tbl[3] = 4
+    t.env.server._player_character_tbl[10] = 2
     t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        5, 6, 7, 1,
+        3, 4, 5, 1,
     }
-    t.env.server._object_pos_tbl[4] = {
+    t.env.server._player_character_tbl[11] = 6
+    t.env.server._object_pos_tbl[6] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        8, 9, 10, 1,
+        7, 8, 9, 1,
     }
 
     local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(1)
+    local spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 6, alt)
-    spd, alt = tracker:getPlayerSpdAlt(3)
+    assertEqual(nil, "alt", 4, alt)
+    spd, alt = tracker:getPlayerSpdAlt(11)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 9, alt)
+    assertEqual(nil, "alt", 8, alt)
 
+    t.env.server._player_character_tbl[10] = 2
     t.env.server._object_pos_tbl[2] = nil
-    t.env.server._object_pos_tbl[4] = nil
+    t.env.server._player_character_tbl[11] = 6
+    t.env.server._object_pos_tbl[6] = nil
 
-    spd, alt = tracker:getPlayerSpdAlt(1)
+    spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 6, alt)
-    spd, alt = tracker:getPlayerSpdAlt(3)
+    assertEqual(nil, "alt", 4, alt)
+    spd, alt = tracker:getPlayerSpdAlt(11)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 9, alt)
+    assertEqual(nil, "alt", 8, alt)
 end
 
 function test_decl.testTrackerPlayerFail(t)
@@ -4863,7 +4867,7 @@ function test_decl.testTrackerPlayerFail(t)
     t.fn()
 
     local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(0)
+    local spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", nil, alt)
 end
@@ -4873,309 +4877,174 @@ function test_decl.testTrackerPlayerFailCache(t)
     t.fn()
 
     local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(0)
+    local spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", nil, alt)
 
-    t.env.server._player_character_tbl[0] = 1
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        2, 3, 4, 1,
+        3, 4, 5, 1,
     }
 
-    spd, alt = tracker:getPlayerSpdAlt(0)
+    spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
+    assertEqual(nil, "alt", 4, alt)
 end
 
-function test_decl.testTrackerPlayerFailTrackContinue(t)
+function test_decl.testTrackerPlayerFailTrack(t)
     t:reset()
     t.fn()
 
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+
     local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(0)
+    local spd, alt = tracker:getPlayerSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = nil
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", nil, alt)
 
-    t.env.server._player_character_tbl[0] = 1
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        2, 3, 4, 1,
-    }
-
-    spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
-
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        2, 8, 4, 1,
+        6, 7, 8, 1,
     }
 
     tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, "spd", 5, spd)
+    spd, alt = tracker:getPlayerSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 7, alt)
+end
+
+function test_decl.testTrackerPlayerTrack(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        5, 8, 9, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt = tracker:getPlayerSpdAlt(10)
+    assertEqual(nil, "spd", 6, spd)
     assertEqual(nil, "alt", 8, alt)
 end
 
-function test_decl.testTrackerPlayerFailTrackStopHost(t)
+function test_decl.testTrackerPlayerTrackExpiry(t)
     t:reset()
     t.fn()
 
-    t.env.server._player_character_tbl[0] = 1
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        2, 3, 4, 1,
+        3, 4, 5, 1,
     }
 
     local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(0)
+    local spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
+    assertEqual(nil, "alt", 4, alt)
 
-    t.env.server._object_pos_tbl[1] = nil
-
-    tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", nil, alt)
-
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        2, 8, 4, 1,
+        5, 8, 9, 1,
     }
 
     tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 8, alt)
-end
-
-function test_decl.testTrackerPlayerFailTrackStopGuest(t)
-    t:reset()
-    t.fn()
-
-    t.env.server._player_character_tbl[9] = 1
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        2, 3, 4, 1,
-    }
-
-    local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(9)
-    assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
-
-    t.env.server._object_pos_tbl[1] = nil
-
     tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(9)
-    assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", nil, alt)
-
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        2, 8, 4, 1,
-    }
-
-    tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(9)
+    spd, alt = tracker:getPlayerSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", 8, alt)
 end
 
-function test_decl.testTrackerPlayerTrackHost(t)
+function test_decl.testTrackerPlayerTrackMulti(t)
     t:reset()
     t.fn()
 
-    t.env.server._player_character_tbl[0] = 1
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        2, 3, 4, 1,
-    }
-
-    local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
-
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        2, 8, 4, 1,
-    }
-
-    tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, "spd", 5, spd)
-    assertEqual(nil, "alt", 8, alt)
-end
-
-function test_decl.testTrackerPlayerTrackHostExpiry(t)
-    t:reset()
-    t.fn()
-
-    t.env.server._player_character_tbl[0] = 1
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 2, 0, 1,
-    }
-
-    local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 2, alt)
-
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 3, 0, 1,
     }
-
-    tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, "spd", 1, spd)
-    assertEqual(nil, "alt", 3, alt)
-
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[11] = 4
+    t.env.server._object_pos_tbl[4] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 5, 0, 1,
     }
 
-    tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, "spd", 2, spd)
+    local tracker = t.env.buildTracker()
+    local spd, alt = tracker:getPlayerSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
+    spd, alt = tracker:getPlayerSpdAlt(11)
+    assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", 5, alt)
-end
 
-function test_decl.testTrackerPlayerTrackGuest(t)
-    t:reset()
-    t.fn()
-
-    t.env.server._player_character_tbl[2] = 1
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        0, 3, 0, 1,
+        0, 6, 0, 1,
     }
-
-    local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
-
-    t.env.server._object_pos_tbl[1] = {
+    t.env.server._player_character_tbl[11] = 4
+    t.env.server._object_pos_tbl[4] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        0, 0, 0, 1,
-    }
-
-    for i = 2, 60 do
-        tracker:tickPlayer()
-        tracker:getPlayerSpdAlt(2)
-    end
-
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 63, 0, 1,
+        0, 7, 0, 1,
     }
 
     tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(nil, "spd", 1, spd)
-    assertEqual(nil, "alt", 63, alt)
-end
-
-function test_decl.testTrackerPlayerTrackGuestExpiry(t)
-    t:reset()
-    t.fn()
-
-    t.env.server._player_character_tbl[2] = 1
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 3, 0, 1,
-    }
-
-    local tracker = t.env.buildTracker()
-    local spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(nil, "spd", nil, spd)
-    assertEqual(nil, "alt", 3, alt)
-
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 4, 0, 1,
-    }
-
-    tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(nil, "spd", 1, spd)
-    assertEqual(nil, "alt", 4, alt)
-
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1,
-    }
-
-    for i = 3, 60 do
-        tracker:tickPlayer()
-        tracker:getPlayerSpdAlt(2)
-    end
-
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 63, 0, 1,
-    }
-
-    tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(nil, "spd", 1, spd)
-    assertEqual(nil, "alt", 63, alt)
-
-    t.env.server._object_pos_tbl[1] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 124, 0, 1,
-    }
-
-    tracker:tickPlayer()
-    spd, alt = tracker:getPlayerSpdAlt(2)
+    spd, alt = tracker:getPlayerSpdAlt(10)
+    assertEqual(nil, "spd", 3, spd)
+    assertEqual(nil, "alt", 6, alt)
+    spd, alt = tracker:getPlayerSpdAlt(11)
     assertEqual(nil, "spd", 2, spd)
-    assertEqual(nil, "alt", 124, alt)
+    assertEqual(nil, "alt", 7, alt)
 end
 
 function test_decl.testTrackerVehicleGet(t)
@@ -6081,278 +5950,6 @@ function test_decl.testGetPlayerVehicle(t)
         assertEqual(prefix, "vehicle_id", want_vehicle_id, got_vehicle_id)
         assertEqual(prefix, "is_success", want_is_success, got_is_success)
     end
-end
-
-function test_decl.testRingNew(t)
-    local tests = {
-        {2, {buf = {}, idx = 1, len = 0, cap = 2}},
-        {1, {buf = {}, idx = 1, len = 0, cap = 1}},
-        {"1", nil},
-        {1.1, nil},
-        {0, nil},
-    }
-
-    for i, tt in ipairs(tests) do
-        local in_cap, want_ring = table.unpack(tt)
-        t:reset()
-        t.fn()
-
-        local got_ring = t.env.ringNew(in_cap)
-        assertEqual(nil, "ring", want_ring, got_ring)
-    end
-end
-
-function test_decl.testRingSet(t)
-    local tests = {
-        {
-            {buf = {}, idx = 1, len = 0, cap = 1},
-            "A",
-            {buf = {"A"}, idx = 1, len = 1, cap = 1},
-        },
-        {
-            {buf = {}, idx = 2, len = 0, cap = 1},
-            "A",
-            {buf = {"A"}, idx = 1, len = 1, cap = 1},
-        },
-        {
-            {buf = {"A"}, idx = 1, len = 1, cap = 1},
-            "B",
-            {buf = {"B"}, idx = 1, len = 1, cap = 1},
-        },
-        {
-            {buf = {"A"}, idx = 1, len = 2, cap = 1},
-            "B",
-            {buf = {"B"}, idx = 1, len = 1, cap = 1},
-        },
-        {
-            {buf = {"A"}, idx = 2, len = 1, cap = 1},
-            "B",
-            {buf = {"B"}, idx = 1, len = 1, cap = 1},
-        },
-        {
-            {buf = {}, idx = 1, len = 0, cap = 3},
-            "A",
-            {buf = {"A"}, idx = 1, len = 1, cap = 3},
-        },
-        {
-            {buf = {"A"}, idx = 1, len = 1, cap = 3},
-            "B",
-            {buf = {"A", "B"}, idx = 1, len = 2, cap = 3},
-        },
-        {
-            {buf = {"A", "B"}, idx = 1, len = 2, cap = 3},
-            "C",
-            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
-            "D",
-            {buf = {"D", "B", "C"}, idx = 2, len = 3, cap = 3},
-        },
-        {
-            {buf = {"D", "B", "C"}, idx = 2, len = 3, cap = 3},
-            "E",
-            {buf = {"D", "E", "C"}, idx = 3, len = 3, cap = 3},
-        },
-        {
-            {buf = {"D", "E", "C"}, idx = 3, len = 3, cap = 3},
-            "F",
-            {buf = {"D", "E", "F"}, idx = 1, len = 3, cap = 3},
-        },
-        {
-            {buf = {}, idx = 1, len = 0, cap = 2},
-            nil,
-            {buf = {}, idx = 1, len = 1, cap = 2},
-        },
-        {
-            {buf = {}, idx = 1, len = 1, cap = 2},
-            "A",
-            {buf = {[2] = "A"}, idx = 1, len = 2, cap = 2},
-        },
-    }
-
-    for i, tt in ipairs(tests) do
-        local got_ring, in_item, want_ring = table.unpack(tt)
-        t:reset()
-        t.fn()
-
-        t.env.ringSet(got_ring, in_item)
-        assertEqual(nil, "ring", want_ring, got_ring)
-    end
-end
-
-function test_decl.testRingGet(t)
-    local tests = {
-        {
-            {buf = {"A"}, idx = 1, len = 1, cap = 1},
-            1,
-            "A",
-        },
-        {
-            {buf = {"A"}, idx = 1, len = 0, cap = 1},
-            1,
-            nil,
-        },
-        {
-            {buf = {"A"}, idx = 1, len = 1, cap = 1},
-            "1",
-            nil,
-        },
-        {
-            {buf = {"A"}, idx = 1, len = 1, cap = 1},
-            1.1,
-            nil,
-        },
-        {
-            {buf = {"A"}, idx = 1, len = 1, cap = 1},
-            0,
-            nil,
-        },
-        {
-            {buf = {"A"}, idx = 1, len = 1, cap = 1},
-            2,
-            nil,
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 1, cap = 3},
-            0,
-            nil,
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 0, cap = 3},
-            1,
-            nil,
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 1, cap = 3},
-            1,
-            "A",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 1, cap = 3},
-            2,
-            nil,
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 2, cap = 3},
-            2,
-            "B",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 2, cap = 3},
-            3,
-            nil,
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
-            3,
-            "C",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
-            4,
-            nil,
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
-            1,
-            "A",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 2, len = 3, cap = 3},
-            1,
-            "B",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 3, len = 3, cap = 3},
-            1,
-            "C",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
-            2,
-            "B",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 2, len = 3, cap = 3},
-            2,
-            "C",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 3, len = 3, cap = 3},
-            2,
-            "A",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 1, len = 3, cap = 3},
-            3,
-            "C",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 2, len = 3, cap = 3},
-            3,
-            "A",
-        },
-        {
-            {buf = {"A", "B", "C"}, idx = 3, len = 3, cap = 3},
-            3,
-            "B",
-        },
-    }
-
-    for i, tt in ipairs(tests) do
-        local in_ring, in_idx, want_ret = table.unpack(tt)
-        t:reset()
-        t.fn()
-
-        local got_ret = t.env.ringGet(in_ring, in_idx)
-        assertEqual(nil, "ring", want_ret, got_ret)
-    end
-end
-
-function test_decl.testRingGetSet(t)
-    t:reset()
-    t.fn()
-
-    local ring = t.env.ringNew(3)
-    assertEqual(nil, "ringGet(ring, 1)", nil, t.env.ringGet(ring, 1))
-    assertEqual(nil, "ringGet(ring, 2)", nil, t.env.ringGet(ring, 2))
-    assertEqual(nil, "ringGet(ring, 3)", nil, t.env.ringGet(ring, 3))
-
-    t.env.ringSet(ring, "A")
-    assertEqual(nil, "ringGet(ring, 1)", "A", t.env.ringGet(ring, 1))
-    assertEqual(nil, "ringGet(ring, 2)", nil, t.env.ringGet(ring, 2))
-    assertEqual(nil, "ringGet(ring, 3)", nil, t.env.ringGet(ring, 3))
-
-    t.env.ringSet(ring, "B")
-    assertEqual(nil, "ringGet(ring, 1)", "A", t.env.ringGet(ring, 1))
-    assertEqual(nil, "ringGet(ring, 2)", "B", t.env.ringGet(ring, 2))
-    assertEqual(nil, "ringGet(ring, 3)", nil, t.env.ringGet(ring, 3))
-
-    t.env.ringSet(ring, "C")
-    assertEqual(nil, "ringGet(ring, 1)", "A", t.env.ringGet(ring, 1))
-    assertEqual(nil, "ringGet(ring, 2)", "B", t.env.ringGet(ring, 2))
-    assertEqual(nil, "ringGet(ring, 3)", "C", t.env.ringGet(ring, 3))
-
-    t.env.ringSet(ring, "D")
-    assertEqual(nil, "ringGet(ring, 1)", "B", t.env.ringGet(ring, 1))
-    assertEqual(nil, "ringGet(ring, 2)", "C", t.env.ringGet(ring, 2))
-    assertEqual(nil, "ringGet(ring, 3)", "D", t.env.ringGet(ring, 3))
-
-    t.env.ringSet(ring, "E")
-    assertEqual(nil, "ringGet(ring, 1)", "C", t.env.ringGet(ring, 1))
-    assertEqual(nil, "ringGet(ring, 2)", "D", t.env.ringGet(ring, 2))
-    assertEqual(nil, "ringGet(ring, 3)", "E", t.env.ringGet(ring, 3))
-
-    t.env.ringSet(ring, "F")
-    assertEqual(nil, "ringGet(ring, 1)", "D", t.env.ringGet(ring, 1))
-    assertEqual(nil, "ringGet(ring, 2)", "E", t.env.ringGet(ring, 2))
-    assertEqual(nil, "ringGet(ring, 3)", "F", t.env.ringGet(ring, 3))
-
-    t.env.ringSet(ring, "G")
-    assertEqual(nil, "ringGet(ring, 1)", "E", t.env.ringGet(ring, 1))
-    assertEqual(nil, "ringGet(ring, 2)", "F", t.env.ringGet(ring, 2))
-    assertEqual(nil, "ringGet(ring, 3)", "G", t.env.ringGet(ring, 3))
 end
 
 local function buildMockMatrix()

@@ -406,8 +406,8 @@ end
 
 function buildTracker()
     local tracker = {
-        _player_pos_ring = {},
-        _player_pos = {},
+        _player_pos_old = {},
+        _player_pos_new = {},
         _vehicle_pos_old = {},
         _vehicle_pos_new = {},
     }
@@ -421,39 +421,28 @@ function buildTracker()
     end
 
     function tracker:getPlayerSpdAlt(peer_id)
-        local player_pos_new = self._player_pos[peer_id]
+        local player_pos_new = self._player_pos_new[peer_id]
         if player_pos_new == nil then
             local is_success
             player_pos_new, is_success = getPlayerPos(peer_id)
             if not is_success then
                 return nil, nil
             end
-            self._player_pos[peer_id] = player_pos_new
+            self._player_pos_new[peer_id] = player_pos_new
         end
 
         local spd = nil
         local _, alt, _ = matrix.position(player_pos_new)
-        local player_pos_ring = self._player_pos_ring[peer_id]
-        if player_pos_ring ~= nil and player_pos_ring.len > 0 then
-            local player_pos_old = ringGet(player_pos_ring, 1)
-            spd = matrix.distance(player_pos_old, player_pos_new)/player_pos_ring.len
+        local player_pos_old = self._player_pos_old[peer_id]
+        if player_pos_old ~= nil then
+            spd = matrix.distance(player_pos_old, player_pos_new)
         end
         return spd, alt
     end
 
     function tracker:tickPlayer()
-        local player_pos_ring_tbl = {}
-        for peer_id, player_pos in pairs(self._player_pos) do
-            local player_pos_ring = self._player_pos_ring[peer_id]
-            if player_pos_ring == nil then
-                player_pos_ring = ringNew(peer_id == 0 and 1 or 60)
-            end
-            ringSet(player_pos_ring, player_pos)
-            player_pos_ring_tbl[peer_id] = player_pos_ring
-        end
-
-        self._player_pos_ring = player_pos_ring_tbl
-        self._player_pos = {}
+        self._player_pos_old = self._player_pos_new
+        self._player_pos_new = {}
     end
 
     function tracker:getVehicleSpdAlt(vehicle_id)
@@ -594,38 +583,4 @@ function getPlayerVehicle(peer_id)
         return 0, false
     end
     return server.getCharacterVehicle(object_id)
-end
-
-function ringNew(cap)
-    if math.type(cap) ~= "integer" or cap <= 0 then
-        return nil
-    end
-
-    local ring = {
-        buf = {},
-        idx = 1,
-        len = 0,
-        cap = cap,
-    }
-    return ring
-end
-
-function ringSet(ring, item)
-    if ring.len < ring.cap then
-        ring.idx = 1
-        ring.len = ring.len + 1
-        ring.buf[ring.len] = item
-    else
-        ring.idx = ring.idx%ring.cap + 1
-        ring.len = ring.cap
-        ring.buf[(ring.idx - 2)%ring.cap + 1] = item
-    end
-end
-
-function ringGet(ring, idx)
-    if math.type(idx) ~= "integer" or idx < 1 or ring.len < idx then
-        return nil
-    end
-
-    return ring.buf[(ring.idx + idx - 2)%ring.cap + 1]
 end
