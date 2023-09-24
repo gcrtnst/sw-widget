@@ -1,28 +1,24 @@
 local test_decl = {}
 
-local function deepEqual(x, y)
-    if type(x) ~= type(y) then
-        return false
+local function assertEqual(prefix, name, want, got)
+    if type(want) ~= type(got) then
+        error(string.format("%s: type(%s): expected %s, got %s", prefix or ".", name, type(want), type(got)))
     end
-    if type(x) ~= "table" then
-        return x == y
-    end
-    for k in pairs(x) do
-        if not deepEqual(x[k], y[k]) then
-            return false
-        end
-    end
-    for k in pairs(y) do
-        if x[k] == nil then
-            return false
-        end
-    end
-    return true
-end
 
-local function assertEqual(want, got)
-    if not deepEqual(got, want) then
-        error(string.format("expected `%s`, got `%s`", want, got))
+    if type(want) ~= "table" then
+        if want ~= got then
+            error(string.format("%s: %s: expected %q, got %q", prefix or ".", name, want, got))
+        end
+        return
+    end
+
+    for key in pairs(want) do
+        local child = string.format("%s[%q]", name, key)
+        assertEqual(prefix, child, want[key], got[key])
+    end
+    for key in pairs(got) do
+        local child = string.format("%s[%q]", name, key)
+        assertEqual(prefix, child, want[key], got[key])
     end
 end
 
@@ -33,12 +29,13 @@ function test_decl.testOnCustomCommandOther(t)
     t.env.onCreate(false)
     t.env.onCustomCommand("", 0, false, false, "?other")
     t.env.onCustomCommand("", -1, false, false, "?widget")
-    assertEqual({}, t.env.server._announce_log)
+    assertEqual(nil, "server._announce_log", {}, t.env.server._announce_log)
 end
 
 function test_decl.testOnCustomCommandWidgetHelp(t)
     local tests = {
         {
+            "nocmd",
             0,
             {},
             {
@@ -57,6 +54,7 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
             },
         },
         {
+            "nocmd_extra",
             0,
             {""},
             {
@@ -75,6 +73,7 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
             },
         },
         {
+            "helpcmd",
             0,
             {"help"},
             {
@@ -93,6 +92,7 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
             },
         },
         {
+            "helpcmd_extra",
             0,
             {"help", ""},
             {
@@ -111,6 +111,7 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
             },
         },
         {
+            "guest",
             1,
             {},
             {
@@ -131,9 +132,10 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_user_peer_id = tt[1]
-        local in_args = tt[2]
-        local want_announce_log = tt[3]
+        local prefix = tt[1]
+        local in_user_peer_id = tt[2]
+        local in_args = tt[3]
+        local want_announce_log = tt[4]
         t:reset()
         t.fn()
 
@@ -145,13 +147,14 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
         t.env.onCreate(false)
         t.env.syncPlayers()
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
-        assertEqual(want_announce_log, t.env.server._announce_log)
+        assertEqual(prefix, "server._announce_log", want_announce_log, t.env.server._announce_log)
     end
 end
 
 function test_decl.testOnCustomCommandWidgetOn(t)
     local tests = {
         {
+            "host",
             0,
             {"on"},
             {
@@ -165,6 +168,7 @@ function test_decl.testOnCustomCommandWidgetOn(t)
             false,
         },
         {
+            "host_extraspace",
             0,
             {"on", ""},
             {
@@ -178,6 +182,7 @@ function test_decl.testOnCustomCommandWidgetOn(t)
             false,
         },
         {
+            "host_extraarg",
             0,
             {"on", "extra"},
             {
@@ -191,6 +196,7 @@ function test_decl.testOnCustomCommandWidgetOn(t)
             false,
         },
         {
+            "guest",
             1,
             {"on"},
             {
@@ -204,6 +210,7 @@ function test_decl.testOnCustomCommandWidgetOn(t)
             true,
         },
         {
+            "guest_extraarg",
             1,
             {"on", "extra"},
             {
@@ -219,11 +226,12 @@ function test_decl.testOnCustomCommandWidgetOn(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_user_peer_id = tt[1]
-        local in_args = tt[2]
-        local want_announce_log = tt[3]
-        local want_enabled_0 = tt[4]
-        local want_enabled_1 = tt[5]
+        local prefix = tt[1]
+        local in_user_peer_id = tt[2]
+        local in_args = tt[3]
+        local want_announce_log = tt[4]
+        local want_enabled_0 = tt[5]
+        local want_enabled_1 = tt[6]
         t:reset()
         t.fn()
 
@@ -240,16 +248,17 @@ function test_decl.testOnCustomCommandWidgetOn(t)
         t.env.saveAddon()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
-        assertEqual(want_announce_log, t.env.server._announce_log)
-        assertEqual(want_enabled_0, t.env.g_userdata[0].enabled)
-        assertEqual(want_enabled_1, t.env.g_userdata[1].enabled)
-        assertEqual(want_enabled_0, t.env.g_savedata.hostdata.enabled)
+        assertEqual(prefix, "server._announce_log", want_announce_log, t.env.server._announce_log)
+        assertEqual(prefix, "g_userdata[0].enabled", want_enabled_0, t.env.g_userdata[0].enabled)
+        assertEqual(prefix, "g_userdata[1].enabled", want_enabled_1, t.env.g_userdata[1].enabled)
+        assertEqual(prefix, "g_savedata.hostdata.enabled", want_enabled_0, t.env.g_savedata.hostdata.enabled)
     end
 end
 
 function test_decl.testOnCustomCommandWidgetOff(t)
     local tests = {
         {
+            "host",
             0,
             {"off"},
             {
@@ -263,6 +272,7 @@ function test_decl.testOnCustomCommandWidgetOff(t)
             true,
         },
         {
+            "host_extraspace",
             0,
             {"off", ""},
             {
@@ -276,6 +286,7 @@ function test_decl.testOnCustomCommandWidgetOff(t)
             true,
         },
         {
+            "host_extraarg",
             0,
             {"off", "extra"},
             {
@@ -289,6 +300,7 @@ function test_decl.testOnCustomCommandWidgetOff(t)
             true,
         },
         {
+            "guest",
             1,
             {"off"},
             {
@@ -302,6 +314,7 @@ function test_decl.testOnCustomCommandWidgetOff(t)
             false,
         },
         {
+            "guest_extraarg",
             1,
             {"off", "extra"},
             {
@@ -317,11 +330,12 @@ function test_decl.testOnCustomCommandWidgetOff(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_user_peer_id = tt[1]
-        local in_args = tt[2]
-        local want_announce_log = tt[3]
-        local want_enabled_0 = tt[4]
-        local want_enabled_1 = tt[5]
+        local prefix = tt[1]
+        local in_user_peer_id = tt[2]
+        local in_args = tt[3]
+        local want_announce_log = tt[4]
+        local want_enabled_0 = tt[5]
+        local want_enabled_1 = tt[6]
         t:reset()
         t.fn()
 
@@ -338,16 +352,17 @@ function test_decl.testOnCustomCommandWidgetOff(t)
         t.env.saveAddon()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
-        assertEqual(want_announce_log, t.env.server._announce_log)
-        assertEqual(want_enabled_0, t.env.g_userdata[0].enabled)
-        assertEqual(want_enabled_1, t.env.g_userdata[1].enabled)
-        assertEqual(want_enabled_0, t.env.g_savedata.hostdata.enabled)
+        assertEqual(prefix, "server._announce_log", want_announce_log, t.env.server._announce_log)
+        assertEqual(prefix, "g_userdata[0].enabled", want_enabled_0, t.env.g_userdata[0].enabled)
+        assertEqual(prefix, "g_userdata[1].enabled", want_enabled_1, t.env.g_userdata[1].enabled)
+        assertEqual(prefix, "g_savedata.hostdata.enabled", want_enabled_0, t.env.g_savedata.hostdata.enabled)
     end
 end
 
 function test_decl.testOnCustomCommandWidgetSpdOfs(t)
     local tests = {
         {
+            "host_get",
             0,
             {"spdofs"},
             {
@@ -365,6 +380,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set",
             0,
             {"spdofs", "0.5", "0.6"},
             {
@@ -380,6 +396,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_min",
             0,
             {"spdofs", "-1", "-1"},
             {
@@ -395,6 +412,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_max",
             0,
             {"spdofs", "1", "1"},
             {
@@ -410,6 +428,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_extraspace",
             0,
             {"spdofs", "0.5", "0.6", ""},
             {
@@ -425,6 +444,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_extraarg",
             0,
             {"spdofs", "0.5", "0.6", "0.7"},
             {
@@ -440,6 +460,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_missingarg",
             0,
             {"spdofs", "0.5"},
             {
@@ -455,6 +476,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_ynan",
             0,
             {"spdofs", "0.5", "nan"},
             {
@@ -470,6 +492,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_xnan",
             0,
             {"spdofs", "nan", "0.6"},
             {
@@ -485,6 +508,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_yminerr",
             0,
             {"spdofs", "0.5", "-1.1"},
             {
@@ -500,6 +524,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_ymaxerr",
             0,
             {"spdofs", "0.5", "1.1"},
             {
@@ -515,6 +540,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_xminerr",
             0,
             {"spdofs", "-1.1", "0.6"},
             {
@@ -530,6 +556,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "host_set_xmaxerr",
             0,
             {"spdofs", "1.1", "0.6"},
             {
@@ -545,6 +572,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "guest_get",
             1,
             {"spdofs"},
             {
@@ -562,6 +590,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "guest_set",
             1,
             {"spdofs", "0.5", "0.6"},
             {
@@ -577,6 +606,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.6,
         },
         {
+            "guest_set_min",
             1,
             {"spdofs", "-1", "-1"},
             {
@@ -592,6 +622,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             -1,
         },
         {
+            "guest_set_max",
             1,
             {"spdofs", "1", "1"},
             {
@@ -607,6 +638,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             1,
         },
         {
+            "guest_set_extraspace",
             1,
             {"spdofs", "0.5", "0.6", ""},
             {
@@ -622,6 +654,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.6,
         },
         {
+            "guest_set_extraarg",
             1,
             {"spdofs", "0.5", "0.6", "0.7"},
             {
@@ -637,6 +670,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "guest_set_missingarg",
             1,
             {"spdofs", "0.5"},
             {
@@ -652,6 +686,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "guest_set_ynan",
             1,
             {"spdofs", "0.5", "nan"},
             {
@@ -667,6 +702,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "guest_set_xnan",
             1,
             {"spdofs", "nan", "0.6"},
             {
@@ -682,6 +718,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "guest_set_yminerr",
             1,
             {"spdofs", "0.5", "-1.1"},
             {
@@ -697,6 +734,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "guest_set_ymaxerr",
             1,
             {"spdofs", "0.5", "1.1"},
             {
@@ -712,6 +750,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "guest_set_xminerr",
             1,
             {"spdofs", "-1.1", "0.6"},
             {
@@ -727,6 +766,7 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
             0.4,
         },
         {
+            "guest_set_xmaxerr",
             1,
             {"spdofs", "1.1", "0.6"},
             {
@@ -744,13 +784,14 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_user_peer_id = tt[1]
-        local in_args = tt[2]
-        local want_announce_log = tt[3]
-        local want_host_spd_hofs = tt[4]
-        local want_host_spd_vofs = tt[5]
-        local want_guest_spd_hofs = tt[6]
-        local want_guest_spd_vofs = tt[7]
+        local prefix = tt[1]
+        local in_user_peer_id = tt[2]
+        local in_args = tt[3]
+        local want_announce_log = tt[4]
+        local want_host_spd_hofs = tt[5]
+        local want_host_spd_vofs = tt[6]
+        local want_guest_spd_hofs = tt[7]
+        local want_guest_spd_vofs = tt[8]
         t:reset()
         t.fn()
 
@@ -769,19 +810,20 @@ function test_decl.testOnCustomCommandWidgetSpdOfs(t)
         t.env.saveAddon()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
-        assertEqual(want_announce_log, t.env.server._announce_log)
-        assertEqual(want_host_spd_hofs, t.env.g_userdata[0].spd_hofs)
-        assertEqual(want_host_spd_vofs, t.env.g_userdata[0].spd_vofs)
-        assertEqual(want_guest_spd_hofs, t.env.g_userdata[1].spd_hofs)
-        assertEqual(want_guest_spd_vofs, t.env.g_userdata[1].spd_vofs)
-        assertEqual(want_host_spd_hofs, t.env.g_savedata.hostdata.spd_hofs)
-        assertEqual(want_host_spd_vofs, t.env.g_savedata.hostdata.spd_vofs)
+        assertEqual(prefix, "server._announce_log", want_announce_log, t.env.server._announce_log)
+        assertEqual(prefix, "g_userdata[0].spd_hofs", want_host_spd_hofs, t.env.g_userdata[0].spd_hofs)
+        assertEqual(prefix, "g_userdata[0].spd_vofs", want_host_spd_vofs, t.env.g_userdata[0].spd_vofs)
+        assertEqual(prefix, "g_userdata[1].spd_hofs", want_guest_spd_hofs, t.env.g_userdata[1].spd_hofs)
+        assertEqual(prefix, "g_userdata[1].spd_vofs", want_guest_spd_vofs, t.env.g_userdata[1].spd_vofs)
+        assertEqual(prefix, "g_savedata.hostdata.spd_hofs", want_host_spd_hofs, t.env.g_savedata.hostdata.spd_hofs)
+        assertEqual(prefix, "g_savedata.hostdata.spd_vofs", want_host_spd_vofs, t.env.g_savedata.hostdata.spd_vofs)
     end
 end
 
 function test_decl.testOnCustomCommandWidgetAltOfs(t)
     local tests = {
         {
+            "host_get",
             0,
             {"altofs"},
             {
@@ -799,6 +841,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set",
             0,
             {"altofs", "0.5", "0.6"},
             {
@@ -814,6 +857,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_min",
             0,
             {"altofs", "-1", "-1"},
             {
@@ -829,6 +873,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_max",
             0,
             {"altofs", "1", "1"},
             {
@@ -844,6 +889,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_extraspace",
             0,
             {"altofs", "0.5", "0.6", ""},
             {
@@ -859,6 +905,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_extraarg",
             0,
             {"altofs", "0.5", "0.6", "0.7"},
             {
@@ -874,6 +921,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_missingarg",
             0,
             {"altofs", "0.5"},
             {
@@ -889,6 +937,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_ynan",
             0,
             {"altofs", "0.5", "nan"},
             {
@@ -904,6 +953,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_xnan",
             0,
             {"altofs", "nan", "0.6"},
             {
@@ -919,6 +969,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_yminerr",
             0,
             {"altofs", "0.5", "-1.1"},
             {
@@ -934,6 +985,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_ymaxerr",
             0,
             {"altofs", "0.5", "1.1"},
             {
@@ -949,6 +1001,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_xminerr",
             0,
             {"altofs", "-1.1", "0.6"},
             {
@@ -964,6 +1017,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "host_set_xmaxerr",
             0,
             {"altofs", "1.1", "0.6"},
             {
@@ -979,6 +1033,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "guest_get",
             1,
             {"altofs"},
             {
@@ -996,6 +1051,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "guest_set",
             1,
             {"altofs", "0.5", "0.6"},
             {
@@ -1011,6 +1067,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.6,
         },
         {
+            "guest_set_min",
             1,
             {"altofs", "-1", "-1"},
             {
@@ -1026,6 +1083,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             -1,
         },
         {
+            "guest_set_max",
             1,
             {"altofs", "1", "1"},
             {
@@ -1041,6 +1099,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             1,
         },
         {
+            "guest_set_extraspace",
             1,
             {"altofs", "0.5", "0.6", ""},
             {
@@ -1056,6 +1115,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.6,
         },
         {
+            "guest_set_extraarg",
             1,
             {"altofs", "0.5", "0.6", "0.7"},
             {
@@ -1071,6 +1131,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "guest_set_missingarg",
             1,
             {"altofs", "0.5"},
             {
@@ -1086,6 +1147,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "guest_set_ynan",
             1,
             {"altofs", "0.5", "nan"},
             {
@@ -1101,6 +1163,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "guest_set_xnan",
             1,
             {"altofs", "nan", "0.6"},
             {
@@ -1116,6 +1179,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "guest_set_yminerr",
             1,
             {"altofs", "0.5", "-1.1"},
             {
@@ -1131,6 +1195,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "guest_set_ymaxerr",
             1,
             {"altofs", "0.5", "1.1"},
             {
@@ -1146,6 +1211,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "guest_set_xminerr",
             1,
             {"altofs", "-1.1", "0.6"},
             {
@@ -1161,6 +1227,7 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
             0.4,
         },
         {
+            "guest_set_xmaxerr",
             1,
             {"altofs", "1.1", "0.6"},
             {
@@ -1178,13 +1245,14 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_user_peer_id = tt[1]
-        local in_args = tt[2]
-        local want_announce_log = tt[3]
-        local want_host_alt_hofs = tt[4]
-        local want_host_alt_vofs = tt[5]
-        local want_guest_alt_hofs = tt[6]
-        local want_guest_alt_vofs = tt[7]
+        local prefix = tt[1]
+        local in_user_peer_id = tt[2]
+        local in_args = tt[3]
+        local want_announce_log = tt[4]
+        local want_host_alt_hofs = tt[5]
+        local want_host_alt_vofs = tt[6]
+        local want_guest_alt_hofs = tt[7]
+        local want_guest_alt_vofs = tt[8]
         t:reset()
         t.fn()
 
@@ -1203,19 +1271,20 @@ function test_decl.testOnCustomCommandWidgetAltOfs(t)
         t.env.saveAddon()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
-        assertEqual(want_announce_log, t.env.server._announce_log)
-        assertEqual(want_host_alt_hofs, t.env.g_userdata[0].alt_hofs)
-        assertEqual(want_host_alt_vofs, t.env.g_userdata[0].alt_vofs)
-        assertEqual(want_guest_alt_hofs, t.env.g_userdata[1].alt_hofs)
-        assertEqual(want_guest_alt_vofs, t.env.g_userdata[1].alt_vofs)
-        assertEqual(want_host_alt_hofs, t.env.g_savedata.hostdata.alt_hofs)
-        assertEqual(want_host_alt_vofs, t.env.g_savedata.hostdata.alt_vofs)
+        assertEqual(prefix, "server._announce_log", want_announce_log, t.env.server._announce_log)
+        assertEqual(prefix, "g_userdata[0].alt_hofs", want_host_alt_hofs, t.env.g_userdata[0].alt_hofs)
+        assertEqual(prefix, "g_userdata[0].alt_vofs", want_host_alt_vofs, t.env.g_userdata[0].alt_vofs)
+        assertEqual(prefix, "g_userdata[1].alt_hofs", want_guest_alt_hofs, t.env.g_userdata[1].alt_hofs)
+        assertEqual(prefix, "g_userdata[1].alt_vofs", want_guest_alt_vofs, t.env.g_userdata[1].alt_vofs)
+        assertEqual(prefix, "g_savedata.hostdata.alt_hofs", want_host_alt_hofs, t.env.g_savedata.hostdata.alt_hofs)
+        assertEqual(prefix, "g_savedata.hostdata.alt_vofs", want_host_alt_vofs, t.env.g_savedata.hostdata.alt_vofs)
     end
 end
 
 function test_decl.testOnCustomCommandWidgetSpdUnit(t)
     local tests = {
         {
+            "host_get",
             0,
             {"spdunit"},
             {
@@ -1232,6 +1301,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
             "kmph",
         },
         {
+            "host_set",
             0,
             {"spdunit", "m/s"},
             {
@@ -1245,6 +1315,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
             "kmph",
         },
         {
+            "host_set_extraspace",
             0,
             {"spdunit", "m/s", ""},
             {
@@ -1258,6 +1329,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
             "kmph",
         },
         {
+            "host_set_extraarg",
             0,
             {"spdunit", "m/s", "m/s"},
             {
@@ -1271,6 +1343,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
             "kmph",
         },
         {
+            "host_set_invalid",
             0,
             {"spdunit", "m/h"},
             {
@@ -1286,6 +1359,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
             "kmph",
         },
         {
+            "guest_get",
             1,
             {"spdunit"},
             {
@@ -1302,6 +1376,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
             "kmph",
         },
         {
+            "guest_set",
             1,
             {"spdunit", "m/s"},
             {
@@ -1315,6 +1390,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
             "m/s",
         },
         {
+            "guest_set_extraspace",
             1,
             {"spdunit", "m/s", ""},
             {
@@ -1328,6 +1404,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
             "m/s",
         },
         {
+            "guest_set_extraarg",
             1,
             {"spdunit", "m/s", "m/s"},
             {
@@ -1341,6 +1418,7 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
             "kmph",
         },
         {
+            "guest_set_invalid",
             1,
             {"spdunit", "m/h"},
             {
@@ -1358,11 +1436,12 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_user_peer_id = tt[1]
-        local in_args = tt[2]
-        local want_announce_log = tt[3]
-        local want_spd_unit_0 = tt[4]
-        local want_spd_unit_1 = tt[5]
+        local prefix = tt[1]
+        local in_user_peer_id = tt[2]
+        local in_args = tt[3]
+        local want_announce_log = tt[4]
+        local want_spd_unit_0 = tt[5]
+        local want_spd_unit_1 = tt[6]
         t:reset()
         t.fn()
 
@@ -1379,16 +1458,17 @@ function test_decl.testOnCustomCommandWidgetSpdUnit(t)
         t.env.saveAddon()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
-        assertEqual(want_announce_log, t.env.server._announce_log)
-        assertEqual(want_spd_unit_0, t.env.g_userdata[0].spd_unit)
-        assertEqual(want_spd_unit_1, t.env.g_userdata[1].spd_unit)
-        assertEqual(want_spd_unit_0, t.env.g_savedata.hostdata.spd_unit)
+        assertEqual(prefix, "server._announce_log", want_announce_log, t.env.server._announce_log)
+        assertEqual(prefix, "g_userdata[0].spd_unit", want_spd_unit_0, t.env.g_userdata[0].spd_unit)
+        assertEqual(prefix, "g_userdata[1].spd_unit", want_spd_unit_1, t.env.g_userdata[1].spd_unit)
+        assertEqual(prefix, "g_savedata.hostdata.spd_unit",want_spd_unit_0, t.env.g_savedata.hostdata.spd_unit)
     end
 end
 
 function test_decl.testOnCustomCommandWidgetAltUnit(t)
     local tests = {
         {
+            "host_get",
             0,
             {"altunit"},
             {
@@ -1405,6 +1485,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
             "ft",
         },
         {
+            "host_set",
             0,
             {"altunit", "ft"},
             {
@@ -1418,6 +1499,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
             "ft",
         },
         {
+            "host_set_extraspace",
             0,
             {"altunit", "ft", ""},
             {
@@ -1431,6 +1513,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
             "ft",
         },
         {
+            "host_set_extraarg",
             0,
             {"altunit", "ft", "ft"},
             {
@@ -1444,6 +1527,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
             "ft",
         },
         {
+            "host_set_invalid",
             0,
             {"altunit", "kt"},
             {
@@ -1459,6 +1543,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
             "ft",
         },
         {
+            "guest_get",
             1,
             {"altunit"},
             {
@@ -1475,6 +1560,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
             "ft",
         },
         {
+            "guest_set",
             1,
             {"altunit", "m"},
             {
@@ -1488,6 +1574,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
             "m",
         },
         {
+            "guest_set_extraspace",
             1,
             {"altunit", "m", ""},
             {
@@ -1501,6 +1588,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
             "m",
         },
         {
+            "guest_set_extraarg",
             1,
             {"altunit", "m", "m"},
             {
@@ -1514,6 +1602,7 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
             "ft",
         },
         {
+            "guest_set_invalid",
             1,
             {"altunit", "m/s"},
             {
@@ -1531,11 +1620,12 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_user_peer_id = tt[1]
-        local in_args = tt[2]
-        local want_announce_log = tt[3]
-        local want_alt_unit_0 = tt[4]
-        local want_alt_unit_1 = tt[5]
+        local prefix = tt[1]
+        local in_user_peer_id = tt[2]
+        local in_args = tt[3]
+        local want_announce_log = tt[4]
+        local want_alt_unit_0 = tt[5]
+        local want_alt_unit_1 = tt[6]
         t:reset()
         t.fn()
 
@@ -1552,16 +1642,17 @@ function test_decl.testOnCustomCommandWidgetAltUnit(t)
         t.env.saveAddon()
 
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
-        assertEqual(want_announce_log, t.env.server._announce_log)
-        assertEqual(want_alt_unit_0, t.env.g_userdata[0].alt_unit)
-        assertEqual(want_alt_unit_1, t.env.g_userdata[1].alt_unit)
-        assertEqual(want_alt_unit_0, t.env.g_savedata.hostdata.alt_unit)
+        assertEqual(prefix, "server._announce_log", want_announce_log, t.env.server._announce_log)
+        assertEqual(prefix, "g_userdata[0].alt_unit", want_alt_unit_0, t.env.g_userdata[0].alt_unit)
+        assertEqual(prefix, "g_userdata[1].alt_unit", want_alt_unit_1, t.env.g_userdata[1].alt_unit)
+        assertEqual(prefix, "g_savedata.hostdata.alt_unit", want_alt_unit_0, t.env.g_savedata.hostdata.alt_unit)
     end
 end
 
 function test_decl.testOnCustomCommandWidgetUndefined(t)
     local tests = {
         {
+            "host_undefined",
             0,
             {"undefined"},
             {
@@ -1575,6 +1666,7 @@ function test_decl.testOnCustomCommandWidgetUndefined(t)
             },
         },
         {
+            "host_invalid",
             0,
             {"invalid"},
             {
@@ -1588,6 +1680,7 @@ function test_decl.testOnCustomCommandWidgetUndefined(t)
             },
         },
         {
+            "guest_undefined",
             1,
             {"undefined"},
             {
@@ -1603,9 +1696,10 @@ function test_decl.testOnCustomCommandWidgetUndefined(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_user_peer_id = tt[1]
-        local in_args = tt[2]
-        local want_announce_log = tt[3]
+        local prefix = tt[1]
+        local in_user_peer_id = tt[2]
+        local in_args = tt[3]
+        local want_announce_log = tt[4]
         t:reset()
         t.fn()
 
@@ -1617,13 +1711,14 @@ function test_decl.testOnCustomCommandWidgetUndefined(t)
         t.env.onCreate(false)
         t.env.syncPlayers()
         t.env.onCustomCommand("", in_user_peer_id, false, false, "?widget", table.unpack(in_args))
-        assertEqual(want_announce_log, t.env.server._announce_log)
+        assertEqual(prefix, "server._announce_log", want_announce_log, t.env.server._announce_log)
     end
 end
 
 function test_decl.testOnTick(t)
     local tests = {
         {
+            "normal",
             {},
             {},
             {
@@ -1737,6 +1832,7 @@ function test_decl.testOnTick(t)
             },
         },
         {
+            "disable_host",
             {},
             {},
             {
@@ -1822,6 +1918,7 @@ function test_decl.testOnTick(t)
             },
         },
         {
+            "disable_guest",
             {},
             {},
             {
@@ -1907,6 +2004,7 @@ function test_decl.testOnTick(t)
             },
         },
         {
+            "vehicle_host",
             { [8] = 16 },   -- !
             {
                 [16] = {
@@ -2022,6 +2120,7 @@ function test_decl.testOnTick(t)
             },
         },
         {
+            "vehicle_guest",
             { [9] = 17 },   -- !
             {
                 [17] = {
@@ -2139,14 +2238,15 @@ function test_decl.testOnTick(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_character_vehicle_tbl = tt[1]
-        local in_vehicle_pos_tbl_1 = tt[2]
-        local in_object_pos_tbl_1 = tt[3]
-        local in_vehicle_pos_tbl_2 = tt[4]
-        local in_object_pos_tbl_2 = tt[5]
-        local in_userdata = tt[6]
-        local want_popup_1 = tt[7]
-        local want_popup_2 = tt[8]
+        local prefix = tt[1]
+        local in_character_vehicle_tbl = tt[2]
+        local in_vehicle_pos_tbl_1 = tt[3]
+        local in_object_pos_tbl_1 = tt[4]
+        local in_vehicle_pos_tbl_2 = tt[5]
+        local in_object_pos_tbl_2 = tt[6]
+        local in_userdata = tt[7]
+        local want_popup_1 = tt[8]
+        local want_popup_2 = tt[9]
         t:reset()
         t.fn()
 
@@ -2159,17 +2259,18 @@ function test_decl.testOnTick(t)
         t.env.server._object_pos_tbl = in_object_pos_tbl_1
         t.env.g_userdata = in_userdata
         t.env.onTick(1)
-        assertEqual(want_popup_1, t.env.server._popup)
+        assertEqual(prefix, "server._popup", want_popup_1, t.env.server._popup)
         t.env.server._vehicle_pos_tbl = in_vehicle_pos_tbl_2
         t.env.server._object_pos_tbl = in_object_pos_tbl_2
         t.env.onTick(1)
-        assertEqual(want_popup_2, t.env.server._popup)
+        assertEqual(prefix, "server._popup", want_popup_2, t.env.server._popup)
     end
 end
 
 function test_decl.testOnCreate(t)
     local tests = {
         {
+            "normal",
             {
                 version = 1,
                 spd_ui_id = 1,
@@ -2218,6 +2319,7 @@ function test_decl.testOnCreate(t)
             },
         },
         {
+            "newspduiid",
             {
                 version = 1,
                 spd_ui_id = nil,    -- !
@@ -2266,6 +2368,7 @@ function test_decl.testOnCreate(t)
             },
         },
         {
+            "newaltuiid",
             {
                 version = 1,
                 spd_ui_id = 1,
@@ -2316,13 +2419,14 @@ function test_decl.testOnCreate(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_savedata = tt[1]
-        local want_userdata = tt[2]
-        local want_spd_ui_id = tt[3]
-        local want_alt_ui_id = tt[4]
-        local want_savedata = tt[5]
-        local want_ui_id_cnt = tt[6]
-        local want_popup = tt[7]
+        local prefix = tt[1]
+        local in_savedata = tt[2]
+        local want_userdata = tt[3]
+        local want_spd_ui_id = tt[4]
+        local want_alt_ui_id = tt[5]
+        local want_savedata = tt[6]
+        local want_ui_id_cnt = tt[7]
+        local want_popup = tt[8]
         t:reset()
         t.fn()
 
@@ -2342,20 +2446,21 @@ function test_decl.testOnCreate(t)
         }
         t.env.g_savedata = in_savedata
         t.env.onCreate(false)
-        assertEqual(want_userdata, t.env.g_userdata)
-        assertEqual(want_spd_ui_id, t.env.g_spd_ui_id)
-        assertEqual(want_alt_ui_id, t.env.g_alt_ui_id)
-        assertEqual("[Meter Widget]", t.env.g_announce_name)
-        assertEqual(want_savedata, t.env.g_savedata)
-        assertEqual(want_ui_id_cnt, t.env.server._ui_id_cnt)
-        assertEqual(want_popup, t.env.server._popup)
-        assertEqual(2, t.env.server._popup_update_cnt)
+        assertEqual(prefix, "g_userdata", want_userdata, t.env.g_userdata)
+        assertEqual(prefix, "g_spd_ui_id", want_spd_ui_id, t.env.g_spd_ui_id)
+        assertEqual(prefix, "g_alt_ui_id", want_alt_ui_id, t.env.g_alt_ui_id)
+        assertEqual(prefix, "g_announce_name", "[Meter Widget]", t.env.g_announce_name)
+        assertEqual(prefix, "g_savedata", want_savedata, t.env.g_savedata)
+        assertEqual(prefix, "server._ui_id_cnt", want_ui_id_cnt, t.env.server._ui_id_cnt)
+        assertEqual(prefix, "server._popup", want_popup, t.env.server._popup)
+        assertEqual(prefix, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
     end
 end
 
 function test_decl.testSyncPlayers(t)
     local tests = {
-        {   -- add guest
+        {
+            "add_guest",
             {
                 [0] = {
                     enabled = true,
@@ -2392,7 +2497,8 @@ function test_decl.testSyncPlayers(t)
                 },
             },
         },
-        {   -- add host
+        {
+            "add_host",
             {},
             {},
             {
@@ -2407,7 +2513,8 @@ function test_decl.testSyncPlayers(t)
                 },
             },
         },
-        {   -- add multi
+        {
+            "add_multi",
             {},
             {
                 { id = 1 },
@@ -2443,7 +2550,8 @@ function test_decl.testSyncPlayers(t)
                 },
             },
         },
-        {   -- remove guest
+        {
+            "remove_guest",
             {
                 [0] = {
                     enabled = true,
@@ -2479,7 +2587,8 @@ function test_decl.testSyncPlayers(t)
                 },
             },
         },
-        {   -- remove host
+        {
+            "remove_host",
             {
                 [0] = {
                     enabled = true,
@@ -2504,7 +2613,8 @@ function test_decl.testSyncPlayers(t)
                 },
             },
         },
-        {   -- remove multi
+        {
+            "remove_multi",
             {
                 [0] = {
                     enabled = true,
@@ -2547,7 +2657,8 @@ function test_decl.testSyncPlayers(t)
                 },
             },
         },
-        {   -- keep
+        {
+            "keep",
             {
                 [0] = {
                     enabled = true,
@@ -2593,7 +2704,8 @@ function test_decl.testSyncPlayers(t)
                 },
             },
         },
-        {   -- mix
+        {
+            "mix",
             {
                 [0] = {
                     enabled = true,
@@ -2660,66 +2772,76 @@ function test_decl.testSyncPlayers(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_userdata, in_player_list, want_userdata = table.unpack(tt)
+        local prefix = tt[1]
+        local in_userdata = tt[2]
+        local in_player_list = tt[3]
+        local want_userdata = tt[4]
         t:reset()
         t.fn()
 
         t.env.g_userdata = in_userdata
         t.env.server._player_list = in_player_list
         t.env.syncPlayers()
-        assertEqual(want_userdata, t.env.g_userdata)
+        assertEqual(prefix, "g_userdata", want_userdata, t.env.g_userdata)
     end
 end
 
 function test_decl.testFormatSpd(t)
     local tests = {
-        {nil, "km/h", "SPD\n---"},
-        {0, nil, "SPD\n---"},
-        {0, "invalid", "SPD\n---"},
-        {1.5/216, "km/h", "SPD\n1.50km/h"},
-        {1.5/60, "m/s", "SPD\n1.50m/s"},
-        {1.5/(216000.0/1609.344), "mph", "SPD\n1.50mph"},
-        {1.5/(216000.0/1852.0), "kt", "SPD\n1.50kt"},
-        {0.0/0.0, "km/h", "SPD\nnankm/h"},
-        {1.0/0.0, "km/h", "SPD\ninfkm/h"},
-        {-1.0/0.0, "km/h", "SPD\n-infkm/h"},
+        {"invalid_spd", nil, "km/h", "SPD\n---"},
+        {"invalid_unit_nil", 0, nil, "SPD\n---"},
+        {"invalid_unit_unknown", 0, "invalid", "SPD\n---"},
+        {"normal_kmph", 1.5/216, "km/h", "SPD\n1.50km/h"},
+        {"normal_mps", 1.5/60, "m/s", "SPD\n1.50m/s"},
+        {"normal_mph", 1.5/(216000.0/1609.344), "mph", "SPD\n1.50mph"},
+        {"normal_kt", 1.5/(216000.0/1852.0), "kt", "SPD\n1.50kt"},
+        {"exc_nan", 0.0/0.0, "km/h", "SPD\nnankm/h"},
+        {"exc_pinf", 1.0/0.0, "km/h", "SPD\ninfkm/h"},
+        {"exc_ninf", -1.0/0.0, "km/h", "SPD\n-infkm/h"},
     }
 
     for i, tt in ipairs(tests) do
-        local in_spd, in_spd_unit, want_txt = table.unpack(tt)
+        local prefix = tt[1]
+        local in_spd = tt[2]
+        local in_spd_unit = tt[3]
+        local want_txt = tt[4]
         t:reset()
         t.fn()
 
         local got_txt = t.env.formatSpd(in_spd, in_spd_unit)
-        assertEqual(want_txt, got_txt)
+        assertEqual(prefix, "txt", want_txt, got_txt)
     end
 end
 
 function test_decl.testFormatAlt(t)
     local tests = {
-        {nil, "m", "ALT\n---"},
-        {0, nil, "ALT\n---"},
-        {0, "invalid", "ALT\n---"},
-        {1.5, "m", "ALT\n1.50m"},
-        {1.5/(1.0/0.3048), "ft", "ALT\n1.50ft"},
-        {0.0/0.0, "m", "ALT\nnanm"},
-        {1.0/0.0, "m", "ALT\ninfm"},
-        {-1.0/0.0, "m", "ALT\n-infm"},
+        {"invalid_spd", nil, "m", "ALT\n---"},
+        {"invalid_unit_nil", 0, nil, "ALT\n---"},
+        {"invalid_unit_unknown", 0, "invalid", "ALT\n---"},
+        {"normal_m", 1.5, "m", "ALT\n1.50m"},
+        {"normal_ft", 1.5/(1.0/0.3048), "ft", "ALT\n1.50ft"},
+        {"exc_nan", 0.0/0.0, "m", "ALT\nnanm"},
+        {"exc_pinf", 1.0/0.0, "m", "ALT\ninfm"},
+        {"exc_ninf", -1.0/0.0, "m", "ALT\n-infm"},
     }
 
     for i, tt in ipairs(tests) do
-        local in_alt, in_alt_unit, want_txt = table.unpack(tt)
+        local prefix = tt[1]
+        local in_alt = tt[2]
+        local in_alt_unit = tt[3]
+        local want_txt = tt[4]
         t:reset()
         t.fn()
 
         local got_txt = t.env.formatAlt(in_alt, in_alt_unit)
-        assertEqual(want_txt, got_txt)
+        assertEqual(prefix, "txt", want_txt, got_txt)
     end
 end
 
 function test_decl.testLoadAddon(t)
     local tests = {
         {
+            "normal",
             2,
             3,
             {
@@ -2758,6 +2880,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "normal_nohostdata",
             2,
             3,
             nil,    -- !
@@ -2780,6 +2903,7 @@ function test_decl.testLoadAddon(t)
             nil,
         },
         {
+            "normal_min",
             2,
             3,
             {
@@ -2818,6 +2942,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "normal_max",
             2,
             3,
             {
@@ -2856,6 +2981,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_nosavedata",
             2,
             3,
             {
@@ -2881,6 +3007,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_version",
             2,
             3,
             {
@@ -2919,6 +3046,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spduiid_nil",
             2,
             3,
             {
@@ -2957,6 +3085,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spduiid_float",
             2,
             3,
             {
@@ -2995,6 +3124,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "anbormal_spduiid_nan",
             2,
             3,
             {
@@ -3033,6 +3163,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spduiid_ninf",
             2,
             3,
             {
@@ -3071,6 +3202,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spduiid_pinf",
             2,
             3,
             {
@@ -3109,6 +3241,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altuiid_nil",
             2,
             3,
             {
@@ -3147,6 +3280,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altuiid_float",
             2,
             3,
             {
@@ -3185,6 +3319,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altuiid_nan",
             2,
             3,
             {
@@ -3223,6 +3358,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altuiid_ninf",
             2,
             3,
             {
@@ -3261,6 +3397,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altuiid_pinf",
             2,
             3,
             {
@@ -3299,6 +3436,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_hostdata_nil",
             2,
             3,
             {
@@ -3329,6 +3467,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_enabled_nil",
             2,
             3,
             {
@@ -3367,6 +3506,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdhofs_nil",
             2,
             3,
             {
@@ -3405,6 +3545,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdhofs_min",
             2,
             3,
             {
@@ -3443,6 +3584,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdhofs_max",
             2,
             3,
             {
@@ -3481,6 +3623,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdhofs_nan",
             2,
             3,
             {
@@ -3519,6 +3662,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdhofs_ninf",
             2,
             3,
             {
@@ -3557,6 +3701,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdhofs_pinf",
             2,
             3,
             {
@@ -3595,6 +3740,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdvofs_nil",
             2,
             3,
             {
@@ -3633,6 +3779,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdvofs_min",
             2,
             3,
             {
@@ -3671,6 +3818,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdvofs_max",
             2,
             3,
             {
@@ -3709,6 +3857,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdvofs_nan",
             2,
             3,
             {
@@ -3747,6 +3896,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdvofs_ninf",
             2,
             3,
             {
@@ -3785,6 +3935,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdvofs_pinf",
             2,
             3,
             {
@@ -3823,6 +3974,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdunit_nil",
             2,
             3,
             {
@@ -3861,6 +4013,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_spdunit_invalid",
             2,
             3,
             {
@@ -3899,6 +4052,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_althofs_nil",
             2,
             3,
             {
@@ -3937,6 +4091,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_althofs_min",
             2,
             3,
             {
@@ -3975,6 +4130,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_althofs_max",
             2,
             3,
             {
@@ -4013,6 +4169,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_althofs_nan",
             2,
             3,
             {
@@ -4051,6 +4208,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_althofs_ninf",
             2,
             3,
             {
@@ -4089,6 +4247,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_althofs_pinf",
             2,
             3,
             {
@@ -4127,6 +4286,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altvofs_nil",
             2,
             3,
             {
@@ -4165,6 +4325,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altvofs_min",
             2,
             3,
             {
@@ -4203,6 +4364,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altvofs_max",
             2,
             3,
             {
@@ -4241,6 +4403,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altvofs_nan",
             2,
             3,
             {
@@ -4279,6 +4442,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altvofs_ninf",
             2,
             3,
             {
@@ -4317,6 +4481,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altvofs_pinf",
             2,
             3,
             {
@@ -4355,6 +4520,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altunit_nil",
             2,
             3,
             {
@@ -4393,6 +4559,7 @@ function test_decl.testLoadAddon(t)
             },
         },
         {
+            "abnormal_altunit_invalid",
             2,
             3,
             {
@@ -4433,13 +4600,14 @@ function test_decl.testLoadAddon(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_spd_ui_id = tt[1]
-        local in_alt_ui_id = tt[2]
-        local in_hostdata = tt[3]
-        local in_savedata = tt[4]
-        local want_spd_ui_id = tt[5]
-        local want_alt_ui_id = tt[6]
-        local want_hostdata = tt[7]
+        local prefix = tt[1]
+        local in_spd_ui_id = tt[2]
+        local in_alt_ui_id = tt[3]
+        local in_hostdata = tt[4]
+        local in_savedata = tt[5]
+        local want_spd_ui_id = tt[6]
+        local want_alt_ui_id = tt[7]
+        local want_hostdata = tt[8]
         t:reset()
         t.fn()
 
@@ -4448,15 +4616,16 @@ function test_decl.testLoadAddon(t)
         t.env.g_userdata = { [0] = in_hostdata }
         t.env.g_savedata = in_savedata
         t.env.loadAddon()
-        assertEqual(want_spd_ui_id, t.env.g_spd_ui_id)
-        assertEqual(want_alt_ui_id, t.env.g_alt_ui_id)
-        assertEqual(want_hostdata, t.env.g_userdata[0])
+        assertEqual(prefix, "g_spd_ui_id", want_spd_ui_id, t.env.g_spd_ui_id)
+        assertEqual(prefix, "g_alt_ui_id", want_alt_ui_id, t.env.g_alt_ui_id)
+        assertEqual(prefix, "g_userdata[0]", want_hostdata, t.env.g_userdata[0])
     end
 end
 
 function test_decl.testSaveAddon(t)
     local tests = {
         {
+            "nohostdata",
             2,
             3,
             nil,
@@ -4468,6 +4637,7 @@ function test_decl.testSaveAddon(t)
             },
         },
         {
+            "normal",
             2,
             3,
             {
@@ -4497,7 +4667,11 @@ function test_decl.testSaveAddon(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_spd_ui_id, in_alt_ui_id, in_hostdata, want_savedata = table.unpack(tt)
+        local prefix = tt[1]
+        local in_spd_ui_id = tt[2]
+        local in_alt_ui_id = tt[3]
+        local in_hostdata = tt[4]
+        local want_savedata = tt[5]
         t:reset()
         t.fn()
 
@@ -4505,18 +4679,20 @@ function test_decl.testSaveAddon(t)
         t.env.g_alt_ui_id = in_alt_ui_id
         t.env.g_userdata = { [0] = in_hostdata }
         t.env.saveAddon()
-        assertEqual(want_savedata, t.env.g_savedata)
+        assertEqual(prefix, "g_savedata", want_savedata, t.env.g_savedata)
     end
 end
 
 function test_decl.testTrackerUserGet(t)
     local tests = {
         {
+            "vehicle",
             { [1] = 2 },
             8,
             4,
         },
         {
+            "player",
             {},
             9,
             5,
@@ -4524,9 +4700,10 @@ function test_decl.testTrackerUserGet(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_character_vehicle_tbl = tt[1]
-        local want_spd = tt[2]
-        local want_alt = tt[3]
+        local prefix = tt[1]
+        local in_character_vehicle_tbl = tt[2]
+        local want_spd = tt[3]
+        local want_alt = tt[4]
         t:reset()
         t.fn()
 
@@ -4571,8 +4748,8 @@ function test_decl.testTrackerUserGet(t)
 
         tracker:tick()
         local got_spd, got_alt = tracker:getUserSpdAlt(0)
-        assertEqual(want_spd, got_spd)
-        assertEqual(want_alt, got_alt)
+        assertEqual(prefix, "spd", want_spd, got_spd)
+        assertEqual(prefix, "alt", want_alt, got_alt)
     end
 end
 
@@ -4590,8 +4767,8 @@ function test_decl.testTrackerPlayerGet(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 end
 
 function test_decl.testTrackerPlayerCache(t)
@@ -4608,14 +4785,14 @@ function test_decl.testTrackerPlayerCache(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 
     t.env.server._object_pos_tbl[1] = nil
 
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 end
 
 function test_decl.testTrackerPlayerCacheExpiry(t)
@@ -4632,15 +4809,15 @@ function test_decl.testTrackerPlayerCacheExpiry(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 
     t.env.server._object_pos_tbl[1] = nil
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 end
 
 function test_decl.testTrackerPlayerCacheMulti(t)
@@ -4664,21 +4841,21 @@ function test_decl.testTrackerPlayerCacheMulti(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(1)
-    assertEqual(nil, spd)
-    assertEqual(6, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 6, alt)
     spd, alt = tracker:getPlayerSpdAlt(3)
-    assertEqual(nil, spd)
-    assertEqual(9, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 9, alt)
 
     t.env.server._object_pos_tbl[2] = nil
     t.env.server._object_pos_tbl[4] = nil
 
     spd, alt = tracker:getPlayerSpdAlt(1)
-    assertEqual(nil, spd)
-    assertEqual(6, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 6, alt)
     spd, alt = tracker:getPlayerSpdAlt(3)
-    assertEqual(nil, spd)
-    assertEqual(9, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 9, alt)
 end
 
 function test_decl.testTrackerPlayerFail(t)
@@ -4687,8 +4864,8 @@ function test_decl.testTrackerPlayerFail(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 end
 
 function test_decl.testTrackerPlayerFailCache(t)
@@ -4697,8 +4874,8 @@ function test_decl.testTrackerPlayerFailCache(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 
     t.env.server._player_character_tbl[0] = 1
     t.env.server._object_pos_tbl[1] = {
@@ -4709,8 +4886,8 @@ function test_decl.testTrackerPlayerFailCache(t)
     }
 
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 end
 
 function test_decl.testTrackerPlayerFailTrackContinue(t)
@@ -4719,8 +4896,8 @@ function test_decl.testTrackerPlayerFailTrackContinue(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 
     t.env.server._player_character_tbl[0] = 1
     t.env.server._object_pos_tbl[1] = {
@@ -4731,8 +4908,8 @@ function test_decl.testTrackerPlayerFailTrackContinue(t)
     }
 
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4743,8 +4920,8 @@ function test_decl.testTrackerPlayerFailTrackContinue(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(5, spd)
-    assertEqual(8, alt)
+    assertEqual(nil, "spd", 5, spd)
+    assertEqual(nil, "alt", 8, alt)
 end
 
 function test_decl.testTrackerPlayerFailTrackStopHost(t)
@@ -4761,15 +4938,15 @@ function test_decl.testTrackerPlayerFailTrackStopHost(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 
     t.env.server._object_pos_tbl[1] = nil
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4780,8 +4957,8 @@ function test_decl.testTrackerPlayerFailTrackStopHost(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(8, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 8, alt)
 end
 
 function test_decl.testTrackerPlayerFailTrackStopGuest(t)
@@ -4798,15 +4975,15 @@ function test_decl.testTrackerPlayerFailTrackStopGuest(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(9)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 
     t.env.server._object_pos_tbl[1] = nil
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(9)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4817,8 +4994,8 @@ function test_decl.testTrackerPlayerFailTrackStopGuest(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(9)
-    assertEqual(nil, spd)
-    assertEqual(8, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 8, alt)
 end
 
 function test_decl.testTrackerPlayerTrackHost(t)
@@ -4835,8 +5012,8 @@ function test_decl.testTrackerPlayerTrackHost(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4847,8 +5024,8 @@ function test_decl.testTrackerPlayerTrackHost(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(5, spd)
-    assertEqual(8, alt)
+    assertEqual(nil, "spd", 5, spd)
+    assertEqual(nil, "alt", 8, alt)
 end
 
 function test_decl.testTrackerPlayerTrackHostExpiry(t)
@@ -4865,8 +5042,8 @@ function test_decl.testTrackerPlayerTrackHostExpiry(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(nil, spd)
-    assertEqual(2, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 2, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4877,8 +5054,8 @@ function test_decl.testTrackerPlayerTrackHostExpiry(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(1, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", 1, spd)
+    assertEqual(nil, "alt", 3, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4889,8 +5066,8 @@ function test_decl.testTrackerPlayerTrackHostExpiry(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(0)
-    assertEqual(2, spd)
-    assertEqual(5, alt)
+    assertEqual(nil, "spd", 2, spd)
+    assertEqual(nil, "alt", 5, alt)
 end
 
 function test_decl.testTrackerPlayerTrackGuest(t)
@@ -4907,8 +5084,8 @@ function test_decl.testTrackerPlayerTrackGuest(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4931,8 +5108,8 @@ function test_decl.testTrackerPlayerTrackGuest(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(1, spd)
-    assertEqual(63, alt)
+    assertEqual(nil, "spd", 1, spd)
+    assertEqual(nil, "alt", 63, alt)
 end
 
 function test_decl.testTrackerPlayerTrackGuestExpiry(t)
@@ -4949,8 +5126,8 @@ function test_decl.testTrackerPlayerTrackGuestExpiry(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4961,8 +5138,8 @@ function test_decl.testTrackerPlayerTrackGuestExpiry(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(1, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", 1, spd)
+    assertEqual(nil, "alt", 4, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4985,8 +5162,8 @@ function test_decl.testTrackerPlayerTrackGuestExpiry(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(1, spd)
-    assertEqual(63, alt)
+    assertEqual(nil, "spd", 1, spd)
+    assertEqual(nil, "alt", 63, alt)
 
     t.env.server._object_pos_tbl[1] = {
         1, 0, 0, 0,
@@ -4997,8 +5174,8 @@ function test_decl.testTrackerPlayerTrackGuestExpiry(t)
 
     tracker:tickPlayer()
     spd, alt = tracker:getPlayerSpdAlt(2)
-    assertEqual(2, spd)
-    assertEqual(124, alt)
+    assertEqual(nil, "spd", 2, spd)
+    assertEqual(nil, "alt", 124, alt)
 end
 
 function test_decl.testTrackerVehicleGet(t)
@@ -5014,8 +5191,8 @@ function test_decl.testTrackerVehicleGet(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
 end
 
 function test_decl.testTrackerVehicleCache(t)
@@ -5031,14 +5208,14 @@ function test_decl.testTrackerVehicleCache(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
 
     t.env.server._vehicle_pos_tbl[2] = nil
 
     spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
 end
 
 function test_decl.testTrackerVehicleCacheExpiry(t)
@@ -5054,15 +5231,15 @@ function test_decl.testTrackerVehicleCacheExpiry(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
 
     t.env.server._vehicle_pos_tbl[2] = nil
 
     tracker:tickVehicle()
     spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 end
 
 function test_decl.testTrackerVehicleCacheMulti(t)
@@ -5084,21 +5261,21 @@ function test_decl.testTrackerVehicleCacheMulti(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
     spd, alt = tracker:getVehicleSpdAlt(6)
-    assertEqual(nil, spd)
-    assertEqual(8, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 8, alt)
 
     t.env.server._vehicle_pos_tbl[2] = nil
     t.env.server._vehicle_pos_tbl[6] = nil
 
     spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
     spd, alt = tracker:getVehicleSpdAlt(6)
-    assertEqual(nil, spd)
-    assertEqual(8, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 8, alt)
 end
 
 function test_decl.testTrackerVehicleFail(t)
@@ -5107,8 +5284,8 @@ function test_decl.testTrackerVehicleFail(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 end
 
 function test_decl.testTrackerVehicleFailCache(t)
@@ -5117,8 +5294,8 @@ function test_decl.testTrackerVehicleFailCache(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 
     t.env.server._vehicle_pos_tbl[2] = {
         1, 0, 0, 0,
@@ -5128,8 +5305,8 @@ function test_decl.testTrackerVehicleFailCache(t)
     }
 
     spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
 end
 
 function test_decl.testTrackerVehicleFailTrack(t)
@@ -5145,15 +5322,15 @@ function test_decl.testTrackerVehicleFailTrack(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
 
     t.env.server._vehicle_pos_tbl[2] = nil
 
     tracker:tickVehicle()
     spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(nil, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
 
     t.env.server._vehicle_pos_tbl[2] = {
         1, 0, 0, 0,
@@ -5164,8 +5341,8 @@ function test_decl.testTrackerVehicleFailTrack(t)
 
     tracker:tickVehicle()
     spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(7, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 7, alt)
 end
 
 function test_decl.testTrackerVehicleTrack(t)
@@ -5181,8 +5358,8 @@ function test_decl.testTrackerVehicleTrack(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
 
     t.env.server._vehicle_pos_tbl[2] = {
         1, 0, 0, 0,
@@ -5193,8 +5370,8 @@ function test_decl.testTrackerVehicleTrack(t)
 
     tracker:tickVehicle()
     spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(6, spd)
-    assertEqual(8, alt)
+    assertEqual(nil, "spd", 6, spd)
+    assertEqual(nil, "alt", 8, alt)
 end
 
 function test_decl.testTrackerVehicleTrackExpiry(t)
@@ -5210,8 +5387,8 @@ function test_decl.testTrackerVehicleTrackExpiry(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(4, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
 
     t.env.server._vehicle_pos_tbl[2] = {
         1, 0, 0, 0,
@@ -5223,8 +5400,8 @@ function test_decl.testTrackerVehicleTrackExpiry(t)
     tracker:tickVehicle()
     tracker:tickVehicle()
     spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(8, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 8, alt)
 end
 
 function test_decl.testTrackerVehicleTrackMulti(t)
@@ -5246,11 +5423,11 @@ function test_decl.testTrackerVehicleTrackMulti(t)
 
     local tracker = t.env.buildTracker()
     local spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(nil, spd)
-    assertEqual(3, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
     spd, alt = tracker:getVehicleSpdAlt(4)
-    assertEqual(nil, spd)
-    assertEqual(5, alt)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 5, alt)
 
     t.env.server._vehicle_pos_tbl[2] = {
         1, 0, 0, 0,
@@ -5267,11 +5444,11 @@ function test_decl.testTrackerVehicleTrackMulti(t)
 
     tracker:tickVehicle()
     spd, alt = tracker:getVehicleSpdAlt(2)
-    assertEqual(3, spd)
-    assertEqual(6, alt)
+    assertEqual(nil, "spd", 3, spd)
+    assertEqual(nil, "alt", 6, alt)
     spd, alt = tracker:getVehicleSpdAlt(4)
-    assertEqual(2, spd)
-    assertEqual(7, alt)
+    assertEqual(nil, "spd", 2, spd)
+    assertEqual(nil, "alt", 7, alt)
 end
 
 function test_decl.testUIMPopupEmpty(t)
@@ -5280,7 +5457,7 @@ function test_decl.testUIMPopupEmpty(t)
 
     local uim = t.env.buildUIManager()
     uim:flushPopup()
-    assertEqual(0, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 0, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testUIMPopupAddAll(t)
@@ -5290,7 +5467,7 @@ function test_decl.testUIMPopupAddAll(t)
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(-1, 0, "name", true, "text", 0, 0)
     uim:flushPopup()
-    assertEqual(0, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 0, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testUIMPopupAdd(t)
@@ -5300,7 +5477,7 @@ function test_decl.testUIMPopupAdd(t)
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name",
             is_show = true,
@@ -5309,7 +5486,7 @@ function test_decl.testUIMPopupAdd(t)
             vertical_offset = 0.2,
         },
     }, t.env.server._popup)
-    assertEqual(1, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testUIMPopupKeep(t)
@@ -5319,7 +5496,7 @@ function test_decl.testUIMPopupKeep(t)
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name",
             is_show = true,
@@ -5328,11 +5505,11 @@ function test_decl.testUIMPopupKeep(t)
             vertical_offset = 0.2,
         },
     }, t.env.server._popup)
-    assertEqual(1, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name",
             is_show = true,
@@ -5341,20 +5518,25 @@ function test_decl.testUIMPopupKeep(t)
             vertical_offset = 0.2,
         },
     }, t.env.server._popup)
-    assertEqual(1, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testUIMPopupUpdate(t)
     local tests = {
-        {"name2", true, "text1", 0.1, 0.2},     -- name
-        {"name1", false, "text1", 0.1, 0.2},    -- is_show
-        {"name1", true, "text2", 0.1, 0.2},     -- text
-        {"name1", true, "text1", 0.3, 0.2},     -- horizontal_offset
-        {"name1", true, "text1", 0.1, 0.4},     -- vertical_offset
+        {"name",              "name2", true, "text1", 0.1, 0.2},
+        {"is_show",           "name1", false, "text1", 0.1, 0.2},
+        {"text",              "name1", true, "text2", 0.1, 0.2},
+        {"horizontal_offset", "name1", true, "text1", 0.3, 0.2},
+        {"vertical_offset",   "name1", true, "text1", 0.1, 0.4},
     }
 
     for i, tt in ipairs(tests) do
-        local in_name, in_is_show, in_text, in_horizontal_offset, in_vertical_offset = table.unpack(tt)
+        local prefix = tt[1]
+        local in_name = tt[2]
+        local in_is_show = tt[3]
+        local in_text = tt[4]
+        local in_horizontal_offset = tt[5]
+        local in_vertical_offset = tt[6]
         t:reset()
         t.fn()
 
@@ -5362,7 +5544,7 @@ function test_decl.testUIMPopupUpdate(t)
 
         uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
         uim:flushPopup()
-        assertEqual({
+        assertEqual(prefix, "server._popup", {
             [string.pack("jj", 0, 1)] = {
                 name = "name1",
                 is_show = true,
@@ -5371,11 +5553,11 @@ function test_decl.testUIMPopupUpdate(t)
                 vertical_offset = 0.2,
             },
         }, t.env.server._popup)
-        assertEqual(1, t.env.server._popup_update_cnt)
+        assertEqual(prefix, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 
         uim:setPopupScreen(0, 1, in_name, in_is_show, in_text, in_horizontal_offset, in_vertical_offset)
         uim:flushPopup()
-        assertEqual({
+        assertEqual(prefix, "server._popup", {
             [string.pack("jj", 0, 1)] = {
                 name = in_name,
                 is_show = in_is_show,
@@ -5384,7 +5566,7 @@ function test_decl.testUIMPopupUpdate(t)
                 vertical_offset = in_vertical_offset,
             },
         }, t.env.server._popup)
-        assertEqual(2, t.env.server._popup_update_cnt)
+        assertEqual(prefix, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
     end
 end
 
@@ -5395,7 +5577,7 @@ function test_decl.testUIMPopupRemove(t)
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name",
             is_show = true,
@@ -5404,11 +5586,11 @@ function test_decl.testUIMPopupRemove(t)
             vertical_offset = 0.2,
         },
     }, t.env.server._popup)
-    assertEqual(1, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 
     uim:flushPopup()
-    assertEqual({}, t.env.server._popup)
-    assertEqual(2, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    assertEqual(nil, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testUIMPopupOverrideAdd(t)
@@ -5419,7 +5601,7 @@ function test_decl.testUIMPopupOverrideAdd(t)
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
     uim:setPopupScreen(0, 1, "name2", false, "text2", 0.3, 0.4)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name2",
             is_show = false,
@@ -5428,7 +5610,7 @@ function test_decl.testUIMPopupOverrideAdd(t)
             vertical_offset = 0.4,
         },
     }, t.env.server._popup)
-    assertEqual(1, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testUIMPopupOverrideKeep(t)
@@ -5438,7 +5620,7 @@ function test_decl.testUIMPopupOverrideKeep(t)
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
             is_show = true,
@@ -5447,12 +5629,12 @@ function test_decl.testUIMPopupOverrideKeep(t)
             vertical_offset = 0.2,
         },
     }, t.env.server._popup)
-    assertEqual(1, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 
     uim:setPopupScreen(0, 1, "name2", false, "text2", 0.3, 0.4)
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
             is_show = true,
@@ -5461,7 +5643,7 @@ function test_decl.testUIMPopupOverrideKeep(t)
             vertical_offset = 0.2,
         },
     }, t.env.server._popup)
-    assertEqual(1, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testUIMPopupOverrideUpdate(t)
@@ -5471,7 +5653,7 @@ function test_decl.testUIMPopupOverrideUpdate(t)
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
             is_show = true,
@@ -5480,12 +5662,12 @@ function test_decl.testUIMPopupOverrideUpdate(t)
             vertical_offset = 0.2,
         },
     }, t.env.server._popup)
-    assertEqual(1, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 
     uim:setPopupScreen(0, 1, "name2", false, "text2", 0.3, 0.4)
     uim:setPopupScreen(0, 1, "name3", true, "text3", 0.5, 0.6)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name3",
             is_show = true,
@@ -5494,17 +5676,19 @@ function test_decl.testUIMPopupOverrideUpdate(t)
             vertical_offset = 0.6,
         },
     }, t.env.server._popup)
-    assertEqual(2, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testUIMPopupKey(t)
     local tests = {
-        {2, 1}, -- peer_id
-        {0, 2}, -- ui_id
+        {"peer_id", 2, 1},
+        {"ui_id", 0, 2},
     }
 
     for i, tt in ipairs(tests) do
-        local in_peer_id, in_ui_id = table.unpack(tt)
+        local prefix = tt[1]
+        local in_peer_id = tt[2]
+        local in_ui_id = tt[3]
         t:reset()
         t.fn()
 
@@ -5512,7 +5696,7 @@ function test_decl.testUIMPopupKey(t)
         uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
         uim:setPopupScreen(in_peer_id, in_ui_id, "name2", false, "text2", 0.3, 0.4)
         uim:flushPopup()
-        assertEqual({
+        assertEqual(prefix, "server._popup", {
             [string.pack("jj", 0, 1)] = {
                 name = "name1",
                 is_show = true,
@@ -5528,7 +5712,7 @@ function test_decl.testUIMPopupKey(t)
                 vertical_offset = 0.4,
             },
         }, t.env.server._popup)
-        assertEqual(2, t.env.server._popup_update_cnt)
+        assertEqual(prefix, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
     end
 end
 
@@ -5544,7 +5728,7 @@ function test_decl.testUIMPopupMix(t)
     uim:setPopupScreen(0, 7, "remove1", true, "text71", 0.71, 0.72)
     uim:setPopupScreen(0, 8, "remove2", false, "text81", 0.81, 0.82)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 3)] = {
             name = "keep1",
             is_show = true,
@@ -5588,7 +5772,7 @@ function test_decl.testUIMPopupMix(t)
             vertical_offset = 0.82,
         },
     }, t.env.server._popup)
-    assertEqual(6, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 6, t.env.server._popup_update_cnt)
 
     uim:setPopupScreen(0, 1, "add1", true, "text11", 0.11, 0.12)
     uim:setPopupScreen(0, 2, "add2", false, "text21", 0.21, 0.22)
@@ -5597,7 +5781,7 @@ function test_decl.testUIMPopupMix(t)
     uim:setPopupScreen(0, 5, "update1!", false, "text52", 0.53, 0.54)
     uim:setPopupScreen(0, 6, "update2!", true, "text62", 0.63, 0.64)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "add1",
             is_show = true,
@@ -5641,7 +5825,7 @@ function test_decl.testUIMPopupMix(t)
             vertical_offset = 0.64,
         },
     }, t.env.server._popup)
-    assertEqual(12, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 12, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testUIMPopupJoin(t)
@@ -5654,7 +5838,7 @@ function test_decl.testUIMPopupJoin(t)
     uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
     uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
             is_show = true,
@@ -5684,10 +5868,10 @@ function test_decl.testUIMPopupJoin(t)
             vertical_offset = 0.42,
         },
     }, t.env.server._popup)
-    assertEqual(4, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 4, t.env.server._popup_update_cnt)
 
     uim:onPlayerJoin(0, "name", 1, false, false)
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
             is_show = true,
@@ -5703,14 +5887,14 @@ function test_decl.testUIMPopupJoin(t)
             vertical_offset = 0.22,
         },
     }, t.env.server._popup)
-    assertEqual(6, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 6, t.env.server._popup_update_cnt)
 
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
     uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
     uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
     uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
     uim:flushPopup()
-    assertEqual({
+    assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
             is_show = true,
@@ -5740,12 +5924,13 @@ function test_decl.testUIMPopupJoin(t)
             vertical_offset = 0.42,
         },
     }, t.env.server._popup)
-    assertEqual(8, t.env.server._popup_update_cnt)
+    assertEqual(nil, "server._popup_update_cnt", 8, t.env.server._popup_update_cnt)
 end
 
 function test_decl.testGetPlayerPos(t)
     local tests = {
         {
+            "normal",
             {[0] = 1},
             {
                 [1] = {
@@ -5765,6 +5950,7 @@ function test_decl.testGetPlayerPos(t)
             true,
         },
         {
+            "abnormal_nocharacter",
             {},
             {
                 [1] = {
@@ -5779,6 +5965,7 @@ function test_decl.testGetPlayerPos(t)
             false,
         },
         {
+            "abnormal_nopos",
             {[0] = 1},
             {},
             0,
@@ -5788,23 +5975,29 @@ function test_decl.testGetPlayerPos(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_player_character_tbl, in_object_pos_tbl, in_peer_id, want_object_pos, want_is_success = table.unpack(tt)
+        local prefix = tt[1]
+        local in_player_character_tbl = tt[2]
+        local in_object_pos_tbl = tt[3]
+        local in_peer_id = tt[4]
+        local want_object_pos = tt[5]
+        local want_is_success = tt[6]
         t:reset()
         t.fn()
         t.env.server._player_character_tbl = in_player_character_tbl
         t.env.server._object_pos_tbl = in_object_pos_tbl
 
         local got_object_pos, got_is_success = t.env.getPlayerPos(in_peer_id)
-        assertEqual(want_object_pos, got_object_pos)
-        assertEqual(want_is_success, got_is_success)
+        assertEqual(prefix, "object_pos", want_object_pos, got_object_pos)
+        assertEqual(prefix, "is_success", want_is_success, got_is_success)
     end
 end
 
 function test_decl.testGetAddonName(t)
     local tests = {
-        {0, false, {}, "???"},
-        {0, true, {}, "???"},
+        {"abnormal_noidx", 0, false, {}, "???"},
+        {"abnormal_nodata", 0, true, {}, "???"},
         {
+            "normal",
             0,
             true,
             {
@@ -5820,7 +6013,11 @@ function test_decl.testGetAddonName(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_addon_idx, in_addon_idx_exists, in_addon_tbl, want_addon_name = table.unpack(tt)
+        local prefix = tt[1]
+        local in_addon_idx = tt[2]
+        local in_addon_idx_exists = tt[3]
+        local in_addon_tbl = tt[4]
+        local want_addon_name = tt[5]
         t:reset()
         t.env.server._addon_idx = in_addon_idx
         t.env.server._addon_idx_exists = in_addon_idx_exists
@@ -5828,7 +6025,7 @@ function test_decl.testGetAddonName(t)
         t.fn()
 
         local got_addon_name = t.env.getAddonName()
-        assertEqual(got_addon_name, want_addon_name)
+        assertEqual(prefix, "addon_name", want_addon_name, got_addon_name)
     end
 end
 
@@ -5847,19 +6044,21 @@ function test_decl.testGetAnnounceName(t)
     t.fn()
 
     local announce_name = t.env.getAnnounceName()
-    assertEqual("[name]", announce_name)
+    assertEqual(nil, "announce_name", "[name]", announce_name)
 end
 
 function test_decl.testGetPlayerVehicle(t)
     local tests = {
-        {{}, {}, 0, false},
+        {"abnormal_nocharacter", {}, {}, 0, false},
         {
+            "abnormal_novehicle",
             {[1] = 2},
             {},
             0,
             false,
         },
         {
+            "normal",
             {[1] = 2},
             {[2] = 3},
             3,
@@ -5868,15 +6067,19 @@ function test_decl.testGetPlayerVehicle(t)
     }
 
     for i, tt in ipairs(tests) do
-        local in_player_character_tbl, in_character_vehicle_tbl, want_vehicle_id, want_is_success = table.unpack(tt)
+        local prefix = tt[1]
+        local in_player_character_tbl = tt[2]
+        local in_character_vehicle_tbl = tt[3]
+        local want_vehicle_id = tt[4]
+        local want_is_success = tt[5]
         t:reset()
         t.env.server._player_character_tbl = in_player_character_tbl
         t.env.server._character_vehicle_tbl = in_character_vehicle_tbl
         t.fn()
 
         local got_vehicle_id, got_is_success = t.env.getPlayerVehicle(1)
-        assertEqual(want_vehicle_id, got_vehicle_id)
-        assertEqual(want_is_success, got_is_success)
+        assertEqual(prefix, "vehicle_id", want_vehicle_id, got_vehicle_id)
+        assertEqual(prefix, "is_success", want_is_success, got_is_success)
     end
 end
 
@@ -5895,7 +6098,7 @@ function test_decl.testRingNew(t)
         t.fn()
 
         local got_ring = t.env.ringNew(in_cap)
-        assertEqual(want_ring, got_ring)
+        assertEqual(nil, "ring", want_ring, got_ring)
     end
 end
 
@@ -5974,7 +6177,7 @@ function test_decl.testRingSet(t)
         t.fn()
 
         t.env.ringSet(got_ring, in_item)
-        assertEqual(want_ring, got_ring)
+        assertEqual(nil, "ring", want_ring, got_ring)
     end
 end
 
@@ -6103,7 +6306,7 @@ function test_decl.testRingGet(t)
         t.fn()
 
         local got_ret = t.env.ringGet(in_ring, in_idx)
-        assertEqual(want_ret, got_ret)
+        assertEqual(nil, "ring", want_ret, got_ret)
     end
 end
 
@@ -6112,44 +6315,44 @@ function test_decl.testRingGetSet(t)
     t.fn()
 
     local ring = t.env.ringNew(3)
-    assertEqual(nil, t.env.ringGet(ring, 1))
-    assertEqual(nil, t.env.ringGet(ring, 2))
-    assertEqual(nil, t.env.ringGet(ring, 3))
+    assertEqual(nil, "ringGet(ring, 1)", nil, t.env.ringGet(ring, 1))
+    assertEqual(nil, "ringGet(ring, 2)", nil, t.env.ringGet(ring, 2))
+    assertEqual(nil, "ringGet(ring, 3)", nil, t.env.ringGet(ring, 3))
 
     t.env.ringSet(ring, "A")
-    assertEqual("A", t.env.ringGet(ring, 1))
-    assertEqual(nil, t.env.ringGet(ring, 2))
-    assertEqual(nil, t.env.ringGet(ring, 3))
+    assertEqual(nil, "ringGet(ring, 1)", "A", t.env.ringGet(ring, 1))
+    assertEqual(nil, "ringGet(ring, 2)", nil, t.env.ringGet(ring, 2))
+    assertEqual(nil, "ringGet(ring, 3)", nil, t.env.ringGet(ring, 3))
 
     t.env.ringSet(ring, "B")
-    assertEqual("A", t.env.ringGet(ring, 1))
-    assertEqual("B", t.env.ringGet(ring, 2))
-    assertEqual(nil, t.env.ringGet(ring, 3))
+    assertEqual(nil, "ringGet(ring, 1)", "A", t.env.ringGet(ring, 1))
+    assertEqual(nil, "ringGet(ring, 2)", "B", t.env.ringGet(ring, 2))
+    assertEqual(nil, "ringGet(ring, 3)", nil, t.env.ringGet(ring, 3))
 
     t.env.ringSet(ring, "C")
-    assertEqual("A", t.env.ringGet(ring, 1))
-    assertEqual("B", t.env.ringGet(ring, 2))
-    assertEqual("C", t.env.ringGet(ring, 3))
+    assertEqual(nil, "ringGet(ring, 1)", "A", t.env.ringGet(ring, 1))
+    assertEqual(nil, "ringGet(ring, 2)", "B", t.env.ringGet(ring, 2))
+    assertEqual(nil, "ringGet(ring, 3)", "C", t.env.ringGet(ring, 3))
 
     t.env.ringSet(ring, "D")
-    assertEqual("B", t.env.ringGet(ring, 1))
-    assertEqual("C", t.env.ringGet(ring, 2))
-    assertEqual("D", t.env.ringGet(ring, 3))
+    assertEqual(nil, "ringGet(ring, 1)", "B", t.env.ringGet(ring, 1))
+    assertEqual(nil, "ringGet(ring, 2)", "C", t.env.ringGet(ring, 2))
+    assertEqual(nil, "ringGet(ring, 3)", "D", t.env.ringGet(ring, 3))
 
     t.env.ringSet(ring, "E")
-    assertEqual("C", t.env.ringGet(ring, 1))
-    assertEqual("D", t.env.ringGet(ring, 2))
-    assertEqual("E", t.env.ringGet(ring, 3))
+    assertEqual(nil, "ringGet(ring, 1)", "C", t.env.ringGet(ring, 1))
+    assertEqual(nil, "ringGet(ring, 2)", "D", t.env.ringGet(ring, 2))
+    assertEqual(nil, "ringGet(ring, 3)", "E", t.env.ringGet(ring, 3))
 
     t.env.ringSet(ring, "F")
-    assertEqual("D", t.env.ringGet(ring, 1))
-    assertEqual("E", t.env.ringGet(ring, 2))
-    assertEqual("F", t.env.ringGet(ring, 3))
+    assertEqual(nil, "ringGet(ring, 1)", "D", t.env.ringGet(ring, 1))
+    assertEqual(nil, "ringGet(ring, 2)", "E", t.env.ringGet(ring, 2))
+    assertEqual(nil, "ringGet(ring, 3)", "F", t.env.ringGet(ring, 3))
 
     t.env.ringSet(ring, "G")
-    assertEqual("E", t.env.ringGet(ring, 1))
-    assertEqual("F", t.env.ringGet(ring, 2))
-    assertEqual("G", t.env.ringGet(ring, 3))
+    assertEqual(nil, "ringGet(ring, 1)", "E", t.env.ringGet(ring, 1))
+    assertEqual(nil, "ringGet(ring, 2)", "F", t.env.ringGet(ring, 2))
+    assertEqual(nil, "ringGet(ring, 3)", "G", t.env.ringGet(ring, 3))
 end
 
 local function buildMockMatrix()
