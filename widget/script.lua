@@ -267,7 +267,7 @@ function onCreate(is_world_create)
     g_spd_ui_id = nil
     g_alt_ui_id = nil
     g_announce_name = getAnnounceName()
-    g_tracker = buildTracker()
+    g_tracker = buildTracker(c_cmd)
     g_uim = buildUIManager()
 
     loadAddon()
@@ -291,6 +291,10 @@ end
 
 function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+end
+
+function onVehicleDespawn(vehicle_id, peer_id)
+    g_tracker:onVehicleDespawn(vehicle_id, peer_id)
 end
 
 function syncPlayers()
@@ -404,12 +408,15 @@ function saveAddon()
     g_savedata = savedata
 end
 
-function buildTracker()
+function buildTracker(sign_name)
     local tracker = {
+        _sign_name = sign_name,
+
         _player_pos_old = {},
         _player_pos_new = {},
         _vehicle_pos_old = {},
         _vehicle_pos_new = {},
+        _vehicle_sign = {},
     }
 
     function tracker:getUserSpdAlt(peer_id)
@@ -473,6 +480,25 @@ function buildTracker()
     function tracker:tick()
         self:tickPlayer()
         self:tickVehicle()
+    end
+
+    function tracker:getVehicleSign(vehicle_id)
+        local sign_data = self._vehicle_sign[vehicle_id]
+        if sign_data ~= nil then
+            return sign_data, true
+        end
+
+        local sign_data, is_success = server.getVehicleSign(vehicle_id, self._sign_name)
+        if not is_success or sign_data == nil then
+            return nil, false
+        end
+
+        self._vehicle_sign[vehicle_id] = sign_data
+        return sign_data, true
+    end
+
+    function tracker:onVehicleDespawn(vehicle_id, peer_id)
+        self._vehicle_sign[vehicle_id] = nil
     end
 
     return tracker
