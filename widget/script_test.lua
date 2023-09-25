@@ -5324,6 +5324,502 @@ function test_decl.testTrackerSignGet(t)
     t:reset()
     t.fn()
 
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+end
+
+function test_decl.testTrackerSignCache(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+
+    t.env.server._vehicle_sign_tbl[30] = nil
+    t.env.server._vehicle_pos_voxel_tbl[30] = nil
+
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+end
+
+function test_decl.testTrackerSignCacheExpiry(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+
+    t.env.server._vehicle_sign_tbl[30] = nil
+    t.env.server._vehicle_pos_voxel_tbl[30] = nil
+
+    tracker:tickSign()
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
+end
+
+function test_decl.testTrackerSignCacheMulti(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    t.env.server._player_character_tbl[11] = 21
+    t.env.server._character_vehicle_tbl[21] = 31
+    t.env.server._vehicle_sign_tbl[31] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 50, y = 51, z = 52},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[31] = {
+        [string.pack("jjj", 50, 51, 52)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            7, 8, 9, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+    spd, alt = tracker:getSignSpdAlt(11)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 8, alt)
+
+    t.env.server._vehicle_sign_tbl[30] = nil
+    t.env.server._vehicle_pos_voxel_tbl[30] = nil
+    t.env.server._vehicle_sign_tbl[31] = nil
+    t.env.server._vehicle_pos_voxel_tbl[31] = nil
+
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+    spd, alt = tracker:getSignSpdAlt(11)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 8, alt)
+end
+
+function test_decl.testTrackerSignFailVehicle(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = nil
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
+end
+
+function test_decl.testTrackerSignFailVoxel(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = nil
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
+end
+
+function test_decl.testTrackerSignFailPos(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = nil,
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
+end
+
+function test_decl.testTrackerSignFailVoxelCache(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = nil
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
+
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+end
+
+function test_decl.testTrackerSignFailPosCache(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = nil,
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
+
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+end
+
+function test_decl.testTrackerSignFailTrack(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+
+    t.env.server._vehicle_pos_voxel_tbl[30] = nil
+
+    tracker:tickSign()
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", nil, alt)
+
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            6, 7, 8, 1,
+        },
+    }
+
+    tracker:tickSign()
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 7, alt)
+end
+
+function test_decl.testTrackerSignTrack(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            5, 8, 9, 1,
+        },
+    }
+
+    tracker:tickSign()
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", 6, spd)
+    assertEqual(nil, "alt", 8, alt)
+end
+
+function test_decl.testTrackerSignTrackExpiry(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            5, 8, 9, 1,
+        },
+    }
+
+    tracker:tickSign()
+    tracker:tickSign()
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 8, alt)
+end
+
+function test_decl.testTrackerSignTrackMulti(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 3, 0, 1,
+        },
+    }
+
+    t.env.server._player_character_tbl[11] = 21
+    t.env.server._character_vehicle_tbl[21] = 31
+    t.env.server._vehicle_sign_tbl[31] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 50, y = 51, z = 52},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[31] = {
+        [string.pack("jjj", 50, 51, 52)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 5, 0, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 3, alt)
+    spd, alt = tracker:getSignSpdAlt(11)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 5, alt)
+
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 6, 0, 1,
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[31] = {
+        [string.pack("jjj", 50, 51, 52)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 7, 0, 1,
+        },
+    }
+
+    tracker:tickSign()
+    spd, alt = tracker:getSignSpdAlt(10)
+    assertEqual(nil, "spd", 3, spd)
+    assertEqual(nil, "alt", 6, alt)
+    spd, alt = tracker:getSignSpdAlt(11)
+    assertEqual(nil, "spd", 2, spd)
+    assertEqual(nil, "alt", 7, alt)
+end
+
+function test_decl.testTrackerUtilSignGet(t)
+    t:reset()
+    t.fn()
+
     t.env.server._vehicle_sign_tbl = {
         [1] = {
             [t.env.c_cmd] = {
@@ -5342,7 +5838,7 @@ function test_decl.testTrackerSignGet(t)
     assertEqual(nil, "is_success", true, is_success)
 end
 
-function test_decl.testTrackerSignCache(t)
+function test_decl.testTrackerUtilSignCache(t)
     t:reset()
     t.fn()
 
@@ -5372,7 +5868,7 @@ function test_decl.testTrackerSignCache(t)
     assertEqual(nil, "is_success", true, is_success)
 end
 
-function test_decl.testTrackerSignCacheExpiry(t)
+function test_decl.testTrackerUtilSignCacheExpiry(t)
     t:reset()
     t.fn()
 
@@ -5400,7 +5896,7 @@ function test_decl.testTrackerSignCacheExpiry(t)
     assertEqual(nil, "is_success", false, is_success)
 end
 
-function test_decl.testTrackerSignCacheMulti(t)
+function test_decl.testTrackerUtilSignCacheMulti(t)
     t:reset()
     t.fn()
 
@@ -5448,7 +5944,7 @@ function test_decl.testTrackerSignCacheMulti(t)
     assertEqual(nil, "is_success", true, is_success)
 end
 
-function test_decl.testTrackerSignFail(t)
+function test_decl.testTrackerUtilSignFail(t)
     t:reset()
     t.fn()
 
@@ -5459,7 +5955,7 @@ function test_decl.testTrackerSignFail(t)
     assertEqual(nil, "is_success", false, is_success)
 end
 
-function test_decl.testTrackerSignFailCache(t)
+function test_decl.testTrackerUtilSignFailCache(t)
     t:reset()
     t.fn()
 
@@ -6148,6 +6644,7 @@ local function buildMockServer()
         _character_vehicle_tbl = {},
         _object_pos_tbl = {},
         _vehicle_pos_tbl = {},
+        _vehicle_pos_voxel_tbl = {},
         _vehicle_sign_tbl = {},
     }
 
@@ -6221,7 +6718,14 @@ local function buildMockServer()
 
     function server.getVehiclePos(vehicle_id, voxel_x, voxel_y, voxel_z)
         if voxel_x ~= nil or voxel_y ~= nil or voxel_z ~= nil then
-            error()
+            local pos_tbl = server._vehicle_pos_voxel_tbl[vehicle_id]
+            if pos_tbl == nil then
+                return nil, false
+            end
+
+            local key = string.pack("jjj", voxel_x, voxel_y, voxel_z)
+            local pos = pos_tbl[key]
+            return pos, pos ~= nil
         end
 
         local vehicle_pos = server._vehicle_pos_tbl[vehicle_id]
