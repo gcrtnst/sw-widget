@@ -424,6 +424,18 @@ function buildTracker(sign_name)
         _vehicle_sign = {},
     }
 
+    function tracker:getAutoSpdAlt(peer_id)
+        local spd, alt
+
+        spd, alt = tracker:getSignSpdAlt(peer_id)
+        if spd ~= nil or alt ~= nil then
+            return spd, alt, "sign"
+        end
+
+        spd, alt = tracker:getPlayerSpdAlt(peer_id)
+        return spd, alt, "player"
+    end
+
     function tracker:getUserSpdAlt(peer_id)
         local vehicle_id, is_success = getPlayerVehicle(peer_id)
         if is_success then

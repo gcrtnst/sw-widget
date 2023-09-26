@@ -4683,6 +4683,82 @@ function test_decl.testSaveAddon(t)
     end
 end
 
+function test_decl.testTrackerAutoSign(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 20
+    t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            3, 4, 5, 1,
+        },
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt, src = tracker:getAutoSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+    assertEqual(nil, "src", "sign", src)
+
+    t.env.server._vehicle_pos_voxel_tbl[30] = {
+        [string.pack("jjj", 40, 41, 42)] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            5, 8, 9, 1,
+        },
+    }
+
+    tracker:tickSign()
+    spd, alt, src = tracker:getAutoSpdAlt(10)
+    assertEqual(nil, "spd", 6, spd)
+    assertEqual(nil, "alt", 8, alt)
+    assertEqual(nil, "src", "sign", src)
+end
+
+function test_decl.testTrackerAutoPlayer(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local spd, alt, src = tracker:getAutoSpdAlt(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "alt", 4, alt)
+    assertEqual(nil, "src", "player", src)
+
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        5, 8, 9, 1,
+    }
+
+    tracker:tickPlayer()
+    spd, alt, src = tracker:getAutoSpdAlt(10)
+    assertEqual(nil, "spd", 6, spd)
+    assertEqual(nil, "alt", 8, alt)
+    assertEqual(nil, "src", "player", src)
+end
+
 function test_decl.testTrackerUserGet(t)
     local tests = {
         {
