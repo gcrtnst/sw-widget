@@ -294,7 +294,9 @@ function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
 end
 
 function onVehicleDespawn(vehicle_id, peer_id)
-    g_tracker:onVehicleDespawn(vehicle_id, peer_id)
+    if g_tracker ~= nil then
+        g_tracker:onVehicleDespawn(vehicle_id, peer_id)
+    end
 end
 
 function syncPlayers()
