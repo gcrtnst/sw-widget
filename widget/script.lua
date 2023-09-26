@@ -236,13 +236,13 @@ function onTick(game_ticks)
             goto continue
         end
 
-        local spd, alt, _ = g_tracker:getAutoSpdAlt(peer_id)
+        local spd, alt, src = g_tracker:getAutoSpdAlt(peer_id)
         g_uim:setPopupScreen(
             peer_id,
             g_spd_ui_id,
             g_announce_name,
             true,
-            formatSpd(spd, g_userdata[peer_id].spd_unit),
+            formatSpd(spd, g_userdata[peer_id].spd_unit, src),
             g_userdata[peer_id].spd_hofs,
             g_userdata[peer_id].spd_vofs
         )
@@ -251,7 +251,7 @@ function onTick(game_ticks)
             g_alt_ui_id,
             g_announce_name,
             true,
-            formatAlt(alt, g_userdata[peer_id].alt_unit),
+            formatAlt(alt, g_userdata[peer_id].alt_unit, src),
             g_userdata[peer_id].alt_hofs,
             g_userdata[peer_id].alt_vofs
         )
@@ -317,28 +317,22 @@ function syncPlayers()
     g_userdata = userdata_tbl
 end
 
-function formatSpd(spd, spd_unit)
-    if type(spd) ~= "number" or type(spd_unit) ~= "string" or c_spd_unit_tbl[spd_unit] == nil then
-        return "SPD\n---"
+function formatSpd(spd, spd_unit, src)
+    local label = src == "player" and "SPD" or "SPD*"
+    local value = "---"
+    if type(spd) == "number" and type(spd_unit) == "string" and c_spd_unit_tbl[spd_unit] ~= nil then
+        value = string.format("%.2f%s", spd*c_spd_unit_tbl[spd_unit], spd_unit)
     end
-
-    return string.format(
-        "SPD\n%.2f%s",
-        spd*c_spd_unit_tbl[spd_unit],
-        spd_unit
-    )
+    return label .. "\n" .. value
 end
 
-function formatAlt(alt, alt_unit)
-    if type(alt) ~= "number" or type(alt_unit) ~= "string" or c_alt_unit_tbl[alt_unit] == nil then
-        return "ALT\n---"
+function formatAlt(alt, alt_unit, src)
+    local label = src == "player" and "ALT" or "ALT*"
+    local value = "---"
+    if type(alt) == "number" and type(alt_unit) == "string" and c_alt_unit_tbl[alt_unit] ~= nil then
+        value = string.format("%.2f%s", alt*c_alt_unit_tbl[alt_unit], alt_unit)
     end
-
-    return string.format(
-        "ALT\n%.2f%s",
-        alt*c_alt_unit_tbl[alt_unit],
-        alt_unit
-    )
+    return label .. "\n" .. value
 end
 
 function newUserData()

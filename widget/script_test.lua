@@ -1836,14 +1836,14 @@ function test_decl.testOnTickSign(t)
         [string.pack("jj", 0, 10000)] = {
             name = "[???]",
             is_show = true,
-            text = "SPD\n---",
+            text = "SPD*\n---",
             horizontal_offset = 0.1,
             vertical_offset = -0.1,
         },
         [string.pack("jj", 0, 10001)] = {
             name = "[???]",
             is_show = true,
-            text = "ALT\n1000.00m",
+            text = "ALT*\n1000.00m",
             horizontal_offset = 0.2,
             vertical_offset = -0.2,
         },
@@ -1866,14 +1866,14 @@ function test_decl.testOnTickSign(t)
         [string.pack("jj", 0, 10000)] = {
             name = "[???]",
             is_show = true,
-            text = "SPD\n6000.00m/s",
+            text = "SPD*\n6000.00m/s",
             horizontal_offset = 0.1,
             vertical_offset = -0.1,
         },
         [string.pack("jj", 0, 10001)] = {
             name = "[???]",
             is_show = true,
-            text = "ALT\n1100.00m",
+            text = "ALT*\n1100.00m",
             horizontal_offset = 0.2,
             vertical_offset = -0.2,
         },
@@ -2563,52 +2563,58 @@ end
 
 function test_decl.testFormatSpd(t)
     local tests = {
-        {"invalid_spd", nil, "km/h", "SPD\n---"},
-        {"invalid_unit_nil", 0, nil, "SPD\n---"},
-        {"invalid_unit_unknown", 0, "invalid", "SPD\n---"},
-        {"normal_kmph", 1.5/216, "km/h", "SPD\n1.50km/h"},
-        {"normal_mps", 1.5/60, "m/s", "SPD\n1.50m/s"},
-        {"normal_mph", 1.5/(216000.0/1609.344), "mph", "SPD\n1.50mph"},
-        {"normal_kt", 1.5/(216000.0/1852.0), "kt", "SPD\n1.50kt"},
-        {"exc_nan", 0.0/0.0, "km/h", "SPD\nnankm/h"},
-        {"exc_pinf", 1.0/0.0, "km/h", "SPD\ninfkm/h"},
-        {"exc_ninf", -1.0/0.0, "km/h", "SPD\n-infkm/h"},
+        {"player_invalid_spd", nil, "km/h", "player", "SPD\n---"},
+        {"player_invalid_unit_nil", 0, nil, "player", "SPD\n---"},
+        {"player_invalid_unit_unknown", 0, "invalid", "player", "SPD\n---"},
+        {"player_normal_kmph", 1.5/216, "km/h", "player", "SPD\n1.50km/h"},
+        {"player_normal_mps", 1.5/60, "m/s", "player", "SPD\n1.50m/s"},
+        {"player_normal_mph", 1.5/(216000.0/1609.344), "mph", "player", "SPD\n1.50mph"},
+        {"player_normal_kt", 1.5/(216000.0/1852.0), "kt", "player", "SPD\n1.50kt"},
+        {"player_exc_nan", 0.0/0.0, "km/h", "player", "SPD\nnankm/h"},
+        {"player_exc_pinf", 1.0/0.0, "km/h", "player", "SPD\ninfkm/h"},
+        {"player_exc_ninf", -1.0/0.0, "km/h", "player", "SPD\n-infkm/h"},
+        {"sign_invalid_spd", nil, "km/h", "sign", "SPD*\n---"},
+        {"sign_normal_kmph", 1.5/216, "km/h", "sign", "SPD*\n1.50km/h"},
     }
 
     for i, tt in ipairs(tests) do
         local prefix = tt[1]
         local in_spd = tt[2]
         local in_spd_unit = tt[3]
-        local want_txt = tt[4]
+        local in_src = tt[4]
+        local want_txt = tt[5]
         t:reset()
         t.fn()
 
-        local got_txt = t.env.formatSpd(in_spd, in_spd_unit)
+        local got_txt = t.env.formatSpd(in_spd, in_spd_unit, in_src)
         assertEqual(prefix, "txt", want_txt, got_txt)
     end
 end
 
 function test_decl.testFormatAlt(t)
     local tests = {
-        {"invalid_spd", nil, "m", "ALT\n---"},
-        {"invalid_unit_nil", 0, nil, "ALT\n---"},
-        {"invalid_unit_unknown", 0, "invalid", "ALT\n---"},
-        {"normal_m", 1.5, "m", "ALT\n1.50m"},
-        {"normal_ft", 1.5/(1.0/0.3048), "ft", "ALT\n1.50ft"},
-        {"exc_nan", 0.0/0.0, "m", "ALT\nnanm"},
-        {"exc_pinf", 1.0/0.0, "m", "ALT\ninfm"},
-        {"exc_ninf", -1.0/0.0, "m", "ALT\n-infm"},
+        {"player_invalid_spd", nil, "m", "player", "ALT\n---"},
+        {"player_invalid_unit_nil", 0, nil, "player", "ALT\n---"},
+        {"player_invalid_unit_unknown", 0, "invalid", "player", "ALT\n---"},
+        {"player_normal_m", 1.5, "m", "player", "ALT\n1.50m"},
+        {"player_normal_ft", 1.5/(1.0/0.3048), "ft", "player", "ALT\n1.50ft"},
+        {"player_exc_nan", 0.0/0.0, "m", "player", "ALT\nnanm"},
+        {"player_exc_pinf", 1.0/0.0, "m", "player", "ALT\ninfm"},
+        {"player_exc_ninf", -1.0/0.0, "m", "player", "ALT\n-infm"},
+        {"sign_invalid_spd", nil, "m", "sign", "ALT*\n---"},
+        {"sign_normal_m", 1.5, "m", "sign", "ALT*\n1.50m"},
     }
 
     for i, tt in ipairs(tests) do
         local prefix = tt[1]
         local in_alt = tt[2]
         local in_alt_unit = tt[3]
-        local want_txt = tt[4]
+        local in_src = tt[4]
+        local want_txt = tt[5]
         t:reset()
         t.fn()
 
-        local got_txt = t.env.formatAlt(in_alt, in_alt_unit)
+        local got_txt = t.env.formatAlt(in_alt, in_alt_unit, in_src)
         assertEqual(prefix, "txt", want_txt, got_txt)
     end
 end
