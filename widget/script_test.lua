@@ -1715,556 +1715,331 @@ function test_decl.testOnCustomCommandWidgetUndefined(t)
     end
 end
 
-function test_decl.testOnTick(t)
-    local tests = {
-        {
-            "normal",
-            {},
-            {},
-            {
-                [8] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.1, 0, 1,
-                },
-                [9] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.1, 0, 1,
-                },
-            },
-            {},
-            {
-                [8] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.2, 0, 1,
-                },
-                [9] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.3, 0, 1,
-                },
-            },
-            {
-                [0] = {
-                    enabled = true,
-                    spd_hofs = 0.1,
-                    spd_vofs = -0.1,
-                    spd_unit = "m/s",
-                    alt_hofs = 0.2,
-                    alt_vofs = -0.2,
-                    alt_unit = "m",
-                },
-                [1] = {
-                    enabled = true,
-                    spd_hofs = 0.3,
-                    spd_vofs = -0.3,
-                    spd_unit = "mps",
-                    alt_hofs = 0.4,
-                    alt_vofs = -0.4,
-                    alt_unit = "ft",
-                },
-            },
-            {
-                [string.pack("jj", 0, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n1.10m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n6.89ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
-            },
-            {
-                [string.pack("jj", 0, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n6.00m/s",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n1.20m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n12.00mps",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n7.55ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+function test_decl.testOnTickPlayer(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._ui_id_cnt = 10000
+    t.env.onCreate()
+
+    t.env.server._player_list = {}
+    t.env.server._player_character_tbl = { [0] = 10 }
+    t.env.server._object_pos_tbl = {
+        [10] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 1000, 0, 0,
+        },
+    }
+    t.env.g_userdata = {
+        [0] = {
+            enabled = true,
+            spd_hofs = 0.1,
+            spd_vofs = -0.1,
+            spd_unit = "m/s",
+            alt_hofs = 0.2,
+            alt_vofs = -0.2,
+            alt_unit = "m",
+        },
+    }
+
+    local want_popup = {
+        [string.pack("jj", 0, 10000)] = {
+            name = "[???]",
+            is_show = true,
+            text = "SPD\n---",
+            horizontal_offset = 0.1,
+            vertical_offset = -0.1,
+        },
+        [string.pack("jj", 0, 10001)] = {
+            name = "[???]",
+            is_show = true,
+            text = "ALT\n1000.00m",
+            horizontal_offset = 0.2,
+            vertical_offset = -0.2,
+        },
+    }
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", want_popup, t.env.server._popup)
+
+    t.env.server._object_pos_tbl = {
+        [10] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 1100, 0, 0,
+        },
+    }
+
+    local want_popup = {
+        [string.pack("jj", 0, 10000)] = {
+            name = "[???]",
+            is_show = true,
+            text = "SPD\n6000.00m/s",
+            horizontal_offset = 0.1,
+            vertical_offset = -0.1,
+        },
+        [string.pack("jj", 0, 10001)] = {
+            name = "[???]",
+            is_show = true,
+            text = "ALT\n1100.00m",
+            horizontal_offset = 0.2,
+            vertical_offset = -0.2,
+        },
+    }
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", want_popup, t.env.server._popup)
+end
+
+function test_decl.testOnTickSign(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._ui_id_cnt = 10000
+    t.env.onCreate()
+
+    t.env.server._player_list = {}
+    t.env.server._player_character_tbl = { [0] = 10 }
+    t.env.server._character_vehicle_tbl = { [10] = 20 }
+    t.env.server._vehicle_sign_tbl = {
+        [20] = {
+            [t.env.c_cmd] = {
+                name = t.env.c_cmd,
+                pos = {x = 31, y = 32, z = 33},
             },
         },
-        {
-            "disable_host",
-            {},
-            {},
-            {
-                [8] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.1, 0, 1,
-                },
-                [9] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.1, 0, 1,
-                },
-            },
-            {},
-            {
-                [8] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.2, 0, 1,
-                },
-                [9] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.3, 0, 1,
-                },
-            },
-            {
-                [0] = {
-                    enabled = false,    -- !
-                    spd_hofs = 0.1,
-                    spd_vofs = -0.1,
-                    spd_unit = "m/s",
-                    alt_hofs = 0.2,
-                    alt_vofs = -0.2,
-                    alt_unit = "m",
-                },
-                [1] = {
-                    enabled = true,
-                    spd_hofs = 0.3,
-                    spd_vofs = -0.3,
-                    spd_unit = "mps",
-                    alt_hofs = 0.4,
-                    alt_vofs = -0.4,
-                    alt_unit = "ft",
-                },
-            },
-            {
-                [string.pack("jj", 1, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n6.89ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
-            },
-            {
-                [string.pack("jj", 1, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n12.00mps",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n7.55ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+    }
+    t.env.server._vehicle_pos_voxel_tbl = {
+        [20] = {
+            [string.pack("jjj", 31, 32, 33)] = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 1000, 0, 0,
             },
         },
-        {
-            "disable_guest",
-            {},
-            {},
-            {
-                [8] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.1, 0, 1,
-                },
-                [9] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.1, 0, 1,
-                },
-            },
-            {},
-            {
-                [8] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.2, 0, 1,
-                },
-                [9] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.3, 0, 1,
-                },
-            },
-            {
-                [0] = {
-                    enabled = true,
-                    spd_hofs = 0.1,
-                    spd_vofs = -0.1,
-                    spd_unit = "m/s",
-                    alt_hofs = 0.2,
-                    alt_vofs = -0.2,
-                    alt_unit = "m",
-                },
-                [1] = {
-                    enabled = false,    -- !
-                    spd_hofs = 0.3,
-                    spd_vofs = -0.3,
-                    spd_unit = "mps",
-                    alt_hofs = 0.4,
-                    alt_vofs = -0.4,
-                    alt_unit = "ft",
-                },
-            },
-            {
-                [string.pack("jj", 0, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n1.10m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-            },
-            {
-                [string.pack("jj", 0, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n6.00m/s",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n1.20m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-            },
+    }
+    t.env.g_userdata = {
+        [0] = {
+            enabled = true,
+            spd_hofs = 0.1,
+            spd_vofs = -0.1,
+            spd_unit = "m/s",
+            alt_hofs = 0.2,
+            alt_vofs = -0.2,
+            alt_unit = "m",
         },
-        {
-            "vehicle_host",
-            { [8] = 16 },   -- !
-            {
-                [16] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.1, 0, 1,
-                },
-            },
-            {
-                [9] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.1, 0, 1,
-                },
-            },
-            {
-                [16] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.2, 0, 1,
-                },
-            },
-            {
-                [9] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.3, 0, 1,
-                },
-            },
-            {
-                [0] = {
-                    enabled = true,
-                    spd_hofs = 0.1,
-                    spd_vofs = -0.1,
-                    spd_unit = "m/s",
-                    alt_hofs = 0.2,
-                    alt_vofs = -0.2,
-                    alt_unit = "m",
-                },
-                [1] = {
-                    enabled = true,
-                    spd_hofs = 0.3,
-                    spd_vofs = -0.3,
-                    spd_unit = "mps",
-                    alt_hofs = 0.4,
-                    alt_vofs = -0.4,
-                    alt_unit = "ft",
-                },
-            },
-            {
-                [string.pack("jj", 0, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n1.10m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n6.89ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
-            },
-            {
-                [string.pack("jj", 0, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n6.00m/s",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n1.20m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n12.00mps",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n7.55ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
-            },
+    }
+
+    local want_popup = {
+        [string.pack("jj", 0, 10000)] = {
+            name = "[???]",
+            is_show = true,
+            text = "SPD\n---",
+            horizontal_offset = 0.1,
+            vertical_offset = -0.1,
         },
-        {
-            "vehicle_guest",
-            { [9] = 17 },   -- !
-            {
-                [17] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.1, 0, 1,
-                },
-            },
-            {
-                [8] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.1, 0, 1,
-                },
-            },
-            {
-                [17] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 2.3, 0, 1,
-                },
-            },
-            {
-                [8] = {
-                    1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 1.2, 0, 1,
-                },
-            },
-            {
-                [0] = {
-                    enabled = true,
-                    spd_hofs = 0.1,
-                    spd_vofs = -0.1,
-                    spd_unit = "m/s",
-                    alt_hofs = 0.2,
-                    alt_vofs = -0.2,
-                    alt_unit = "m",
-                },
-                [1] = {
-                    enabled = true,
-                    spd_hofs = 0.3,
-                    spd_vofs = -0.3,
-                    spd_unit = "mps",
-                    alt_hofs = 0.4,
-                    alt_vofs = -0.4,
-                    alt_unit = "ft",
-                },
-            },
-            {
-                [string.pack("jj", 0, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n1.10m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n6.89ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
-            },
-            {
-                [string.pack("jj", 0, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n6.00m/s",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n1.20m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "SPD\n12.00mps",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "[???]",
-                    is_show = true,
-                    text = "ALT\n7.55ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+        [string.pack("jj", 0, 10001)] = {
+            name = "[???]",
+            is_show = true,
+            text = "ALT\n1000.00m",
+            horizontal_offset = 0.2,
+            vertical_offset = -0.2,
+        },
+    }
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", want_popup, t.env.server._popup)
+
+    t.env.server._vehicle_pos_voxel_tbl = {
+        [20] = {
+            [string.pack("jjj", 31, 32, 33)] = {
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 1100, 0, 0,
             },
         },
     }
 
-    for i, tt in ipairs(tests) do
-        local prefix = tt[1]
-        local in_character_vehicle_tbl = tt[2]
-        local in_vehicle_pos_tbl_1 = tt[3]
-        local in_object_pos_tbl_1 = tt[4]
-        local in_vehicle_pos_tbl_2 = tt[5]
-        local in_object_pos_tbl_2 = tt[6]
-        local in_userdata = tt[7]
-        local want_popup_1 = tt[8]
-        local want_popup_2 = tt[9]
-        t:reset()
-        t.fn()
+    local want_popup = {
+        [string.pack("jj", 0, 10000)] = {
+            name = "[???]",
+            is_show = true,
+            text = "SPD\n6000.00m/s",
+            horizontal_offset = 0.1,
+            vertical_offset = -0.1,
+        },
+        [string.pack("jj", 0, 10001)] = {
+            name = "[???]",
+            is_show = true,
+            text = "ALT\n1100.00m",
+            horizontal_offset = 0.2,
+            vertical_offset = -0.2,
+        },
+    }
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", want_popup, t.env.server._popup)
+end
 
-        t.env.server._ui_id_cnt = 256
-        t.env.onCreate()
-        t.env.server._player_list = { { id = 1 } }
-        t.env.server._player_character_tbl = { [0] = 8, [1] = 9 }
-        t.env.server._character_vehicle_tbl = in_character_vehicle_tbl
-        t.env.server._vehicle_pos_tbl = in_vehicle_pos_tbl_1
-        t.env.server._object_pos_tbl = in_object_pos_tbl_1
-        t.env.g_userdata = in_userdata
-        t.env.onTick(1)
-        assertEqual(prefix, "server._popup", want_popup_1, t.env.server._popup)
-        t.env.server._vehicle_pos_tbl = in_vehicle_pos_tbl_2
-        t.env.server._object_pos_tbl = in_object_pos_tbl_2
-        t.env.onTick(1)
-        assertEqual(prefix, "server._popup", want_popup_2, t.env.server._popup)
-    end
+function test_decl.testOnTickDisable(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._ui_id_cnt = 10000
+    t.env.onCreate()
+
+    t.env.server._player_list = {}
+    t.env.server._player_character_tbl = { [0] = 10 }
+    t.env.server._object_pos_tbl = {
+        [10] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 1000, 0, 0,
+        },
+    }
+    t.env.g_userdata = {
+        [0] = {
+            enabled = false,
+            spd_hofs = 0.1,
+            spd_vofs = -0.1,
+            spd_unit = "m/s",
+            alt_hofs = 0.2,
+            alt_vofs = -0.2,
+            alt_unit = "m",
+        },
+    }
+
+    local want_popup = {}
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", want_popup, t.env.server._popup)
+end
+
+function test_decl.testOnTickMulti(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._ui_id_cnt = 10000
+    t.env.onCreate()
+
+    t.env.server._player_list = { { id = 1 } }
+    t.env.server._player_character_tbl = { [0] = 10, [1] = 11 }
+    t.env.server._object_pos_tbl = {
+        [10] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 1000, 0, 0,
+        },
+        [11] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 1001, 0, 0,
+        },
+    }
+    t.env.g_userdata = {
+        [0] = {
+            enabled = true,
+            spd_hofs = 0.1,
+            spd_vofs = -0.1,
+            spd_unit = "m/s",
+            alt_hofs = 0.2,
+            alt_vofs = -0.2,
+            alt_unit = "m",
+        },
+        [1] = {
+            enabled = true,
+            spd_hofs = 0.3,
+            spd_vofs = -0.3,
+            spd_unit = "mps",
+            alt_hofs = 0.4,
+            alt_vofs = -0.4,
+            alt_unit = "ft",
+        },
+    }
+
+    local want_popup = {
+        [string.pack("jj", 0, 10000)] = {
+            name = "[???]",
+            is_show = true,
+            text = "SPD\n---",
+            horizontal_offset = 0.1,
+            vertical_offset = -0.1,
+        },
+        [string.pack("jj", 0, 10001)] = {
+            name = "[???]",
+            is_show = true,
+            text = "ALT\n1000.00m",
+            horizontal_offset = 0.2,
+            vertical_offset = -0.2,
+        },
+        [string.pack("jj", 1, 10000)] = {
+            name = "[???]",
+            is_show = true,
+            text = "SPD\n---",
+            horizontal_offset = 0.3,
+            vertical_offset = -0.3,
+        },
+        [string.pack("jj", 1, 10001)] = {
+            name = "[???]",
+            is_show = true,
+            text = "ALT\n3284.12ft",
+            horizontal_offset = 0.4,
+            vertical_offset = -0.4,
+        },
+    }
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", want_popup, t.env.server._popup)
+
+    t.env.server._object_pos_tbl = {
+        [10] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 1100, 0, 0,
+        },
+        [11] = {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 1102, 0, 0,
+        },
+    }
+
+    local want_popup = {
+        [string.pack("jj", 0, 10000)] = {
+            name = "[???]",
+            is_show = true,
+            text = "SPD\n6000.00m/s",
+            horizontal_offset = 0.1,
+            vertical_offset = -0.1,
+        },
+        [string.pack("jj", 0, 10001)] = {
+            name = "[???]",
+            is_show = true,
+            text = "ALT\n1100.00m",
+            horizontal_offset = 0.2,
+            vertical_offset = -0.2,
+        },
+        [string.pack("jj", 1, 10000)] = {
+            name = "[???]",
+            is_show = true,
+            text = "SPD\n6060.00mps",
+            horizontal_offset = 0.3,
+            vertical_offset = -0.3,
+        },
+        [string.pack("jj", 1, 10001)] = {
+            name = "[???]",
+            is_show = true,
+            text = "ALT\n3615.49ft",
+            horizontal_offset = 0.4,
+            vertical_offset = -0.4,
+        },
+    }
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", want_popup, t.env.server._popup)
 end
 
 function test_decl.testOnCreate(t)

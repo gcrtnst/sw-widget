@@ -236,7 +236,7 @@ function onTick(game_ticks)
             goto continue
         end
 
-        local spd, alt = g_tracker:getUserSpdAlt(peer_id)
+        local spd, alt, _ = g_tracker:getAutoSpdAlt(peer_id)
         g_uim:setPopupScreen(
             peer_id,
             g_spd_ui_id,
