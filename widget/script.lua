@@ -416,8 +416,6 @@ function buildTracker(sign_name)
 
         _player_pos_old = {},
         _player_pos_new = {},
-        _vehicle_pos_old = {},
-        _vehicle_pos_new = {},
         _sign_pos_old = {},
         _sign_pos_new = {},
 
@@ -434,14 +432,6 @@ function buildTracker(sign_name)
 
         spd, alt = tracker:getPlayerSpdAlt(peer_id)
         return spd, alt, "player"
-    end
-
-    function tracker:getUserSpdAlt(peer_id)
-        local vehicle_id, is_success = getPlayerVehicle(peer_id)
-        if is_success then
-            return self:getVehicleSpdAlt(vehicle_id)
-        end
-        return self:getPlayerSpdAlt(peer_id)
     end
 
     function tracker:getPlayerSpdAlt(peer_id)
@@ -467,31 +457,6 @@ function buildTracker(sign_name)
     function tracker:tickPlayer()
         self._player_pos_old = self._player_pos_new
         self._player_pos_new = {}
-    end
-
-    function tracker:getVehicleSpdAlt(vehicle_id)
-        local vehicle_pos_new = self._vehicle_pos_new[vehicle_id]
-        if vehicle_pos_new == nil then
-            local is_success
-            vehicle_pos_new, is_success = server.getVehiclePos(vehicle_id)
-            if not is_success then
-                return nil, nil
-            end
-            self._vehicle_pos_new[vehicle_id] = vehicle_pos_new
-        end
-
-        local spd = nil
-        local _, alt, _ = matrix.position(vehicle_pos_new)
-        local vehicle_pos_old = self._vehicle_pos_old[vehicle_id]
-        if vehicle_pos_old ~= nil then
-            spd = matrix.distance(vehicle_pos_old, vehicle_pos_new)
-        end
-        return spd, alt
-    end
-
-    function tracker:tickVehicle()
-        self._vehicle_pos_old = self._vehicle_pos_new
-        self._vehicle_pos_new = {}
     end
 
     function tracker:getSignSpdAlt(peer_id)
@@ -531,7 +496,6 @@ function buildTracker(sign_name)
 
     function tracker:tick()
         self:tickPlayer()
-        self:tickVehicle()
         self:tickSign()
     end
 
