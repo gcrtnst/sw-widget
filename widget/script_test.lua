@@ -2050,6 +2050,7 @@ function test_decl.testOnCreate(t)
                 version = 1,
                 spd_ui_id = 1,
                 alt_ui_id = 2,
+                notify_onsit = 3,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.1,
@@ -2073,10 +2074,12 @@ function test_decl.testOnCreate(t)
             },
             1,
             2,
+            3,
             {
                 version = 1,
                 spd_ui_id = 1,
                 alt_ui_id = 2,
+                notify_onsit = 3,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.1,
@@ -2099,6 +2102,7 @@ function test_decl.testOnCreate(t)
                 version = 1,
                 spd_ui_id = nil,    -- !
                 alt_ui_id = 2,
+                notify_onsit = 3,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.1,
@@ -2122,10 +2126,12 @@ function test_decl.testOnCreate(t)
             },
             10,
             2,
+            3,
             {
                 version = 1,
                 spd_ui_id = 10,
                 alt_ui_id = 2,
+                notify_onsit = 3,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.1,
@@ -2148,6 +2154,7 @@ function test_decl.testOnCreate(t)
                 version = 1,
                 spd_ui_id = 1,
                 alt_ui_id = nil,    -- !
+                notify_onsit = 3,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.1,
@@ -2171,10 +2178,12 @@ function test_decl.testOnCreate(t)
             },
             1,
             10,
+            3,
             {
                 version = 1,
                 spd_ui_id = 1,
                 alt_ui_id = 10,
+                notify_onsit = 3,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.1,
@@ -2191,6 +2200,58 @@ function test_decl.testOnCreate(t)
                 [string.pack("jj", -1, 11)] = {},
             },
         },
+        {
+            "newnotifyonsit",
+            {
+                version = 1,
+                spd_ui_id = 1,
+                alt_ui_id = 2,
+                notify_onsit = nil, -- !
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                },
+            },
+            {
+                [0] = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                }
+            },
+            1,
+            2,
+            0,
+            {
+                version = 1,
+                spd_ui_id = 1,
+                alt_ui_id = 2,
+                notify_onsit = 0,
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.1,
+                    spd_vofs = -0.1,
+                    spd_unit = "kph",
+                    alt_hofs = 0.2,
+                    alt_vofs = -0.2,
+                    alt_unit = "ft",
+                },
+            },
+            10,
+            {
+                [string.pack("jj", -1, 10)] = {},
+                [string.pack("jj", -1, 11)] = {},
+            },
+        },
     }
 
     for i, tt in ipairs(tests) do
@@ -2199,9 +2260,10 @@ function test_decl.testOnCreate(t)
         local want_userdata = tt[3]
         local want_spd_ui_id = tt[4]
         local want_alt_ui_id = tt[5]
-        local want_savedata = tt[6]
-        local want_ui_id_cnt = tt[7]
-        local want_popup = tt[8]
+        local want_notify_onsit = tt[6]
+        local want_savedata = tt[7]
+        local want_ui_id_cnt = tt[8]
+        local want_popup = tt[9]
         t:reset()
         t.fn()
 
@@ -2224,11 +2286,60 @@ function test_decl.testOnCreate(t)
         assertEqual(prefix, "g_userdata", want_userdata, t.env.g_userdata)
         assertEqual(prefix, "g_spd_ui_id", want_spd_ui_id, t.env.g_spd_ui_id)
         assertEqual(prefix, "g_alt_ui_id", want_alt_ui_id, t.env.g_alt_ui_id)
+        assertEqual(prefix, "g_notify_onsit", want_notify_onsit, t.env.g_notify_onsit)
         assertEqual(prefix, "g_announce_name", "[Meter Widget]", t.env.g_announce_name)
         assertEqual(prefix, "g_savedata", want_savedata, t.env.g_savedata)
         assertEqual(prefix, "server._ui_id_cnt", want_ui_id_cnt, t.env.server._ui_id_cnt)
         assertEqual(prefix, "server._popup", want_popup, t.env.server._popup)
         assertEqual(prefix, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
+    end
+end
+
+function test_decl.testOnPlayerSit(t)
+    local tt = {
+        {
+            prefix = "host_first",
+            in_notify_onsit = 0,
+            in_peer_id = 0,
+            want_notify_onsit = 1,
+            want_server_notify_log = {
+                {
+                    peer_id = 0,
+                    title = "??? v0.1.0",
+                    message = "The ??? now displays the player's speed and altitude even while seated in a vehicle. " ..
+                        "For more details, please refer to the item page on the Steam Workshop.",
+                    notification_type = 8,
+                },
+            },
+        },
+        {
+            prefix = "host_second",
+            in_notify_onsit = 1,
+            in_peer_id = 0,
+            want_notify_onsit = 1,
+            want_server_notify_log = {},
+        },
+        {
+            prefix = "guest",
+            in_notify_onsit = 0,
+            in_peer_id = 1,
+            want_notify_onsit = 0,
+            want_server_notify_log = {},
+        },
+    }
+
+    for _, tc in ipairs(tt) do
+        t:reset()
+        t.fn()
+
+        t.env.onCreate(false)
+        t.env.g_notify_onsit = tc.in_notify_onsit
+        t.env.saveAddon()
+        t.env.onPlayerSit(tc.in_peer_id, 0, "")
+
+        assertEqual(tc.prefix, "g_notify_onsit", tc.want_notify_onsit, t.env.g_notify_onsit)
+        assertEqual(tc.prefix, "g_savedata.notify_onsit", tc.want_notify_onsit, t.env.g_savedata.notify_onsit)
+        assertEqual(tc.prefix, "server._notify_log", tc.want_server_notify_log, t.env.server._notify_log)
     end
 end
 
@@ -2625,6 +2736,7 @@ function test_decl.testLoadAddon(t)
             "normal",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2638,6 +2750,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -2650,6 +2763,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -2664,11 +2778,13 @@ function test_decl.testLoadAddon(t)
             "normal_nohostdata",
             2,
             3,
+            6,
             nil,    -- !
             {
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -2681,12 +2797,14 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             nil,
         },
         {
             "normal_min",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2700,6 +2818,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = -1,      -- min
@@ -2712,6 +2831,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = -1,
@@ -2726,6 +2846,7 @@ function test_decl.testLoadAddon(t)
             "normal_max",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2739,6 +2860,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 1,       -- max
@@ -2751,6 +2873,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 1,
@@ -2765,6 +2888,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_nosavedata",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2777,6 +2901,7 @@ function test_decl.testLoadAddon(t)
             nil,    -- !
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2791,6 +2916,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_version",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2804,6 +2930,7 @@ function test_decl.testLoadAddon(t)
                 version = 2,    -- !
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -2816,6 +2943,7 @@ function test_decl.testLoadAddon(t)
             },
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2830,6 +2958,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spduiid_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2843,6 +2972,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = nil,    -- !
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -2855,6 +2985,7 @@ function test_decl.testLoadAddon(t)
             },
             2,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -2869,6 +3000,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spduiid_float",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2882,6 +3014,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4.1,    -- !
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -2894,6 +3027,7 @@ function test_decl.testLoadAddon(t)
             },
             2,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -2908,6 +3042,7 @@ function test_decl.testLoadAddon(t)
             "anbormal_spduiid_nan",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2921,6 +3056,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 0.0/0.0,    -- !
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -2933,6 +3069,7 @@ function test_decl.testLoadAddon(t)
             },
             2,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -2947,6 +3084,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spduiid_ninf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2960,6 +3098,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = -1.0/0.0,   -- !
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -2972,6 +3111,7 @@ function test_decl.testLoadAddon(t)
             },
             2,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -2986,6 +3126,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spduiid_pinf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -2999,6 +3140,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 1.0/0.0,    -- !
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3011,6 +3153,7 @@ function test_decl.testLoadAddon(t)
             },
             2,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3025,6 +3168,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altuiid_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3038,6 +3182,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = nil,    -- !
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3050,6 +3195,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             3,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3064,6 +3210,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altuiid_float",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3077,6 +3224,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5.1,    -- !
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3089,6 +3237,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             3,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3103,6 +3252,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altuiid_nan",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3116,6 +3266,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 0.0/0.0,    -- !
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3128,6 +3279,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             3,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3142,6 +3294,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altuiid_ninf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3155,6 +3308,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = -1.0/0.0,   -- !
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3167,6 +3321,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             3,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3181,6 +3336,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altuiid_pinf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3194,6 +3350,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 1.0/0.0,    -- !
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3206,6 +3363,217 @@ function test_decl.testLoadAddon(t)
             },
             4,
             3,
+            7,
+            {
+                enabled = true,
+                spd_hofs = 0.3,
+                spd_vofs = -0.3,
+                spd_unit = "kph",
+                alt_hofs = 0.4,
+                alt_vofs = -0.4,
+                alt_unit = "ft",
+            },
+        },
+        {
+            "abnormal_notifyonsit_nil",
+            2,
+            3,
+            6,
+            {
+                enabled = false,
+                spd_hofs = 0.1,
+                spd_vofs = -0.1,
+                spd_unit = "km/h",
+                alt_hofs = 0.2,
+                alt_vofs = -0.2,
+                alt_unit = "m",
+            },
+            {
+                version = 1,
+                spd_ui_id = 4,
+                alt_ui_id = 5,
+                notify_onsit = nil, -- !
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "kph",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            4,
+            5,
+            6,
+            {
+                enabled = true,
+                spd_hofs = 0.3,
+                spd_vofs = -0.3,
+                spd_unit = "kph",
+                alt_hofs = 0.4,
+                alt_vofs = -0.4,
+                alt_unit = "ft",
+            },
+        },
+        {
+            "abnormal_notifyonsit_float",
+            2,
+            3,
+            6,
+            {
+                enabled = false,
+                spd_hofs = 0.1,
+                spd_vofs = -0.1,
+                spd_unit = "km/h",
+                alt_hofs = 0.2,
+                alt_vofs = -0.2,
+                alt_unit = "m",
+            },
+            {
+                version = 1,
+                spd_ui_id = 4,
+                alt_ui_id = 5,
+                notify_onsit = 7.1, -- !
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "kph",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            4,
+            5,
+            6,
+            {
+                enabled = true,
+                spd_hofs = 0.3,
+                spd_vofs = -0.3,
+                spd_unit = "kph",
+                alt_hofs = 0.4,
+                alt_vofs = -0.4,
+                alt_unit = "ft",
+            },
+        },
+        {
+            "abnormal_notifyonsit_nan",
+            2,
+            3,
+            6,
+            {
+                enabled = false,
+                spd_hofs = 0.1,
+                spd_vofs = -0.1,
+                spd_unit = "km/h",
+                alt_hofs = 0.2,
+                alt_vofs = -0.2,
+                alt_unit = "m",
+            },
+            {
+                version = 1,
+                spd_ui_id = 4,
+                alt_ui_id = 5,
+                notify_onsit = 0.0/0.0, -- !
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "kph",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            4,
+            5,
+            6,
+            {
+                enabled = true,
+                spd_hofs = 0.3,
+                spd_vofs = -0.3,
+                spd_unit = "kph",
+                alt_hofs = 0.4,
+                alt_vofs = -0.4,
+                alt_unit = "ft",
+            },
+        },
+        {
+            "abnormal_notifyonsit_ninf",
+            2,
+            3,
+            6,
+            {
+                enabled = false,
+                spd_hofs = 0.1,
+                spd_vofs = -0.1,
+                spd_unit = "km/h",
+                alt_hofs = 0.2,
+                alt_vofs = -0.2,
+                alt_unit = "m",
+            },
+            {
+                version = 1,
+                spd_ui_id = 4,
+                alt_ui_id = 5,
+                notify_onsit = -1.0/0.0,    -- !
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "kph",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            4,
+            5,
+            6,
+            {
+                enabled = true,
+                spd_hofs = 0.3,
+                spd_vofs = -0.3,
+                spd_unit = "kph",
+                alt_hofs = 0.4,
+                alt_vofs = -0.4,
+                alt_unit = "ft",
+            },
+        },
+        {
+            "abnormal_notifyonsit_pinf",
+            2,
+            3,
+            6,
+            {
+                enabled = false,
+                spd_hofs = 0.1,
+                spd_vofs = -0.1,
+                spd_unit = "km/h",
+                alt_hofs = 0.2,
+                alt_vofs = -0.2,
+                alt_unit = "m",
+            },
+            {
+                version = 1,
+                spd_ui_id = 4,
+                alt_ui_id = 5,
+                notify_onsit = 1.0/0.0, -- !
+                hostdata = {
+                    enabled = true,
+                    spd_hofs = 0.3,
+                    spd_vofs = -0.3,
+                    spd_unit = "kph",
+                    alt_hofs = 0.4,
+                    alt_vofs = -0.4,
+                    alt_unit = "ft",
+                },
+            },
+            4,
+            5,
+            6,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3220,6 +3588,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_hostdata_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3233,10 +3602,12 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = nil, -- !
             },
             4,
             5,
+            7,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3251,6 +3622,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_enabled_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3264,6 +3636,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = nil,  -- !
                     spd_hofs = 0.3,
@@ -3276,6 +3649,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = false,
                 spd_hofs = 0.3,
@@ -3290,6 +3664,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdhofs_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3303,6 +3678,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = nil, -- !
@@ -3315,6 +3691,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.1,
@@ -3329,6 +3706,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdhofs_min",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3342,6 +3720,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = -1.1,    -- !
@@ -3354,6 +3733,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.1,
@@ -3368,6 +3748,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdhofs_max",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3381,6 +3762,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 1.1, -- !
@@ -3393,6 +3775,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.1,
@@ -3407,6 +3790,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdhofs_nan",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3420,6 +3804,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.0/0.0, -- !
@@ -3432,6 +3817,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.1,
@@ -3446,6 +3832,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdhofs_ninf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3459,6 +3846,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = -1.0/0.0,    -- !
@@ -3471,6 +3859,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.1,
@@ -3485,6 +3874,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdhofs_pinf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3498,6 +3888,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 1.0/0.0, -- !
@@ -3510,6 +3901,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.1,
@@ -3524,6 +3916,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdvofs_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3537,6 +3930,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3549,6 +3943,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3563,6 +3958,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdvofs_min",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3576,6 +3972,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3588,6 +3985,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3602,6 +4000,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdvofs_max",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3615,6 +4014,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3627,6 +4027,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3641,6 +4042,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdvofs_nan",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3654,6 +4056,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3666,6 +4069,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3680,6 +4084,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdvofs_ninf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3693,6 +4098,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3705,6 +4111,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3719,6 +4126,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdvofs_pinf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3732,6 +4140,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3744,6 +4153,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3758,6 +4168,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdunit_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3771,6 +4182,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3783,6 +4195,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3797,6 +4210,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_spdunit_invalid",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3810,6 +4224,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3822,6 +4237,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3836,6 +4252,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_althofs_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3849,6 +4266,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3861,6 +4279,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3875,6 +4294,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_althofs_min",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3888,6 +4308,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3900,6 +4321,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3914,6 +4336,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_althofs_max",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3927,6 +4350,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3939,6 +4363,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3953,6 +4378,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_althofs_nan",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -3966,6 +4392,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -3978,6 +4405,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -3992,6 +4420,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_althofs_ninf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4005,6 +4434,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4017,6 +4447,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4031,6 +4462,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_althofs_pinf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4044,6 +4476,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4056,6 +4489,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4070,6 +4504,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altvofs_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4083,6 +4518,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4095,6 +4531,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4109,6 +4546,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altvofs_min",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4122,6 +4560,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4134,6 +4573,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4148,6 +4588,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altvofs_max",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4161,6 +4602,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4173,6 +4615,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4187,6 +4630,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altvofs_nan",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4200,6 +4644,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4212,6 +4657,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4226,6 +4672,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altvofs_ninf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4239,6 +4686,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4251,6 +4699,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4265,6 +4714,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altvofs_pinf",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4278,6 +4728,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4290,6 +4741,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4304,6 +4756,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altunit_nil",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4317,6 +4770,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4329,6 +4783,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4343,6 +4798,7 @@ function test_decl.testLoadAddon(t)
             "abnormal_altunit_invalid",
             2,
             3,
+            6,
             {
                 enabled = false,
                 spd_hofs = 0.1,
@@ -4356,6 +4812,7 @@ function test_decl.testLoadAddon(t)
                 version = 1,
                 spd_ui_id = 4,
                 alt_ui_id = 5,
+                notify_onsit = 7,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.3,
@@ -4368,6 +4825,7 @@ function test_decl.testLoadAddon(t)
             },
             4,
             5,
+            7,
             {
                 enabled = true,
                 spd_hofs = 0.3,
@@ -4384,21 +4842,25 @@ function test_decl.testLoadAddon(t)
         local prefix = tt[1]
         local in_spd_ui_id = tt[2]
         local in_alt_ui_id = tt[3]
-        local in_hostdata = tt[4]
-        local in_savedata = tt[5]
-        local want_spd_ui_id = tt[6]
-        local want_alt_ui_id = tt[7]
-        local want_hostdata = tt[8]
+        local in_notify_onsit = tt[4]
+        local in_hostdata = tt[5]
+        local in_savedata = tt[6]
+        local want_spd_ui_id = tt[7]
+        local want_alt_ui_id = tt[8]
+        local want_notify_onsit = tt[9]
+        local want_hostdata = tt[10]
         t:reset()
         t.fn()
 
         t.env.g_spd_ui_id = in_spd_ui_id
         t.env.g_alt_ui_id = in_alt_ui_id
+        t.env.g_notify_onsit = in_notify_onsit
         t.env.g_userdata = { [0] = in_hostdata }
         t.env.g_savedata = in_savedata
         t.env.loadAddon()
         assertEqual(prefix, "g_spd_ui_id", want_spd_ui_id, t.env.g_spd_ui_id)
         assertEqual(prefix, "g_alt_ui_id", want_alt_ui_id, t.env.g_alt_ui_id)
+        assertEqual(prefix, "g_notify_onsit", want_notify_onsit, t.env.g_notify_onsit)
         assertEqual(prefix, "g_userdata[0]", want_hostdata, t.env.g_userdata[0])
     end
 end
@@ -4409,11 +4871,13 @@ function test_decl.testSaveAddon(t)
             "nohostdata",
             2,
             3,
+            4,
             nil,
             {
                 version = 1,
                 spd_ui_id = 2,
                 alt_ui_id = 3,
+                notify_onsit = 4,
                 hostdata = nil,
             },
         },
@@ -4421,6 +4885,7 @@ function test_decl.testSaveAddon(t)
             "normal",
             2,
             3,
+            4,
             {
                 enabled = true,
                 spd_hofs = 0.1,
@@ -4434,6 +4899,7 @@ function test_decl.testSaveAddon(t)
                 version = 1,
                 spd_ui_id = 2,
                 alt_ui_id = 3,
+                notify_onsit = 4,
                 hostdata = {
                     enabled = true,
                     spd_hofs = 0.1,
@@ -4451,13 +4917,15 @@ function test_decl.testSaveAddon(t)
         local prefix = tt[1]
         local in_spd_ui_id = tt[2]
         local in_alt_ui_id = tt[3]
-        local in_hostdata = tt[4]
-        local want_savedata = tt[5]
+        local in_notify_onsit = tt[4]
+        local in_hostdata = tt[5]
+        local want_savedata = tt[6]
         t:reset()
         t.fn()
 
         t.env.g_spd_ui_id = in_spd_ui_id
         t.env.g_alt_ui_id = in_alt_ui_id
+        t.env.g_notify_onsit = in_notify_onsit
         t.env.g_userdata = { [0] = in_hostdata }
         t.env.saveAddon()
         assertEqual(prefix, "g_savedata", want_savedata, t.env.g_savedata)
@@ -6150,6 +6618,7 @@ local function buildMockServer()
         _addon_idx_exists = false,
         _addon_tbl = {},
         _announce_log = {},
+        _notify_log = {},
         _ui_id_cnt = 0,
         _popup = {},
         _popup_update_cnt = 0,
@@ -6178,6 +6647,15 @@ local function buildMockServer()
             name = name,
             message = message,
             peer_id = peer_id,
+        })
+    end
+
+    function server.notify(peer_id, title, message, notification_type)
+        table.insert(server._notify_log, {
+            peer_id = peer_id,
+            title = title,
+            message = message,
+            notification_type = notification_type,
         })
     end
 

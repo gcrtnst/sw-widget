@@ -1,4 +1,5 @@
 c_cmd = "?widget"
+c_ver = "v0.1.0"
 c_spd_unit_tbl = {
     ["km/h"] = 216,
     ["kph"] = 216,
@@ -266,6 +267,7 @@ function onCreate(is_world_create)
     g_userdata = {[0] = newUserData()}
     g_spd_ui_id = nil
     g_alt_ui_id = nil
+    g_notify_onsit = 0
     g_announce_name = getAnnounceName()
     g_tracker = buildTracker(c_cmd)
     g_uim = buildUIManager()
@@ -291,6 +293,21 @@ end
 
 function onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
     g_uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+end
+
+function onPlayerSit(peer_id, vehicle_id, seat_name)
+    local notify_version = 1
+    if g_notify_onsit ~= notify_version and peer_id == 0 then
+        local addon_name = getAddonName()
+        local title = addon_name .. " " .. c_ver
+        local msg = "The " .. addon_name .. " now displays " ..
+            "the player's speed and altitude even while seated in a vehicle. " ..
+            "For more details, please refer to the item page on the Steam Workshop."
+        server.notify(peer_id, title, msg, 8)
+
+        g_notify_onsit = notify_version
+        saveAddon()
+    end
 end
 
 function onVehicleDespawn(vehicle_id, peer_id)
@@ -355,6 +372,9 @@ function loadAddon()
         if type(g_savedata.alt_ui_id) == "number" and g_savedata.alt_ui_id%1 == 0 then
             g_alt_ui_id = g_savedata.alt_ui_id
         end
+        if type(g_savedata.notify_onsit) == "number" and g_savedata.notify_onsit%1 == 0 then
+            g_notify_onsit = g_savedata.notify_onsit
+        end
         if type(g_savedata.hostdata) == "table" and g_userdata[0] ~= nil then
             if type(g_savedata.hostdata.enabled) == "boolean" then
                 g_userdata[0].enabled = g_savedata.hostdata.enabled
@@ -386,6 +406,7 @@ function saveAddon()
         version = 1,
         spd_ui_id = g_spd_ui_id,
         alt_ui_id = g_alt_ui_id,
+        notify_onsit = g_notify_onsit,
         hostdata = nil,
     }
 
