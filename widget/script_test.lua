@@ -2302,13 +2302,11 @@ function test_decl.testOnPlayerSit(t)
             in_notify_onsit = 0,
             in_peer_id = 0,
             want_notify_onsit = 1,
-            want_server_notify_log = {
+            want_announce_log = {
                 {
+                    name = "[???]",
+                    message = "Update v0.1.0: Speed and altitude now based on player, not vehicle, even when player seated in a vehicle. For more details, please refer to the item page on the Steam Workshop.",
                     peer_id = 0,
-                    title = "??? v0.1.0",
-                    message = "The ??? now displays the player's speed and altitude even while seated in a vehicle. " ..
-                        "For more details, please refer to the item page on the Steam Workshop.",
-                    notification_type = 8,
                 },
             },
         },
@@ -2317,14 +2315,14 @@ function test_decl.testOnPlayerSit(t)
             in_notify_onsit = 1,
             in_peer_id = 0,
             want_notify_onsit = 1,
-            want_server_notify_log = {},
+            want_announce_log = {}
         },
         {
             prefix = "guest",
             in_notify_onsit = 0,
             in_peer_id = 1,
             want_notify_onsit = 0,
-            want_server_notify_log = {},
+            want_announce_log = {},
         },
     }
 
@@ -2339,7 +2337,7 @@ function test_decl.testOnPlayerSit(t)
 
         assertEqual(tc.prefix, "g_notify_onsit", tc.want_notify_onsit, t.env.g_notify_onsit)
         assertEqual(tc.prefix, "g_savedata.notify_onsit", tc.want_notify_onsit, t.env.g_savedata.notify_onsit)
-        assertEqual(tc.prefix, "server._notify_log", tc.want_server_notify_log, t.env.server._notify_log)
+        assertEqual(tc.prefix, "server._announce_log", tc.want_announce_log, t.env.server._announce_log)
     end
 end
 
@@ -6618,7 +6616,6 @@ local function buildMockServer()
         _addon_idx_exists = false,
         _addon_tbl = {},
         _announce_log = {},
-        _notify_log = {},
         _ui_id_cnt = 0,
         _popup = {},
         _popup_update_cnt = 0,
@@ -6647,15 +6644,6 @@ local function buildMockServer()
             name = name,
             message = message,
             peer_id = peer_id,
-        })
-    end
-
-    function server.notify(peer_id, title, message, notification_type)
-        table.insert(server._notify_log, {
-            peer_id = peer_id,
-            title = title,
-            message = message,
-            notification_type = notification_type,
         })
     end
 

@@ -298,12 +298,11 @@ end
 function onPlayerSit(peer_id, vehicle_id, seat_name)
     local notify_version = 1
     if g_notify_onsit ~= notify_version and peer_id == 0 then
-        local addon_name = getAddonName()
-        local title = addon_name .. " " .. c_ver
-        local msg = "The " .. addon_name .. " now displays " ..
-            "the player's speed and altitude even while seated in a vehicle. " ..
+        local msg = "Update " .. c_ver .. ": " ..
+            "Speed and altitude now based on player, not vehicle, " ..
+            "even when player seated in a vehicle. " ..
             "For more details, please refer to the item page on the Steam Workshop."
-        server.notify(peer_id, title, msg, 8)
+        server.announce(g_announce_name, msg, peer_id)
 
         g_notify_onsit = notify_version
         saveAddon()
