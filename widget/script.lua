@@ -76,7 +76,8 @@ function execHelp(user_peer_id, is_admin, is_auth, args)
             c_cmd .. " altofs HOFS VOFS\n" ..
             c_cmd .. " spdunit UNIT\n" ..
             c_cmd .. " altunit UNIT\n" ..
-            c_cmd .. " help"
+            c_cmd .. " help\n" ..
+            c_cmd .. " version"
         ),
         user_peer_id
     )
