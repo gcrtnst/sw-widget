@@ -1,4 +1,5 @@
 c_cmd = "?widget"
+c_ver = "v0.1.0"
 c_spd_unit_tbl = {
     ["km/h"] = 216,
     ["kph"] = 216,
@@ -33,6 +34,8 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
 
     if #args <= 0 or args[1] == "help" then
         execHelp(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == "version" then
+        execVersion(user_peer_id, is_admin, is_auth, args)
     elseif args[1] == "on" then
         execOn(user_peer_id, is_admin, is_auth, args)
     elseif args[1] == "off" then
@@ -77,6 +80,15 @@ function execHelp(user_peer_id, is_admin, is_auth, args)
         ),
         user_peer_id
     )
+end
+
+function execVersion(user_peer_id, is_admin, is_auth, args)
+    if #args > 1 then
+        server.announce(g_announce_name, "error: extra arguments", user_peer_id)
+        return
+    end
+
+    server.announce(g_announce_name, c_ver, user_peer_id)
 end
 
 function execOn(user_peer_id, is_admin, is_auth, args)
