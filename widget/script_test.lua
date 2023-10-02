@@ -1831,14 +1831,14 @@ function test_decl.testOnTickPlayer(t)
 
     local want_popup = {
         [string.pack("jj", 0, 10000)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "SPD\n---",
             horizontal_offset = 0.1,
             vertical_offset = -0.1,
         },
         [string.pack("jj", 0, 10001)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "ALT\n1000.00m",
             horizontal_offset = 0.2,
@@ -1859,14 +1859,14 @@ function test_decl.testOnTickPlayer(t)
 
     local want_popup = {
         [string.pack("jj", 0, 10000)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "SPD\n6000.00m/s",
             horizontal_offset = 0.1,
             vertical_offset = -0.1,
         },
         [string.pack("jj", 0, 10001)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "ALT\n1100.00m",
             horizontal_offset = 0.2,
@@ -1919,14 +1919,14 @@ function test_decl.testOnTickSign(t)
 
     local want_popup = {
         [string.pack("jj", 0, 10000)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "SPD*\n---",
             horizontal_offset = 0.1,
             vertical_offset = -0.1,
         },
         [string.pack("jj", 0, 10001)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "ALT*\n1000.00m",
             horizontal_offset = 0.2,
@@ -1949,14 +1949,14 @@ function test_decl.testOnTickSign(t)
 
     local want_popup = {
         [string.pack("jj", 0, 10000)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "SPD*\n6000.00m/s",
             horizontal_offset = 0.1,
             vertical_offset = -0.1,
         },
         [string.pack("jj", 0, 10001)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "ALT*\n1100.00m",
             horizontal_offset = 0.2,
@@ -2047,28 +2047,28 @@ function test_decl.testOnTickMulti(t)
 
     local want_popup = {
         [string.pack("jj", 0, 10000)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "SPD\n---",
             horizontal_offset = 0.1,
             vertical_offset = -0.1,
         },
         [string.pack("jj", 0, 10001)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "ALT\n1000.00m",
             horizontal_offset = 0.2,
             vertical_offset = -0.2,
         },
         [string.pack("jj", 1, 10000)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "SPD\n---",
             horizontal_offset = 0.3,
             vertical_offset = -0.3,
         },
         [string.pack("jj", 1, 10001)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "ALT\n3284.12ft",
             horizontal_offset = 0.4,
@@ -2095,28 +2095,28 @@ function test_decl.testOnTickMulti(t)
 
     local want_popup = {
         [string.pack("jj", 0, 10000)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "SPD\n6000.00m/s",
             horizontal_offset = 0.1,
             vertical_offset = -0.1,
         },
         [string.pack("jj", 0, 10001)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "ALT\n1100.00m",
             horizontal_offset = 0.2,
             vertical_offset = -0.2,
         },
         [string.pack("jj", 1, 10000)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "SPD\n6060.00mps",
             horizontal_offset = 0.3,
             vertical_offset = -0.3,
         },
         [string.pack("jj", 1, 10001)] = {
-            name = "[???]",
+            name = "",
             is_show = true,
             text = "ALT\n3615.49ft",
             horizontal_offset = 0.4,
@@ -2352,13 +2352,6 @@ function test_decl.testOnCreate(t)
         t:reset()
         t.fn()
 
-        t.env.server._addon_idx = 9
-        t.env.server._addon_idx_exists = true
-        t.env.server._addon_tbl = {
-            [9] = {
-                name = "Meter Widget",
-            },
-        }
         t.env.server._ui_id_cnt = 10
         t.env.server._popup = {
             [string.pack("jj", -1, 1)] = {},
@@ -2372,7 +2365,6 @@ function test_decl.testOnCreate(t)
         assertEqual(prefix, "g_spd_ui_id", want_spd_ui_id, t.env.g_spd_ui_id)
         assertEqual(prefix, "g_alt_ui_id", want_alt_ui_id, t.env.g_alt_ui_id)
         assertEqual(prefix, "g_notify_onsit", want_notify_onsit, t.env.g_notify_onsit)
-        assertEqual(prefix, "g_announce_name", "[Meter Widget]", t.env.g_announce_name)
         assertEqual(prefix, "g_savedata", want_savedata, t.env.g_savedata)
         assertEqual(prefix, "server._ui_id_cnt", want_ui_id_cnt, t.env.server._ui_id_cnt)
         assertEqual(prefix, "server._popup", want_popup, t.env.server._popup)

@@ -50,7 +50,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         execAltUnit(user_peer_id, is_admin, is_auth, args)
     else
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format(
                 (
                     'error: undefined subcommand "%s"\n' ..
@@ -68,7 +68,7 @@ end
 
 function execHelp(user_peer_id, is_admin, is_auth, args)
     server.announce(
-        g_announce_name,
+        getAnnounceName(),
         (
             c_cmd .. " on\n" ..
             c_cmd .. " off\n" ..
@@ -85,29 +85,29 @@ end
 
 function execVersion(user_peer_id, is_admin, is_auth, args)
     if #args > 1 then
-        server.announce(g_announce_name, "error: extra arguments", user_peer_id)
+        server.announce(getAnnounceName(), "error: extra arguments", user_peer_id)
         return
     end
 
-    server.announce(g_announce_name, c_ver, user_peer_id)
+    server.announce(getAnnounceName(), c_ver, user_peer_id)
 end
 
 function execOn(user_peer_id, is_admin, is_auth, args)
     if #args > 1 then
-        server.announce(g_announce_name, "error: extra arguments", user_peer_id)
+        server.announce(getAnnounceName(), "error: extra arguments", user_peer_id)
         return
     end
     g_userdata[user_peer_id].enabled = true
-    server.announce(g_announce_name, "widgets are now enabled", user_peer_id)
+    server.announce(getAnnounceName(), "widgets are now enabled", user_peer_id)
 end
 
 function execOff(user_peer_id, is_admin, is_auth, args)
     if #args > 1 then
-        server.announce(g_announce_name, "error: extra arguments", user_peer_id)
+        server.announce(getAnnounceName(), "error: extra arguments", user_peer_id)
         return
     end
     g_userdata[user_peer_id].enabled = false
-    server.announce(g_announce_name, "widgets are now disabled", user_peer_id)
+    server.announce(getAnnounceName(), "widgets are now disabled", user_peer_id)
 end
 
 function execSpdOfs(user_peer_id, is_admin, is_auth, args)
@@ -121,7 +121,7 @@ end
 function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key_hofs, param_key_vofs)
     if #args == 1 then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format(
                 (
                     "current %s is (%f, %f)\n" ..
@@ -137,7 +137,7 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
         )
         return
     elseif #args ~= 3 then
-        server.announce(g_announce_name, "error: wrong number of arguments", user_peer_id)
+        server.announce(getAnnounceName(), "error: wrong number of arguments", user_peer_id)
         return
     end
 
@@ -147,27 +147,27 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
     local vofs = tonumber(vofs_txt)
     if not hofs then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format('error: got invalid number "%s"', hofs_txt),
             user_peer_id
         )
         return
     elseif not vofs then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format('error: got invalid number "%s"', vofs_txt),
             user_peer_id
         )
         return
     elseif hofs < -1 or 1 < hofs or vofs < -1 or 1 < vofs then
-        server.announce(g_announce_name, "error: offset must be within the range -1 to 1", user_peer_id)
+        server.announce(getAnnounceName(), "error: offset must be within the range -1 to 1", user_peer_id)
         return
     end
 
     g_userdata[user_peer_id][param_key_hofs] = hofs
     g_userdata[user_peer_id][param_key_vofs] = vofs
     server.announce(
-        g_announce_name,
+        getAnnounceName(),
         string.format("%s is now set to (%f, %f)", param_name, hofs, vofs),
         user_peer_id
     )
@@ -202,7 +202,7 @@ end
 function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_key, param_tbl, param_choices)
     if #args < 2 then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format(
                 (
                     'current %s is "%s"\n' ..
@@ -220,14 +220,14 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
         return
     end
     if #args > 2 then
-        server.announce(g_announce_name, "error: too many arguments", user_peer_id)
+        server.announce(getAnnounceName(), "error: too many arguments", user_peer_id)
         return
     end
 
     local unit = args[2]
     if param_tbl[unit] == nil then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format('error: got undefined unit "%s"\n%s', unit, param_choices),
             user_peer_id
         )
@@ -235,7 +235,7 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
     end
     g_userdata[user_peer_id][param_key] = unit
     server.announce(
-        g_announce_name,
+        getAnnounceName(),
         string.format('%s is now set to "%s"', param_name, unit),
         user_peer_id
     )
@@ -253,7 +253,7 @@ function onTick(game_ticks)
         g_uim:setPopupScreen(
             peer_id,
             g_spd_ui_id,
-            g_announce_name,
+            "",
             true,
             formatSpd(spd, g_userdata[peer_id].spd_unit, src),
             g_userdata[peer_id].spd_hofs,
@@ -262,7 +262,7 @@ function onTick(game_ticks)
         g_uim:setPopupScreen(
             peer_id,
             g_alt_ui_id,
-            g_announce_name,
+            "",
             true,
             formatAlt(alt, g_userdata[peer_id].alt_unit, src),
             g_userdata[peer_id].alt_hofs,
@@ -280,7 +280,6 @@ function onCreate(is_world_create)
     g_spd_ui_id = nil
     g_alt_ui_id = nil
     g_notify_onsit = 0
-    g_announce_name = getAnnounceName()
     g_tracker = buildTracker(c_cmd)
     g_uim = buildUIManager()
 
@@ -314,7 +313,7 @@ function onPlayerSit(peer_id, vehicle_id, seat_name)
             "Speed and altitude now based on player, not vehicle, " ..
             "even when player seated in a vehicle. " ..
             "For more details, please refer to the item page on the Steam Workshop."
-        server.announce(g_announce_name, msg, peer_id)
+        server.announce(getAnnounceName(), msg, peer_id)
 
         g_notify_onsit = notify_version
         saveAddon()
