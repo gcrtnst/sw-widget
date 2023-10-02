@@ -151,6 +151,86 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
     end
 end
 
+function test_decl.testOnCustomCommandWidgetVersion(t)
+    local tt = {
+        {
+            prefix = "host",
+            in_user_peer_id = 0,
+            in_args = {"version"},
+            want_announce_log = {
+                {
+                    name = "[???]",
+                    message = "v0.1.0",
+                    peer_id = 0,
+                },
+            },
+        },
+        {
+            prefix = "host_extraspace",
+            in_user_peer_id = 0,
+            in_args = {"version", ""},
+            want_announce_log = {
+                {
+                    name = "[???]",
+                    message = "v0.1.0",
+                    peer_id = 0,
+                },
+            },
+        },
+        {
+            prefix = "host_extraarg",
+            in_user_peer_id = 0,
+            in_args = {"version", "extra"},
+            want_announce_log = {
+                {
+                    name = "[???]",
+                    message = "error: extra arguments",
+                    peer_id = 0,
+                },
+            },
+        },
+        {
+            prefix = "guest",
+            in_user_peer_id = 1,
+            in_args = {"version"},
+            want_announce_log = {
+                {
+                    name = "[???]",
+                    message = "v0.1.0",
+                    peer_id = 1,
+                },
+            },
+        },
+        {
+            prefix = "guest_extraarg",
+            in_user_peer_id = 1,
+            in_args = {"version", "extra"},
+            want_announce_log = {
+                {
+                    name = "[???]",
+                    message = "error: extra arguments",
+                    peer_id = 1,
+                },
+            },
+        },
+    }
+
+    for _, tc in ipairs(tt) do
+        t:reset()
+        t.fn()
+
+        t.env.server._player_list = {
+            { id = 0 },
+            { id = 1 },
+        }
+
+        t.env.onCreate(false)
+        t.env.syncPlayers()
+        t.env.onCustomCommand("", tc.in_user_peer_id, false, false, "?widget", table.unpack(tc.in_args))
+        assertEqual(tc.prefix, "server._announce_log", tc.want_announce_log, t.env.server._announce_log)
+    end
+end
+
 function test_decl.testOnCustomCommandWidgetOn(t)
     local tests = {
         {
