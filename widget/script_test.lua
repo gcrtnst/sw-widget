@@ -165,7 +165,7 @@ function test_decl.testOnCustomCommandWidgetVersion(t)
             want_announce_log = {
                 {
                     name = "[???]",
-                    message = "v0.1.0",
+                    message = "??? v0.1.0",
                     peer_id = 0,
                 },
             },
@@ -177,7 +177,7 @@ function test_decl.testOnCustomCommandWidgetVersion(t)
             want_announce_log = {
                 {
                     name = "[???]",
-                    message = "v0.1.0",
+                    message = "??? v0.1.0",
                     peer_id = 0,
                 },
             },
@@ -201,7 +201,7 @@ function test_decl.testOnCustomCommandWidgetVersion(t)
             want_announce_log = {
                 {
                     name = "[???]",
-                    message = "v0.1.0",
+                    message = "??? v0.1.0",
                     peer_id = 1,
                 },
             },
