@@ -89,7 +89,8 @@ function execVersion(user_peer_id, is_admin, is_auth, args)
         return
     end
 
-    server.announce(getAnnounceName(), c_ver, user_peer_id)
+    local msg = getAddonName() .. " " .. c_ver
+    server.announce(getAnnounceName(), msg, user_peer_id)
 end
 
 function execOn(user_peer_id, is_admin, is_auth, args)
