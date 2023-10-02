@@ -48,7 +48,8 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
                         "?widget altofs HOFS VOFS\n" ..
                         "?widget spdunit UNIT\n" ..
                         "?widget altunit UNIT\n" ..
-                        "?widget help",
+                        "?widget help\n" ..
+                        "?widget version",
                     peer_id = 0,
                 },
             },
@@ -67,7 +68,8 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
                         "?widget altofs HOFS VOFS\n" ..
                         "?widget spdunit UNIT\n" ..
                         "?widget altunit UNIT\n" ..
-                        "?widget help",
+                        "?widget help\n" ..
+                        "?widget version",
                     peer_id = 0,
                 },
             },
@@ -86,7 +88,8 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
                         "?widget altofs HOFS VOFS\n" ..
                         "?widget spdunit UNIT\n" ..
                         "?widget altunit UNIT\n" ..
-                        "?widget help",
+                        "?widget help\n" ..
+                        "?widget version",
                     peer_id = 0,
                 },
             },
@@ -105,7 +108,8 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
                         "?widget altofs HOFS VOFS\n" ..
                         "?widget spdunit UNIT\n" ..
                         "?widget altunit UNIT\n" ..
-                        "?widget help",
+                        "?widget help\n" ..
+                        "?widget version",
                     peer_id = 0,
                 },
             },
@@ -124,7 +128,8 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
                         "?widget altofs HOFS VOFS\n" ..
                         "?widget spdunit UNIT\n" ..
                         "?widget altunit UNIT\n" ..
-                        "?widget help",
+                        "?widget help\n" ..
+                        "?widget version",
                     peer_id = 1,
                 },
             },
