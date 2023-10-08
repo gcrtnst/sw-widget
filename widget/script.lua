@@ -526,18 +526,22 @@ function buildTracker(sign_name)
     end
 
     function tracker:getVehicleSign(vehicle_id)
-        local sign_data = self._vehicle_sign[vehicle_id]
-        if sign_data ~= nil then
-            return sign_data, true
+        local vehicle_sign = self._vehicle_sign[vehicle_id]
+        if vehicle_sign ~= nil then
+            return vehicle_sign.sign_data, vehicle_sign.is_success
         end
 
-        local sign_data, is_success = server.getVehicleSign(vehicle_id, self._sign_name)
-        if not is_success or sign_data == nil then
+        local is_simulating, is_success = server.getVehicleSimulating(vehicle_id)
+        if not is_success or not is_simulating then
             return nil, false
         end
 
-        self._vehicle_sign[vehicle_id] = sign_data
-        return sign_data, true
+        local sign_data, is_success = server.getVehicleSign(vehicle_id, self._sign_name)
+        self._vehicle_sign[vehicle_id] = {
+            sign_data = sign_data,
+            is_success = is_success,
+        }
+        return sign_data, is_success
     end
 
     function tracker:onVehicleDespawn(vehicle_id, peer_id)

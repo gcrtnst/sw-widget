@@ -1887,6 +1887,7 @@ function test_decl.testOnTickSign(t)
     t.env.server._player_list = {}
     t.env.server._player_character_tbl = { [0] = 10 }
     t.env.server._character_vehicle_tbl = { [10] = 20 }
+    t.env.server._vehicle_simulating_tbl = { [20] = true }
     t.env.server._vehicle_sign_tbl = {
         [20] = {
             [t.env.c_cmd] = {
@@ -5013,6 +5014,7 @@ function test_decl.testTrackerAutoSign(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5383,6 +5385,7 @@ function test_decl.testTrackerSignGet(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5410,6 +5413,7 @@ function test_decl.testTrackerSignCache(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5430,6 +5434,7 @@ function test_decl.testTrackerSignCache(t)
     assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", 4, alt)
 
+    t.env.server._vehicle_simulating_tbl[30] = nil
     t.env.server._vehicle_sign_tbl[30] = nil
     t.env.server._vehicle_pos_voxel_tbl[30] = nil
 
@@ -5444,6 +5449,7 @@ function test_decl.testTrackerSignCacheExpiry(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5464,6 +5470,7 @@ function test_decl.testTrackerSignCacheExpiry(t)
     assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", 4, alt)
 
+    t.env.server._vehicle_simulating_tbl[30] = nil
     t.env.server._vehicle_sign_tbl[30] = nil
     t.env.server._vehicle_pos_voxel_tbl[30] = nil
 
@@ -5479,6 +5486,7 @@ function test_decl.testTrackerSignCacheMulti(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5496,6 +5504,7 @@ function test_decl.testTrackerSignCacheMulti(t)
 
     t.env.server._player_character_tbl[11] = 21
     t.env.server._character_vehicle_tbl[21] = 31
+    t.env.server._vehicle_simulating_tbl[31] = true
     t.env.server._vehicle_sign_tbl[31] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5519,8 +5528,10 @@ function test_decl.testTrackerSignCacheMulti(t)
     assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", 8, alt)
 
+    t.env.server._vehicle_simulating_tbl[30] = nil
     t.env.server._vehicle_sign_tbl[30] = nil
     t.env.server._vehicle_pos_voxel_tbl[30] = nil
+    t.env.server._vehicle_simulating_tbl[31] = nil
     t.env.server._vehicle_sign_tbl[31] = nil
     t.env.server._vehicle_pos_voxel_tbl[31] = nil
 
@@ -5538,6 +5549,7 @@ function test_decl.testTrackerSignFailVehicle(t)
 
     t.env.server._player_character_tbl[10] = nil
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5565,6 +5577,7 @@ function test_decl.testTrackerSignFailVoxel(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = nil
     t.env.server._vehicle_pos_voxel_tbl[30] = {
         [string.pack("jjj", 40, 41, 42)] = {
@@ -5587,6 +5600,7 @@ function test_decl.testTrackerSignFailPos(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5609,7 +5623,14 @@ function test_decl.testTrackerSignFailVoxelCache(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
-    t.env.server._vehicle_sign_tbl[30] = nil
+    t.env.server._vehicle_simulating_tbl[30] = false
+    t.env.server._vehicle_sign_tbl[30] = {
+        [t.env.c_cmd] = {
+            name = t.env.c_cmd,
+            pos = {x = 40, y = 41, z = 42},
+        },
+    }
+
     t.env.server._vehicle_pos_voxel_tbl[30] = {
         [string.pack("jjj", 40, 41, 42)] = {
             1, 0, 0, 0,
@@ -5624,12 +5645,7 @@ function test_decl.testTrackerSignFailVoxelCache(t)
     assertEqual(nil, "spd", nil, spd)
     assertEqual(nil, "alt", nil, alt)
 
-    t.env.server._vehicle_sign_tbl[30] = {
-        [t.env.c_cmd] = {
-            name = t.env.c_cmd,
-            pos = {x = 40, y = 41, z = 42},
-        },
-    }
+    t.env.server._vehicle_simulating_tbl[30] = true
 
     spd, alt = tracker:getSignSpdAlt(10)
     assertEqual(nil, "spd", nil, spd)
@@ -5642,6 +5658,7 @@ function test_decl.testTrackerSignFailPosCache(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5676,6 +5693,7 @@ function test_decl.testTrackerSignFailTrack(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5724,6 +5742,7 @@ function test_decl.testTrackerSignTrack(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5765,6 +5784,7 @@ function test_decl.testTrackerSignTrackExpiry(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5807,6 +5827,7 @@ function test_decl.testTrackerSignTrackMulti(t)
 
     t.env.server._player_character_tbl[10] = 20
     t.env.server._character_vehicle_tbl[20] = 30
+    t.env.server._vehicle_simulating_tbl[30] = true
     t.env.server._vehicle_sign_tbl[30] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5824,6 +5845,7 @@ function test_decl.testTrackerSignTrackMulti(t)
 
     t.env.server._player_character_tbl[11] = 21
     t.env.server._character_vehicle_tbl[21] = 31
+    t.env.server._vehicle_simulating_tbl[31] = true
     t.env.server._vehicle_sign_tbl[31] = {
         [t.env.c_cmd] = {
             name = t.env.c_cmd,
@@ -5873,7 +5895,7 @@ function test_decl.testTrackerSignTrackMulti(t)
     assertEqual(nil, "alt", 7, alt)
 end
 
-function test_decl.testTrackerUtilSignGet(t)
+function test_decl.testTrackerUtilSignExists(t)
     t:reset()
     t.fn()
 
@@ -5884,6 +5906,9 @@ function test_decl.testTrackerUtilSignGet(t)
                 pos = {x = 10, y = 11, z = 12},
             },
         },
+    }
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
     }
 
     local tracker = t.env.buildTracker(t.env.c_cmd)
@@ -5895,7 +5920,7 @@ function test_decl.testTrackerUtilSignGet(t)
     assertEqual(nil, "is_success", true, is_success)
 end
 
-function test_decl.testTrackerUtilSignCache(t)
+function test_decl.testTrackerUtilSignExistsCache(t)
     t:reset()
     t.fn()
 
@@ -5907,6 +5932,9 @@ function test_decl.testTrackerUtilSignCache(t)
             },
         },
     }
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
+    }
 
     local tracker = t.env.buildTracker(t.env.c_cmd)
     local sign_data, is_success = tracker:getVehicleSign(1)
@@ -5917,6 +5945,7 @@ function test_decl.testTrackerUtilSignCache(t)
     assertEqual(nil, "is_success", true, is_success)
 
     t.env.server._vehicle_sign_tbl = {}
+    t.env.server._vehicle_simulating_tbl = {}
     local sign_data, is_success = tracker:getVehicleSign(1)
     assertEqual(nil, "sign_data", {
         name = t.env.c_cmd,
@@ -5925,7 +5954,7 @@ function test_decl.testTrackerUtilSignCache(t)
     assertEqual(nil, "is_success", true, is_success)
 end
 
-function test_decl.testTrackerUtilSignCacheExpiry(t)
+function test_decl.testTrackerUtilSignExistsCacheExpiry(t)
     t:reset()
     t.fn()
 
@@ -5937,6 +5966,9 @@ function test_decl.testTrackerUtilSignCacheExpiry(t)
             },
         },
     }
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
+    }
 
     local tracker = t.env.buildTracker(t.env.c_cmd)
     local sign_data, is_success = tracker:getVehicleSign(1)
@@ -5947,13 +5979,14 @@ function test_decl.testTrackerUtilSignCacheExpiry(t)
     assertEqual(nil, "is_success", true, is_success)
 
     t.env.server._vehicle_sign_tbl = {}
+    t.env.server._vehicle_simulating_tbl = {}
     tracker:onVehicleDespawn(1, -1)
     local sign_data, is_success = tracker:getVehicleSign(1)
     assertEqual(nil, "sign_data", nil, sign_data)
     assertEqual(nil, "is_success", false, is_success)
 end
 
-function test_decl.testTrackerUtilSignCacheMulti(t)
+function test_decl.testTrackerUtilSignExistsCacheMulti(t)
     t:reset()
     t.fn()
 
@@ -5971,6 +6004,10 @@ function test_decl.testTrackerUtilSignCacheMulti(t)
             },
         },
     }
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
+        [2] = true,
+    }
 
     local tracker = t.env.buildTracker(t.env.c_cmd)
     local sign_data, is_success = tracker:getVehicleSign(1)
@@ -5987,6 +6024,7 @@ function test_decl.testTrackerUtilSignCacheMulti(t)
     assertEqual(nil, "is_success", true, is_success)
 
     t.env.server._vehicle_sign_tbl = {}
+    t.env.server._vehicle_simulating_tbl = {}
     local sign_data, is_success = tracker:getVehicleSign(1)
     assertEqual(nil, "sign_data", {
         name = t.env.c_cmd,
@@ -6001,22 +6039,30 @@ function test_decl.testTrackerUtilSignCacheMulti(t)
     assertEqual(nil, "is_success", true, is_success)
 end
 
-function test_decl.testTrackerUtilSignFail(t)
+function test_decl.testTrackerUtilSignAbsent(t)
     t:reset()
     t.fn()
 
     t.env.server._vehicle_sign_tbl = {}
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
+    }
+
     local tracker = t.env.buildTracker(t.env.c_cmd)
     local sign_data, is_success = tracker:getVehicleSign(1)
     assertEqual(nil, "sign_data", nil, sign_data)
     assertEqual(nil, "is_success", false, is_success)
 end
 
-function test_decl.testTrackerUtilSignFailCache(t)
+function test_decl.testTrackerUtilSignAbsentCache(t)
     t:reset()
     t.fn()
 
     t.env.server._vehicle_sign_tbl = {}
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
+    }
+
     local tracker = t.env.buildTracker(t.env.c_cmd)
     local sign_data, is_success = tracker:getVehicleSign(1)
     assertEqual(nil, "sign_data", nil, sign_data)
@@ -6029,6 +6075,182 @@ function test_decl.testTrackerUtilSignFailCache(t)
                 pos = {x = 10, y = 11, z = 12},
             },
         },
+    }
+
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+end
+
+function test_decl.testTrackerUtilSignAbsentCacheExpiry(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._vehicle_sign_tbl = {}
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+
+    t.env.server._vehicle_sign_tbl = {
+        [1] = {
+            [t.env.c_cmd] = {
+                name = t.env.c_cmd,
+                pos = {x = 10, y = 11, z = 12},
+            },
+        },
+    }
+
+    tracker:onVehicleDespawn(1, -1)
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", {
+        name = t.env.c_cmd,
+        pos = {x = 10, y = 11, z = 12},
+    }, sign_data)
+    assertEqual(nil, "is_success", true, is_success)
+end
+
+function test_decl.testTrackerUtilSignAbsentCacheMulti(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._vehicle_sign_tbl = {}
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
+        [2] = true,
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+    local sign_data, is_success = tracker:getVehicleSign(2)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+
+    t.env.server._vehicle_sign_tbl = {
+        [1] = {
+            [t.env.c_cmd] = {
+                name = t.env.c_cmd,
+                pos = {x = 10, y = 11, z = 12},
+            },
+        },
+        [2] = {
+            [t.env.c_cmd] = {
+                name = t.env.c_cmd,
+                pos = {x = 20, y = 21, z = 22},
+            },
+        },
+    }
+
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+    local sign_data, is_success = tracker:getVehicleSign(2)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+end
+
+function test_decl.testTrackerUtilSignFailVehicle(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._vehicle_sign_tbl = {
+        [1] = {
+            [t.env.c_cmd] = {
+                name = t.env.c_cmd,
+                pos = {x = 10, y = 11, z = 12},
+            },
+        },
+    }
+    t.env.server._vehicle_simulating_tbl = {}
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+end
+
+function test_decl.testTrackerUtilSignFailVehicleCache(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._vehicle_sign_tbl = {
+        [1] = {
+            [t.env.c_cmd] = {
+                name = t.env.c_cmd,
+                pos = {x = 10, y = 11, z = 12},
+            },
+        },
+    }
+    t.env.server._vehicle_simulating_tbl = {}
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
+    }
+
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", {
+        name = t.env.c_cmd,
+        pos = {x = 10, y = 11, z = 12},
+    }, sign_data)
+    assertEqual(nil, "is_success", true, is_success)
+end
+
+function test_decl.testTrackerUtilSignFailSimulate(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._vehicle_sign_tbl = {
+        [1] = {
+            [t.env.c_cmd] = {
+                name = t.env.c_cmd,
+                pos = {x = 10, y = 11, z = 12},
+            },
+        },
+    }
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = false,
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+end
+
+function test_decl.testTrackerUtilSignFailSimulateCache(t)
+    t:reset()
+    t.fn()
+
+    t.env.server._vehicle_sign_tbl = {
+        [1] = {
+            [t.env.c_cmd] = {
+                name = t.env.c_cmd,
+                pos = {x = 10, y = 11, z = 12},
+            },
+        },
+    }
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = false,
+    }
+
+    local tracker = t.env.buildTracker(t.env.c_cmd)
+    local sign_data, is_success = tracker:getVehicleSign(1)
+    assertEqual(nil, "sign_data", nil, sign_data)
+    assertEqual(nil, "is_success", false, is_success)
+
+    t.env.server._vehicle_simulating_tbl = {
+        [1] = true,
     }
 
     local sign_data, is_success = tracker:getVehicleSign(1)
@@ -6703,6 +6925,7 @@ local function buildMockServer()
         _vehicle_pos_tbl = {},
         _vehicle_pos_voxel_tbl = {},
         _vehicle_sign_tbl = {},
+        _vehicle_simulating_tbl = {},
     }
 
     function server.getAddonIndex(name)
@@ -6801,6 +7024,11 @@ local function buildMockServer()
 
         local sign_data = sign_tbl[sign_name]
         return sign_data, sign_data ~= nil
+    end
+
+    function server.getVehicleSimulating(vehicle_id)
+        local vehicle_simulating = server._vehicle_simulating_tbl[vehicle_id]
+        return vehicle_simulating, vehicle_simulating ~= nil
     end
 
     return server
