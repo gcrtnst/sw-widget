@@ -313,7 +313,7 @@ function onPlayerSit(peer_id, vehicle_id, seat_name)
         local msg = "Update " .. c_ver .. ": " ..
             "Speed and altitude now based on player, not vehicle, " ..
             "even when player seated in a vehicle. " ..
-            "For more details, please refer to the item page on the Steam Workshop."
+            "For more details, please refer to the addon's update history on the Steam Workshop."
         server.announce(getAnnounceName(), msg, peer_id)
 
         g_notify_onsit = notify_version
