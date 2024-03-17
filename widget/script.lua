@@ -432,7 +432,9 @@ function buildTracker()
             local _, alt, _ = matrix.position(pos)
             return spd, alt
         end
-        return self:getPlayerSpdAlt(peer_id)
+        local spd, pos = self:getPlayerWorldSpdPos(peer_id)
+        local _, alt, _ = matrix.position(pos)
+        return spd, alt
     end
 
     function tracker:getPlayerSpdAlt(peer_id)
