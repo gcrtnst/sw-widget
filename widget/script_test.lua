@@ -5124,6 +5124,343 @@ function test_decl.testTrackerPlayerTrackMulti(t)
     assertEqual(nil, "alt", 7, alt)
 end
 
+function test_decl.testTrackerGetPlayerWorldSpdPosNormal(t)
+    t:reset()
+    t.fn()
+
+    local object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosCache(t)
+    t:reset()
+    t.fn()
+
+    local object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = nil
+
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosCacheCopy(t)
+    t:reset()
+    t.fn()
+
+    local object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = {table.unpack(object_pos)}
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+
+    pos[14] = 6
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = nil
+
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosCacheExpiry(t)
+    t:reset()
+    t.fn()
+
+    local object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = nil
+
+    tracker:tickPlayer()
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", nil, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosCacheMulti(t)
+    t:reset()
+    t.fn()
+
+    local object_pos_2 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    local object_pos_6 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        7, 8, 9, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos_2
+    t.env.server._player_character_tbl[11] = 6
+    t.env.server._object_pos_tbl[6] = object_pos_6
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos_2, pos)
+    spd, pos = tracker:getPlayerWorldSpdPos(11)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos_6, pos)
+
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = nil
+    t.env.server._player_character_tbl[11] = 6
+    t.env.server._object_pos_tbl[6] = nil
+
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos_2, pos)
+    spd, pos = tracker:getPlayerWorldSpdPos(11)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos_6, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosFail(t)
+    t:reset()
+    t.fn()
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", nil, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosFailCache(t)
+    t:reset()
+    t.fn()
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", nil, pos)
+
+    local object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosFailTrack(t)
+    t:reset()
+    t.fn()
+
+    local object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = nil
+
+    tracker:tickPlayer()
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", nil, pos)
+
+    object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        6, 7, 8, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    tracker:tickPlayer()
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosTrack(t)
+    t:reset()
+    t.fn()
+
+    local object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+
+    object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        5, 8, 9, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    tracker:tickPlayer()
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", 6, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosTrackExpiry(t)
+    t:reset()
+    t.fn()
+
+    local object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+
+    object_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        5, 8, 9, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos
+
+    tracker:tickPlayer()
+    tracker:tickPlayer()
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos, pos)
+end
+
+function test_decl.testTrackerGetPlayerWorldSpdPosTrackMulti(t)
+    t:reset()
+    t.fn()
+
+    local object_pos_2 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 3, 0, 1,
+    }
+    local object_pos_4 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 5, 0, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos_2
+    t.env.server._player_character_tbl[11] = 4
+    t.env.server._object_pos_tbl[4] = object_pos_4
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos_2, pos)
+    spd, pos = tracker:getPlayerWorldSpdPos(11)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", object_pos_4, pos)
+
+    object_pos_2 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 6, 0, 1,
+    }
+    object_pos_4 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 7, 0, 1,
+    }
+    t.env.server._player_character_tbl[10] = 2
+    t.env.server._object_pos_tbl[2] = object_pos_2
+    t.env.server._player_character_tbl[11] = 4
+    t.env.server._object_pos_tbl[4] = object_pos_4
+
+    tracker:tickPlayer()
+    spd, pos = tracker:getPlayerWorldSpdPos(10)
+    assertEqual(nil, "spd", 3, spd)
+    assertEqual(nil, "pos", object_pos_2, pos)
+    spd, pos = tracker:getPlayerWorldSpdPos(11)
+    assertEqual(nil, "spd", 2, spd)
+    assertEqual(nil, "pos", object_pos_4, pos)
+end
+
 function test_decl.testTrackerGetVehicleWorldSpdPosNormal(t)
     t:reset()
     t.fn()

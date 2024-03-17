@@ -455,6 +455,26 @@ function buildTracker()
         return spd, alt
     end
 
+    function tracker:getPlayerWorldSpdPos(peer_id)
+        local player_pos_new = self._player_pos_new[peer_id]
+        if player_pos_new == nil then
+            local is_success
+            player_pos_new, is_success = getPlayerPos(peer_id)
+            if not is_success then
+                return nil, nil
+            end
+            self._player_pos_new[peer_id] = player_pos_new
+        end
+
+        local spd = nil
+        local pos = {table.unpack(player_pos_new)}
+        local player_pos_old = self._player_pos_old[peer_id]
+        if player_pos_old ~= nil then
+            spd = matrix.distance(player_pos_old, player_pos_new)
+        end
+        return spd, pos
+    end
+
     function tracker:tickPlayer()
         self._player_pos_old = self._player_pos_new
         self._player_pos_new = {}
