@@ -5397,6 +5397,320 @@ function test_decl.testTrackerVehicleTrackMulti(t)
     assertEqual(nil, "alt", 7, alt)
 end
 
+function test_decl.testTrackerGetVehicleWorldSpdPosNormal(t)
+    t:reset()
+    t.fn()
+
+    local vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosCache(t)
+    t:reset()
+    t.fn()
+
+    local vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+
+    t.env.server._vehicle_pos_tbl[2] = nil
+
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosCacheCopy(t)
+    t:reset()
+    t.fn()
+
+    local vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = {table.unpack(vehicle_pos)}
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+
+    pos[14] = 6
+    t.env.server._vehicle_pos_tbl[2] = nil
+
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosCacheExpiry(t)
+    t:reset()
+    t.fn()
+
+    local vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+
+    t.env.server._vehicle_pos_tbl[2] = nil
+
+    tracker:tickVehicle()
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", nil, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosCacheMulti(t)
+    t:reset()
+    t.fn()
+
+    local vehicle_pos_2 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    local vehicle_pos_6 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        7, 8, 9, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos_2
+    t.env.server._vehicle_pos_tbl[6] = vehicle_pos_6
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos_2, pos)
+    spd, pos = tracker:getVehicleWorldSpdPos(6)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos_6, pos)
+
+    t.env.server._vehicle_pos_tbl[2] = nil
+    t.env.server._vehicle_pos_tbl[6] = nil
+
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos_2, pos)
+    spd, pos = tracker:getVehicleWorldSpdPos(6)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos_6, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosFail(t)
+    t:reset()
+    t.fn()
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", nil, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosFailCache(t)
+    t:reset()
+    t.fn()
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", nil, pos)
+
+    local vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosFailTrack(t)
+    t:reset()
+    t.fn()
+
+    local vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+
+    t.env.server._vehicle_pos_tbl[2] = nil
+
+    tracker:tickVehicle()
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", nil, pos)
+
+    vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        6, 7, 8, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    tracker:tickVehicle()
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosTrack(t)
+    t:reset()
+    t.fn()
+
+    local vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+
+    vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        5, 8, 9, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    tracker:tickVehicle()
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", 6, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosTrackExpiry(t)
+    t:reset()
+    t.fn()
+
+    local vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        3, 4, 5, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+
+    vehicle_pos = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        5, 8, 9, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos
+
+    tracker:tickVehicle()
+    tracker:tickVehicle()
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos, pos)
+end
+
+function test_decl.testTrackerGetVehicleWorldSpdPosTrackMulti(t)
+    t:reset()
+    t.fn()
+
+    local vehicle_pos_2 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 3, 0, 1,
+    }
+    local vehicle_pos_4 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 5, 0, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos_2
+    t.env.server._vehicle_pos_tbl[4] = vehicle_pos_4
+
+    local tracker = t.env.buildTracker()
+    local spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos_2, pos)
+    spd, pos = tracker:getVehicleWorldSpdPos(4)
+    assertEqual(nil, "spd", nil, spd)
+    assertEqual(nil, "pos", vehicle_pos_4, pos)
+
+    vehicle_pos_2 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 6, 0, 1,
+    }
+    vehicle_pos_4 = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 7, 0, 1,
+    }
+    t.env.server._vehicle_pos_tbl[2] = vehicle_pos_2
+    t.env.server._vehicle_pos_tbl[4] = vehicle_pos_4
+
+    tracker:tickVehicle()
+    spd, pos = tracker:getVehicleWorldSpdPos(2)
+    assertEqual(nil, "spd", 3, spd)
+    assertEqual(nil, "pos", vehicle_pos_2, pos)
+    spd, pos = tracker:getVehicleWorldSpdPos(4)
+    assertEqual(nil, "spd", 2, spd)
+    assertEqual(nil, "pos", vehicle_pos_4, pos)
+end
+
 function test_decl.testUIMPopupEmpty(t)
     t:reset()
     t.fn()
