@@ -4774,6 +4774,12 @@ function test_decl.testTrackerUserGet(t)
             9,
             5,
         },
+        {
+            "nil",
+            { [1] = 3 },
+            nil,
+            nil,
+        },
     }
 
     for i, tt in ipairs(tests) do
