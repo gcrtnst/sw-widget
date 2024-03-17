@@ -425,17 +425,6 @@ function buildTracker()
         _vehicle_pos_new = {},
     }
 
-    function tracker:getUserSpdAlt(peer_id)
-        local spd, pos = self:getWorldSpdPos(peer_id)
-
-        local alt = nil
-        if pos ~= nil then
-            local _
-            _, alt, _ = matrix.position(pos)
-        end
-        return spd, alt
-    end
-
     function tracker:getAstroSpdAlt(peer_id)
         local spd, pos = self:getAstroSpdPos(peer_id)
 
