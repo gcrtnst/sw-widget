@@ -436,6 +436,16 @@ function buildTracker()
         return spd, alt
     end
 
+    function tracker:getAstroSpdPos(peer_id)
+        local spd, world_pos = self:getWorldSpdPos(peer_id)
+
+        local astro_pos = nil
+        if world_pos ~= nil then
+            astro_pos = server.getAstroPos(world_pos)
+        end
+        return spd, astro_pos
+    end
+
     function tracker:getWorldSpdPos(peer_id)
         local vehicle_id, is_success = getPlayerVehicle(peer_id)
         if is_success then

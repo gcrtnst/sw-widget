@@ -4836,6 +4836,78 @@ function test_decl.testTrackerUserGet(t)
     end
 end
 
+function test_decl.testTrackerGetAstroSpdPos(t)
+    local world_pos_old = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1,
+    }
+    local astro_pos_old = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1,
+    }
+    local world_pos_new = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        200000, 80000, 0, 1,
+    }
+    local astro_pos_new = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 176000 + 100000*math.pi, 0, 1,
+    }
+
+    local tests = {
+        {
+            "normal",
+            0,
+            nil,
+            astro_pos_old,
+            (200000^2 + 80000^2)^0.5,
+            astro_pos_new,
+        },
+        {
+            "nil",
+            2,
+            nil,
+            nil,
+            nil,
+            nil,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local prefix = tt[1]
+        local in_peer_id = tt[2]
+        local want_spd_1 = tt[3]
+        local want_pos_1 = tt[4]
+        local want_spd_2 = tt[5]
+        local want_pos_2 = tt[6]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_character_tbl = { [0] = 1 }
+        t.env.server._object_pos_tbl = { [1] = world_pos_old }
+
+        local tracker = t.env.buildTracker()
+        local got_spd_1, got_pos_1 = tracker:getAstroSpdPos(in_peer_id)
+        assertEqual(prefix, "spd_1", want_spd_1, got_spd_1)
+        assertEqual(prefix, "pos_1", want_pos_1, got_pos_1)
+
+        t.env.server._object_pos_tbl = { [1] = world_pos_new }
+
+        tracker:tick()
+        local got_spd_2, got_pos_2 = tracker:getAstroSpdPos(in_peer_id)
+        assertEqual(prefix, "spd_2", want_spd_2, got_spd_2)
+        assertEqual(prefix, "pos_2", want_pos_2, got_pos_2)
+    end
+end
+
 function test_decl.testTrackerGetWorldSpdPos(t)
     local vehicle_pos_old = {
         1, 0, 0, 0,
@@ -6293,6 +6365,36 @@ local function buildMockServer()
 
         local vehicle_pos = server._vehicle_pos_tbl[vehicle_id]
         return vehicle_pos, vehicle_pos ~= nil
+    end
+
+    function server.getAstroPos(transform_matrix)
+        local world_x = transform_matrix[13]
+        local world_y = transform_matrix[14]
+        local world_z = transform_matrix[15]
+
+        local astro_x, astro_y, astro_z
+        if world_y > 128000 then
+            local arc_x = world_x - 100000
+            local arc_y = world_y - 128000
+            local arc_r = (arc_x^2 + arc_y^2)^0.5
+            local arc_a = math.atan(arc_y, arc_x)
+
+            astro_x = -(arc_r - 100000)
+            astro_y = 128000 + 100000*(math.pi - arc_a)
+        elseif world_x > 156000 then
+            astro_x = -(world_x - 200000)
+            astro_y = 128000 + 100000*math.pi + (128000 - world_y)
+        else
+            astro_x = world_x
+            astro_y = world_y
+        end
+        astro_z = world_z
+
+        local astronomy_transform_matrix = {table.unpack(transform_matrix)}
+        astronomy_transform_matrix[13] = astro_x
+        astronomy_transform_matrix[14] = astro_y
+        astronomy_transform_matrix[15] = astro_z
+        return astronomy_transform_matrix
     end
 
     return server
