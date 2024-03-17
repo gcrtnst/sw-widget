@@ -436,6 +436,17 @@ function buildTracker()
         return spd, alt
     end
 
+    function tracker:getAstroSpdAlt(peer_id)
+        local spd, pos = self:getAstroSpdPos(peer_id)
+
+        local alt = nil
+        if pos ~= nil then
+            local _
+            _, alt, _ = matrix.position(pos)
+        end
+        return spd, alt
+    end
+
     function tracker:getAstroSpdPos(peer_id)
         local spd, world_pos = self:getWorldSpdPos(peer_id)
 

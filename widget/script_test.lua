@@ -4836,6 +4836,66 @@ function test_decl.testTrackerUserGet(t)
     end
 end
 
+function test_decl.testTrackerGetAstroSpdAlt(t)
+    local world_pos_old = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1,
+    }
+    local world_pos_new = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        200000, 80000, 0, 1,
+    }
+
+    local tests = {
+        {
+            "normal",
+            0,
+            nil,
+            0,
+            (200000^2 + 80000^2)^0.5,
+            176000 + 100000*math.pi,
+        },
+        {
+            "nil",
+            2,
+            nil,
+            nil,
+            nil,
+            nil,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local prefix = tt[1]
+        local in_peer_id = tt[2]
+        local want_spd_1 = tt[3]
+        local want_alt_1 = tt[4]
+        local want_spd_2 = tt[5]
+        local want_alt_2 = tt[6]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_character_tbl = { [0] = 1 }
+        t.env.server._object_pos_tbl = { [1] = world_pos_old }
+
+        local tracker = t.env.buildTracker()
+        local got_spd_1, got_alt_1 = tracker:getAstroSpdAlt(in_peer_id)
+        assertEqual(prefix, "spd_1", want_spd_1, got_spd_1)
+        assertEqual(prefix, "alt_1", want_alt_1, got_alt_1)
+
+        t.env.server._object_pos_tbl = { [1] = world_pos_new }
+
+        tracker:tick()
+        local got_spd_2, got_alt_2 = tracker:getAstroSpdAlt(in_peer_id)
+        assertEqual(prefix, "spd_2", want_spd_2, got_spd_2)
+        assertEqual(prefix, "alt_2", want_alt_2, got_alt_2)
+    end
+end
+
 function test_decl.testTrackerGetAstroSpdPos(t)
     local world_pos_old = {
         1, 0, 0, 0,
