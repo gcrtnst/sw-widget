@@ -428,7 +428,9 @@ function buildTracker()
     function tracker:getUserSpdAlt(peer_id)
         local vehicle_id, is_success = getPlayerVehicle(peer_id)
         if is_success then
-            return self:getVehicleSpdAlt(vehicle_id)
+            local spd, pos = self:getVehicleWorldSpdPos(vehicle_id)
+            local _, alt, _ = matrix.position(pos)
+            return spd, alt
         end
         return self:getPlayerSpdAlt(peer_id)
     end
