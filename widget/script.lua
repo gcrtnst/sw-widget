@@ -437,6 +437,14 @@ function buildTracker()
         return spd, alt
     end
 
+    function tracker:getWorldSpdPos(peer_id)
+        local vehicle_id, is_success = getPlayerVehicle(peer_id)
+        if is_success then
+            return self:getVehicleWorldSpdPos(vehicle_id)
+        end
+        return self:getPlayerWorldSpdPos(peer_id)
+    end
+
     function tracker:getPlayerWorldSpdPos(peer_id)
         local player_pos_new = self._player_pos_new[peer_id]
         if player_pos_new == nil then

@@ -4830,6 +4830,73 @@ function test_decl.testTrackerUserGet(t)
     end
 end
 
+function test_decl.testTrackerGetWorldSpdPos(t)
+    local vehicle_pos_old = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 4, 0, 1,
+    }
+    local vehicle_pos_new = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        8, 4, 0, 1,
+    }
+    local object_pos_old = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 5, 0, 1,
+    }
+    local object_pos_new = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        9, 5, 0, 1,
+    }
+
+    local tests = {
+        {
+            "vehicle",
+            { [1] = 2 },
+            8,
+            vehicle_pos_new,
+        },
+        {
+            "player",
+            {},
+            9,
+            object_pos_new,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local prefix = tt[1]
+        local in_character_vehicle_tbl = tt[2]
+        local want_spd = tt[3]
+        local want_pos = tt[4]
+        t:reset()
+        t.fn()
+
+        t.env.server._player_character_tbl = { [0] = 1 }
+        t.env.server._character_vehicle_tbl = in_character_vehicle_tbl
+        t.env.server._vehicle_pos_tbl = { [2] = vehicle_pos_old }
+        t.env.server._object_pos_tbl = { [1] = object_pos_old }
+
+        local tracker = t.env.buildTracker()
+        tracker:getWorldSpdPos(0)
+
+        t.env.server._vehicle_pos_tbl = { [2] = vehicle_pos_new }
+        t.env.server._object_pos_tbl = { [1] = object_pos_new }
+
+        tracker:tick()
+        local got_spd, got_pos = tracker:getWorldSpdPos(0)
+        assertEqual(prefix, "spd", want_spd, got_spd)
+        assertEqual(prefix, "pos", want_pos, got_pos)
+    end
+end
+
 function test_decl.testTrackerGetPlayerWorldSpdPosNormal(t)
     t:reset()
     t.fn()
