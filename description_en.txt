@@ -6,35 +6,58 @@ These widgets allow you to know your speed and altitude even in vehicle third pe
     [*]Subscribe to this work.
     [*]Create a new world with the "Meter Widget" enabled.
        New Game > Enabled Addons > Workshop > Meter Widget
-    [*]The widget will now appear in the lower right corner of the screen.
+    [*]The widget will appear on the bottom right of the screen.
 [/olist]
 
 [h1]Commands[/h1]
 [list]
     [*][b]?widget on[/b]
-       Displays the widget.
+       Shows the widgets.
 
     [*][b]?widget off[/b]
-       Hides the widget.
+       Hides the widgets.
 
     [*][b]?widget spdofs HORIZONTAL_OFFSET VERTICAL_OFFSET[/b]
-       Sets the screen space offset for the speed widget.
-       Screen space offset ranges from -1, -1 (Bot Left) to 1, 1 (Top Right).
+       Sets the position of the speed widget.
+       The position can be specified in the range of -1, -1 (bottom left) to 1, 1 (top right).
 
     [*][b]?widget altofs HORIZONTAL_OFFSET VERTICAL_OFFSET[/b]
-       Sets the screen space offset for the altitude widget.
-       Screen space offset ranges from -1, -1 (Bot Left) to 1, 1 (Top Right).
+       Sets the position of the altitude widget.
+       The position can be specified in the same way as "?widget spdofs".
 
     [*][b]?widget spdunit UNIT[/b]
        Sets the speed unit.
-       Available units are "km/h", "m/s", "mph", "kt".
+       Available units: "km/h", "m/s", "mph", "kt"
 
     [*][b]?widget altunit UNIT[/b]
        Set the altitude unit.
-       Available units are "m", "ft".
+       Available units: "m", "ft"
 
     [*][b]?widget help[/b]
        Displays a list of commands.
+
+    [*][b]?widget version[/b]
+       Displays the version information.
+[/list]
+
+[h1]Specifications[/h1]
+[h2]Measurement Position of Speed/Altitude[/h2]
+[list]
+    [*]When the player is sitting in a vehicle: The center of the vehicle
+    [*]When the player is not sitting in a vehicle: The player's own position
+[/list]
+
+[h2]Calculation Method of Speed/Altitude[/h2]
+[list]
+    [*]SPD: Calculates the distance between the measurement position 1 tick ago and the current measurement position in the world coordinate system.
+    [*]ALT: Gets the altitude of the measurement position in the astronomy coordinate system.
+[/list]
+
+[h2]Multiplayer Support[/h2]
+This addon supports multiplayer. However, there are the following points to note:
+[list]
+    [*]Speed and altitude are calculated on the host side. Therefore, the host player will always see accurate values, but the guest players may not see real-time values.
+    [*]Settings made with the "?widget" custom command are stored individually for each player. The host player's settings are saved in the save data, but the guest player's settings are cleared when the guest player leaves.
 [/list]
 
 [h1]License[/h1]
@@ -45,5 +68,4 @@ https://github.com/gcrtnst/sw-widget/blob/main/LICENSE
 [h1]Repository[/h1]
 https://github.com/gcrtnst/sw-widget
 
-
-Translated with www.DeepL.com/Translator (free version)
+(Machine translated from Japanese)

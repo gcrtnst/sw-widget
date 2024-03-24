@@ -1,4 +1,5 @@
 c_cmd = "?widget"
+c_ver = "v0.1.0"
 c_spd_unit_tbl = {
     ["km/h"] = 216,
     ["kph"] = 216,
@@ -33,6 +34,8 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
 
     if #args <= 0 or args[1] == "help" then
         execHelp(user_peer_id, is_admin, is_auth, args)
+    elseif args[1] == "version" then
+        execVersion(user_peer_id, is_admin, is_auth, args)
     elseif args[1] == "on" then
         execOn(user_peer_id, is_admin, is_auth, args)
     elseif args[1] == "off" then
@@ -47,7 +50,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, cmd, ...
         execAltUnit(user_peer_id, is_admin, is_auth, args)
     else
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format(
                 (
                     'error: undefined subcommand "%s"\n' ..
@@ -65,7 +68,7 @@ end
 
 function execHelp(user_peer_id, is_admin, is_auth, args)
     server.announce(
-        g_announce_name,
+        getAnnounceName(),
         (
             c_cmd .. " on\n" ..
             c_cmd .. " off\n" ..
@@ -73,28 +76,39 @@ function execHelp(user_peer_id, is_admin, is_auth, args)
             c_cmd .. " altofs HOFS VOFS\n" ..
             c_cmd .. " spdunit UNIT\n" ..
             c_cmd .. " altunit UNIT\n" ..
-            c_cmd .. " help"
+            c_cmd .. " help\n" ..
+            c_cmd .. " version"
         ),
         user_peer_id
     )
 end
 
+function execVersion(user_peer_id, is_admin, is_auth, args)
+    if #args > 1 then
+        server.announce(getAnnounceName(), "error: extra arguments", user_peer_id)
+        return
+    end
+
+    local msg = getAddonName() .. " " .. c_ver
+    server.announce(getAnnounceName(), msg, user_peer_id)
+end
+
 function execOn(user_peer_id, is_admin, is_auth, args)
     if #args > 1 then
-        server.announce(g_announce_name, "error: extra arguments", user_peer_id)
+        server.announce(getAnnounceName(), "error: extra arguments", user_peer_id)
         return
     end
     g_userdata[user_peer_id].enabled = true
-    server.announce(g_announce_name, "widgets are now enabled", user_peer_id)
+    server.announce(getAnnounceName(), "widgets are now enabled", user_peer_id)
 end
 
 function execOff(user_peer_id, is_admin, is_auth, args)
     if #args > 1 then
-        server.announce(g_announce_name, "error: extra arguments", user_peer_id)
+        server.announce(getAnnounceName(), "error: extra arguments", user_peer_id)
         return
     end
     g_userdata[user_peer_id].enabled = false
-    server.announce(g_announce_name, "widgets are now disabled", user_peer_id)
+    server.announce(getAnnounceName(), "widgets are now disabled", user_peer_id)
 end
 
 function execSpdOfs(user_peer_id, is_admin, is_auth, args)
@@ -108,7 +122,7 @@ end
 function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key_hofs, param_key_vofs)
     if #args == 1 then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format(
                 (
                     "current %s is (%f, %f)\n" ..
@@ -124,7 +138,7 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
         )
         return
     elseif #args ~= 3 then
-        server.announce(g_announce_name, "error: wrong number of arguments", user_peer_id)
+        server.announce(getAnnounceName(), "error: wrong number of arguments", user_peer_id)
         return
     end
 
@@ -134,27 +148,27 @@ function execSetOfs(user_peer_id, is_admin, is_auth, args, param_name, param_key
     local vofs = tonumber(vofs_txt)
     if not hofs then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format('error: got invalid number "%s"', hofs_txt),
             user_peer_id
         )
         return
     elseif not vofs then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format('error: got invalid number "%s"', vofs_txt),
             user_peer_id
         )
         return
     elseif hofs < -1 or 1 < hofs or vofs < -1 or 1 < vofs then
-        server.announce(g_announce_name, "error: offset must be within the range -1 to 1", user_peer_id)
+        server.announce(getAnnounceName(), "error: offset must be within the range -1 to 1", user_peer_id)
         return
     end
 
     g_userdata[user_peer_id][param_key_hofs] = hofs
     g_userdata[user_peer_id][param_key_vofs] = vofs
     server.announce(
-        g_announce_name,
+        getAnnounceName(),
         string.format("%s is now set to (%f, %f)", param_name, hofs, vofs),
         user_peer_id
     )
@@ -189,7 +203,7 @@ end
 function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_key, param_tbl, param_choices)
     if #args < 2 then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format(
                 (
                     'current %s is "%s"\n' ..
@@ -207,14 +221,14 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
         return
     end
     if #args > 2 then
-        server.announce(g_announce_name, "error: too many arguments", user_peer_id)
+        server.announce(getAnnounceName(), "error: too many arguments", user_peer_id)
         return
     end
 
     local unit = args[2]
     if param_tbl[unit] == nil then
         server.announce(
-            g_announce_name,
+            getAnnounceName(),
             string.format('error: got undefined unit "%s"\n%s', unit, param_choices),
             user_peer_id
         )
@@ -222,7 +236,7 @@ function execSetUnit(user_peer_id, is_admin, is_auth, args, param_name, param_ke
     end
     g_userdata[user_peer_id][param_key] = unit
     server.announce(
-        g_announce_name,
+        getAnnounceName(),
         string.format('%s is now set to "%s"', param_name, unit),
         user_peer_id
     )
@@ -236,11 +250,11 @@ function onTick(game_ticks)
             goto continue
         end
 
-        local spd, alt = g_tracker:getUserSpdAlt(peer_id)
+        local spd, alt = g_tracker:getAstroSpdAlt(peer_id)
         g_uim:setPopupScreen(
             peer_id,
             g_spd_ui_id,
-            g_announce_name,
+            "",
             true,
             formatSpd(spd, g_userdata[peer_id].spd_unit),
             g_userdata[peer_id].spd_hofs,
@@ -249,7 +263,7 @@ function onTick(game_ticks)
         g_uim:setPopupScreen(
             peer_id,
             g_alt_ui_id,
-            g_announce_name,
+            "",
             true,
             formatAlt(alt, g_userdata[peer_id].alt_unit),
             g_userdata[peer_id].alt_hofs,
@@ -266,7 +280,6 @@ function onCreate(is_world_create)
     g_userdata = {[0] = newUserData()}
     g_spd_ui_id = nil
     g_alt_ui_id = nil
-    g_announce_name = getAnnounceName()
     g_tracker = buildTracker()
     g_uim = buildUIManager()
 
@@ -406,57 +419,67 @@ end
 
 function buildTracker()
     local tracker = {
-        _player_pos_ring = {},
-        _player_pos = {},
+        _player_pos_old = {},
+        _player_pos_new = {},
         _vehicle_pos_old = {},
         _vehicle_pos_new = {},
     }
 
-    function tracker:getUserSpdAlt(peer_id)
-        local vehicle_id, is_success = getPlayerVehicle(peer_id)
-        if is_success then
-            return self:getVehicleSpdAlt(vehicle_id)
+    function tracker:getAstroSpdAlt(peer_id)
+        local spd, pos = self:getAstroSpdPos(peer_id)
+
+        local alt = nil
+        if pos ~= nil then
+            local _
+            _, alt, _ = matrix.position(pos)
         end
-        return self:getPlayerSpdAlt(peer_id)
+        return spd, alt
     end
 
-    function tracker:getPlayerSpdAlt(peer_id)
-        local player_pos_new = self._player_pos[peer_id]
+    function tracker:getAstroSpdPos(peer_id)
+        local spd, world_pos = self:getWorldSpdPos(peer_id)
+
+        local astro_pos = nil
+        if world_pos ~= nil then
+            astro_pos = server.getAstroPos(world_pos)
+        end
+        return spd, astro_pos
+    end
+
+    function tracker:getWorldSpdPos(peer_id)
+        local vehicle_id, is_success = getPlayerVehicle(peer_id)
+        if is_success then
+            return self:getVehicleWorldSpdPos(vehicle_id)
+        end
+        return self:getPlayerWorldSpdPos(peer_id)
+    end
+
+    function tracker:getPlayerWorldSpdPos(peer_id)
+        local player_pos_new = self._player_pos_new[peer_id]
         if player_pos_new == nil then
             local is_success
             player_pos_new, is_success = getPlayerPos(peer_id)
             if not is_success then
                 return nil, nil
             end
-            self._player_pos[peer_id] = player_pos_new
+            self._player_pos_new[peer_id] = player_pos_new
         end
 
         local spd = nil
-        local _, alt, _ = matrix.position(player_pos_new)
-        local player_pos_ring = self._player_pos_ring[peer_id]
-        if player_pos_ring ~= nil and player_pos_ring.len > 0 then
-            local player_pos_old = ringGet(player_pos_ring, 1)
-            spd = matrix.distance(player_pos_old, player_pos_new)/player_pos_ring.len
+        local pos = {table.unpack(player_pos_new)}
+        local player_pos_old = self._player_pos_old[peer_id]
+        if player_pos_old ~= nil then
+            spd = matrix.distance(player_pos_old, player_pos_new)
         end
-        return spd, alt
+        return spd, pos
     end
 
     function tracker:tickPlayer()
-        local player_pos_ring_tbl = {}
-        for peer_id, player_pos in pairs(self._player_pos) do
-            local player_pos_ring = self._player_pos_ring[peer_id]
-            if player_pos_ring == nil then
-                player_pos_ring = ringNew(peer_id == 0 and 1 or 60)
-            end
-            ringSet(player_pos_ring, player_pos)
-            player_pos_ring_tbl[peer_id] = player_pos_ring
-        end
-
-        self._player_pos_ring = player_pos_ring_tbl
-        self._player_pos = {}
+        self._player_pos_old = self._player_pos_new
+        self._player_pos_new = {}
     end
 
-    function tracker:getVehicleSpdAlt(vehicle_id)
+    function tracker:getVehicleWorldSpdPos(vehicle_id)
         local vehicle_pos_new = self._vehicle_pos_new[vehicle_id]
         if vehicle_pos_new == nil then
             local is_success
@@ -468,12 +491,12 @@ function buildTracker()
         end
 
         local spd = nil
-        local _, alt, _ = matrix.position(vehicle_pos_new)
+        local pos = {table.unpack(vehicle_pos_new)}
         local vehicle_pos_old = self._vehicle_pos_old[vehicle_id]
         if vehicle_pos_old ~= nil then
             spd = matrix.distance(vehicle_pos_old, vehicle_pos_new)
         end
-        return spd, alt
+        return spd, pos
     end
 
     function tracker:tickVehicle()
@@ -594,38 +617,4 @@ function getPlayerVehicle(peer_id)
         return 0, false
     end
     return server.getCharacterVehicle(object_id)
-end
-
-function ringNew(cap)
-    if math.type(cap) ~= "integer" or cap <= 0 then
-        return nil
-    end
-
-    local ring = {
-        buf = {},
-        idx = 1,
-        len = 0,
-        cap = cap,
-    }
-    return ring
-end
-
-function ringSet(ring, item)
-    if ring.len < ring.cap then
-        ring.idx = 1
-        ring.len = ring.len + 1
-        ring.buf[ring.len] = item
-    else
-        ring.idx = ring.idx%ring.cap + 1
-        ring.len = ring.cap
-        ring.buf[(ring.idx - 2)%ring.cap + 1] = item
-    end
-end
-
-function ringGet(ring, idx)
-    if math.type(idx) ~= "integer" or idx < 1 or ring.len < idx then
-        return nil
-    end
-
-    return ring.buf[(ring.idx + idx - 2)%ring.cap + 1]
 end
