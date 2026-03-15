@@ -2872,7 +2872,7 @@ function test_decl.testFormatSpd(t)
         {"normal_mps", 1.5/60, "m/s", "SPD\n1.50m/s"},
         {"normal_mph", 1.5/(216000.0/1609.344), "mph", "SPD\n1.50mph"},
         {"normal_kt", 1.5/(216000.0/1852.0), "kt", "SPD\n1.50kt"},
-        {"exc_nan", 0.0/0.0, "km/h", "SPD\nnankm/h"},
+        {"exc_nan", math.abs(0.0/0.0), "km/h", "SPD\nnankm/h"},
         {"exc_pinf", 1.0/0.0, "km/h", "SPD\ninfkm/h"},
         {"exc_ninf", -1.0/0.0, "km/h", "SPD\n-infkm/h"},
     }
@@ -2897,7 +2897,7 @@ function test_decl.testFormatAlt(t)
         {"invalid_unit_unknown", 0, "invalid", "ALT\n---"},
         {"normal_m", 1.5, "m", "ALT\n1.50m"},
         {"normal_ft", 1.5/(1.0/0.3048), "ft", "ALT\n1.50ft"},
-        {"exc_nan", 0.0/0.0, "m", "ALT\nnanm"},
+        {"exc_nan", math.abs(0.0/0.0), "m", "ALT\nnanm"},
         {"exc_pinf", 1.0/0.0, "m", "ALT\ninfm"},
         {"exc_ninf", -1.0/0.0, "m", "ALT\n-infm"},
     }
