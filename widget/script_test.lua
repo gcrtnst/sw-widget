@@ -6086,6 +6086,180 @@ function test_decl.testUIMPopupJoin(t)
     assertEqual(nil, "server._popup_update_cnt", 8, t.env.server._popup_update_cnt)
 end
 
+function test_decl.testMouseDetect(t)
+    local tests = {
+        {
+            "static",
+            {0.1, 0.2, 0.3},
+            {0.1, 0.2, 0.3},
+            false,
+        },
+        {
+            "x",
+            {0.1, 0.2, 0.3},
+            {0.4, 0.2, 0.3},
+            true,
+        },
+        {
+            "y",
+            {0.1, 0.2, 0.3},
+            {0.1, 0.4, 0.3},
+            true,
+        },
+        {
+            "z",
+            {0.1, 0.2, 0.3},
+            {0.1, 0.2, 0.4},
+            true,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local prefix = tt[1]
+        local in_player_look_1 = tt[2]
+        local in_player_look_2 = tt[3]
+        local want_ret = tt[4]
+        t:reset()
+        t.fn()
+        local mouse = t.env.buildMouseDetector()
+
+        t.env.server._player_look_tbl = { [0] = in_player_look_1 }
+        local got_ret = mouse:detect(0)
+        assertEqual(prefix, "ret", false, got_ret)
+
+        mouse:tick()
+        t.env.server._player_look_tbl = { [0] = in_player_look_2 }
+        local got_ret = mouse:detect(0)
+        assertEqual(prefix, "ret", want_ret, got_ret)
+    end
+end
+
+function test_decl.testMouseDetectContinuous(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.5, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.5, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.6, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+end
+
+function test_decl.testMouseUnavailable(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+end
+
+function test_decl.testMouseIdleInit(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+end
+
+function test_decl.testMouseIdleReset(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+
+    mouse:tick()
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+end
+
+function test_decl.testMouseMultiplay(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.3},
+        [1] = {0.4, 0.5, 0.6},
+    }
+    local ret_0 = mouse:detect(0)
+    assertEqual(nil, "ret_0", false, ret_0)
+    local ret_1 = mouse:detect(1)
+    assertEqual(nil, "ret_1", false, ret_1)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.6},
+    }
+    local ret_0 = mouse:detect(0)
+    assertEqual(nil, "ret_0", true, ret_0)
+    local ret_1 = mouse:detect(1)
+    assertEqual(nil, "ret_1", false, ret_1)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.8},
+    }
+    local ret_0 = mouse:detect(0)
+    assertEqual(nil, "ret_0", false, ret_0)
+    local ret_1 = mouse:detect(1)
+    assertEqual(nil, "ret_1", true, ret_1)
+end
+
 function test_decl.testGetPlayerPos(t)
     local tests = {
         {
@@ -6268,6 +6442,7 @@ local function buildMockServer()
         _popup = {},
         _popup_update_cnt = 0,
         _player_list = {},
+        _player_look_tbl = {},
         _player_character_tbl = {},
         _character_vehicle_tbl = {},
         _object_pos_tbl = {},
@@ -6319,6 +6494,16 @@ local function buildMockServer()
 
     function server.getPlayers()
         return server._player_list
+    end
+
+    function server.getPlayerLookDirection(peer_id)
+        local player_look = server._player_look_tbl[peer_id]
+        if player_look == nil then
+            return 0, 0, 0, false
+        end
+
+        local player_look_x, player_look_y, player_look_z = table.unpack(player_look)
+        return player_look_x, player_look_y, player_look_z, true
     end
 
     function server.getPlayerCharacterID(peer_id)

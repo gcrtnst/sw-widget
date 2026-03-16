@@ -579,6 +579,36 @@ function buildUIManager()
     return uim
 end
 
+function buildMouseDetector()
+    local mouse = {
+        _old = {},
+        _new = {},
+    }
+
+    function mouse:detect(peer_id)
+        local new_x, new_y, new_z, is_success = server.getPlayerLookDirection(peer_id)
+        if not is_success then
+            return false
+        end
+        self._new[peer_id] = {new_x, new_y, new_z}
+
+        local old = self._old[peer_id]
+        if old == nil then
+            return false
+        end
+
+        local old_x, old_y, old_z = table.unpack(old)
+        return old_x ~= new_x or old_y ~= new_y or old_z ~= new_z
+    end
+
+    function mouse:tick()
+        self._old = self._new
+        self._new = {}
+    end
+
+    return mouse
+end
+
 function getPlayerPos(peer_id)
     local object_id, is_success = server.getPlayerCharacterID(peer_id)
     if not is_success then
