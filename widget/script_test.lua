@@ -5615,7 +5615,7 @@ function test_decl.testUIMPopupEmpty(t)
     t.fn()
 
     local uim = t.env.buildUIManager()
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup_update_cnt", 0, t.env.server._popup_update_cnt)
 end
 
@@ -5625,7 +5625,7 @@ function test_decl.testUIMPopupAddAll(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(-1, 0, "name", true, "text", 0, 0)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup_update_cnt", 0, t.env.server._popup_update_cnt)
 end
 
@@ -5635,7 +5635,7 @@ function test_decl.testUIMPopupAdd(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name",
@@ -5654,7 +5654,7 @@ function test_decl.testUIMPopupKeep(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name",
@@ -5667,7 +5667,7 @@ function test_decl.testUIMPopupKeep(t)
     assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name",
@@ -5702,7 +5702,7 @@ function test_decl.testUIMPopupUpdate(t)
         local uim = t.env.buildUIManager()
 
         uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
-        uim:flushPopup()
+        uim:tick()
         assertEqual(prefix, "server._popup", {
             [string.pack("jj", 0, 1)] = {
                 name = "name1",
@@ -5715,7 +5715,7 @@ function test_decl.testUIMPopupUpdate(t)
         assertEqual(prefix, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 
         uim:setPopupScreen(0, 1, in_name, in_is_show, in_text, in_horizontal_offset, in_vertical_offset)
-        uim:flushPopup()
+        uim:tick()
         assertEqual(prefix, "server._popup", {
             [string.pack("jj", 0, 1)] = {
                 name = in_name,
@@ -5735,7 +5735,7 @@ function test_decl.testUIMPopupRemove(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name",
@@ -5747,7 +5747,7 @@ function test_decl.testUIMPopupRemove(t)
     }, t.env.server._popup)
     assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
 
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {}, t.env.server._popup)
     assertEqual(nil, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
 end
@@ -5759,7 +5759,7 @@ function test_decl.testUIMPopupOverrideAdd(t)
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
     uim:setPopupScreen(0, 1, "name2", false, "text2", 0.3, 0.4)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name2",
@@ -5778,7 +5778,7 @@ function test_decl.testUIMPopupOverrideKeep(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
@@ -5792,7 +5792,7 @@ function test_decl.testUIMPopupOverrideKeep(t)
 
     uim:setPopupScreen(0, 1, "name2", false, "text2", 0.3, 0.4)
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
@@ -5811,7 +5811,7 @@ function test_decl.testUIMPopupOverrideUpdate(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
@@ -5825,7 +5825,7 @@ function test_decl.testUIMPopupOverrideUpdate(t)
 
     uim:setPopupScreen(0, 1, "name2", false, "text2", 0.3, 0.4)
     uim:setPopupScreen(0, 1, "name3", true, "text3", 0.5, 0.6)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name3",
@@ -5854,7 +5854,7 @@ function test_decl.testUIMPopupKey(t)
         local uim = t.env.buildUIManager()
         uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
         uim:setPopupScreen(in_peer_id, in_ui_id, "name2", false, "text2", 0.3, 0.4)
-        uim:flushPopup()
+        uim:tick()
         assertEqual(prefix, "server._popup", {
             [string.pack("jj", 0, 1)] = {
                 name = "name1",
@@ -5886,7 +5886,7 @@ function test_decl.testUIMPopupMix(t)
     uim:setPopupScreen(0, 6, "update2", false, "text61", 0.61, 0.62)
     uim:setPopupScreen(0, 7, "remove1", true, "text71", 0.71, 0.72)
     uim:setPopupScreen(0, 8, "remove2", false, "text81", 0.81, 0.82)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 3)] = {
             name = "keep1",
@@ -5939,7 +5939,7 @@ function test_decl.testUIMPopupMix(t)
     uim:setPopupScreen(0, 4, "keep2", false, "text41", 0.41, 0.42)
     uim:setPopupScreen(0, 5, "update1!", false, "text52", 0.53, 0.54)
     uim:setPopupScreen(0, 6, "update2!", true, "text62", 0.63, 0.64)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "add1",
@@ -5996,7 +5996,7 @@ function test_decl.testUIMPopupJoin(t)
     uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
     uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
     uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",
@@ -6052,7 +6052,7 @@ function test_decl.testUIMPopupJoin(t)
     uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
     uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
     uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
             name = "name1",

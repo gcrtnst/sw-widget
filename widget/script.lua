@@ -273,7 +273,7 @@ function onTick(game_ticks)
     end
 
     g_tracker:tick()
-    g_uim:flushPopup()
+    g_uim:tick()
 end
 
 function onCreate(is_world_create)
@@ -536,7 +536,11 @@ function buildUIManager()
         }
     end
 
-    function uim:flushPopup()
+    function uim:tick()
+        self:_tickPopup()
+    end
+
+    function uim:_tickPopup()
         for key, popup in pairs(self._popup_old) do
             if self._popup_new[key] == nil then
                 server.removePopup(popup.peer_id, popup.ui_id)
