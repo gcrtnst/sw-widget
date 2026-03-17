@@ -157,6 +157,7 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
 end
 
 function test_decl.testOnCustomCommandWidgetVersion(t)
+    local ver = "v0.2.0-beta.1"
     local tt = {
         {
             prefix = "host",
@@ -165,7 +166,7 @@ function test_decl.testOnCustomCommandWidgetVersion(t)
             want_announce_log = {
                 {
                     name = "[???]",
-                    message = "??? v0.1.0",
+                    message = "??? " .. ver,
                     peer_id = 0,
                 },
             },
@@ -177,7 +178,7 @@ function test_decl.testOnCustomCommandWidgetVersion(t)
             want_announce_log = {
                 {
                     name = "[???]",
-                    message = "??? v0.1.0",
+                    message = "??? " .. ver,
                     peer_id = 0,
                 },
             },
@@ -201,7 +202,7 @@ function test_decl.testOnCustomCommandWidgetVersion(t)
             want_announce_log = {
                 {
                     name = "[???]",
-                    message = "??? v0.1.0",
+                    message = "??? " .. ver,
                     peer_id = 1,
                 },
             },

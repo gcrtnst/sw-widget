@@ -1,5 +1,5 @@
 c_cmd = "?widget"
-c_ver = "v0.1.0"
+c_ver = "v0.2.0-beta.1"
 c_spd_unit_tbl = {
     ["km/h"] = 216,
     ["kph"] = 216,
