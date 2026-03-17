@@ -516,6 +516,8 @@ function buildUIManager()
     local uim = {
         _popup_old = {},
         _popup_new = {},
+        _popup_may_broken = {},
+        _mouse = buildMouseDetector(),
     }
 
     function uim:setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
@@ -536,8 +538,24 @@ function buildUIManager()
         }
     end
 
+    function uim:resetPlayerPopup(peer_id)
+        self:_resetPlayerPopup(peer_id)
+        self._popup_may_broken[peer_id] = nil
+    end
+
     function uim:tick()
+        self:_tickMouse()
         self:_tickPopup()
+    end
+
+    function uim:_tickMouse()
+        for peer_id, _ in pairs(self._popup_may_broken) do
+            if self._mouse:detect(peer_id) then
+                self:_resetPlayerPopup(peer_id)
+                self._popup_may_broken[peer_id] = nil
+            end
+        end
+        self._mouse:tick()
     end
 
     function uim:_tickPopup()
@@ -572,6 +590,20 @@ function buildUIManager()
     end
 
     function uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
+        if peer_id >= 0 then
+            -- Since previous calls to server.setPopupScreen() were ignored,
+            -- we attempt to set it again in the next tick.
+            self:_resetPlayerPopup(peer_id)
+
+            -- Players may minimize the window during loading.
+            -- Since popups might not render correctly while minimized,
+            -- we will re-set it once the player is confirmed to be back in-game.
+            -- https://geometa.co.uk/support/stormworks/29494/
+            self._popup_may_broken[peer_id] = true
+        end
+    end
+
+    function uim:_resetPlayerPopup(peer_id)
         for key, popup in pairs(self._popup_old) do
             if popup.peer_id == peer_id then
                 server.removePopup(popup.peer_id, popup.ui_id)

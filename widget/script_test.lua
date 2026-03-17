@@ -5837,11 +5837,15 @@ function test_decl.testUIMPopupMix(t)
     t.env.server._popup = {}
 end
 
-function test_decl.testUIMPopupJoin(t)
+function test_decl.testUIMPopupRepair(t)
     t:reset()
     t.fn()
-
     local uim = t.env.buildUIManager()
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.3},
+        [1] = {0.4, 0.5, 0.6},
+    }
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
     uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
     uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
@@ -5930,7 +5934,394 @@ function test_decl.testUIMPopupJoin(t)
         },
     }, t.env.server._popup)
     t.env.server._popup = {}
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.6},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.8},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            { op = "removePopup" },
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            },
+        },
+        [string.pack("jj", 1, 2)] = {
+            { op = "removePopup" },
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            },
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.9},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
 end
+
+function test_decl.testUIMPopupRepairManual(t)
+    t:reset()
+    t.fn()
+    local uim = t.env.buildUIManager()
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.3},
+        [1] = {0.4, 0.5, 0.6},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name1",
+                is_show = true,
+                text = "text1",
+                horizontal_offset = 0.11,
+                vertical_offset = 0.12
+            }
+        },
+        [string.pack("jj", 0, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name2",
+                is_show = false,
+                text = "text2",
+                horizontal_offset = 0.21,
+                vertical_offset = 0.22
+            }
+        },
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:onPlayerJoin(0, "name", 1, false, false)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            { op = "removePopup" }
+        },
+        [string.pack("jj", 1, 2)] = {
+            { op = "removePopup" }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:resetPlayerPopup(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            { op = "removePopup" }
+        },
+        [string.pack("jj", 1, 2)] = {
+            { op = "removePopup" }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.3},
+        [1] = {0.4, 0.5, 0.7},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+end
+
+function test_decl.testUIMPopupRepairForce(t)
+    t:reset()
+    t.fn()
+    local uim = t.env.buildUIManager()
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name1",
+                is_show = true,
+                text = "text1",
+                horizontal_offset = 0.11,
+                vertical_offset = 0.12
+            }
+        },
+        [string.pack("jj", 0, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name2",
+                is_show = false,
+                text = "text2",
+                horizontal_offset = 0.21,
+                vertical_offset = 0.22
+            }
+        },
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:resetPlayerPopup(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            { op = "removePopup" }
+        },
+        [string.pack("jj", 1, 2)] = {
+            { op = "removePopup" }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+end
+
+function test_decl.testUIMPopupRepairScript(t)
+    t:reset()
+    t.fn()
+    local uim = t.env.buildUIManager()
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name1",
+                is_show = true,
+                text = "text1",
+                horizontal_offset = 0.11,
+                vertical_offset = 0.12
+            }
+        },
+        [string.pack("jj", 0, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name2",
+                is_show = false,
+                text = "text2",
+                horizontal_offset = 0.21,
+                vertical_offset = 0.22
+            }
+        },
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:onPlayerJoin(0, "name", -1, false, false)
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:resetPlayerPopup(-1)
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+end
+
 function test_decl.testMouseDetect(t)
     local tests = {
         {
