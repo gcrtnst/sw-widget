@@ -340,6 +340,127 @@ function test_decl.testOnCustomCommandWidgetOn(t)
     end
 end
 
+function test_decl.testOnCustomCommandWidgetOnRepairPopup(t)
+    t:reset()
+    t.fn()
+
+    t.env.onCreate(false)
+    t.env.server._popup = {}
+    t.env.server._player_list = {
+        { id = 0 },
+        { id = 1 },
+    }
+
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, t.env.g_spd_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "SPD\n---",
+                horizontal_offset = t.env.g_userdata[0].spd_hofs,
+                vertical_offset = t.env.g_userdata[0].spd_vofs,
+            }
+        },
+        [string.pack("jj", 0, t.env.g_alt_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "ALT\n---",
+                horizontal_offset = t.env.g_userdata[0].alt_hofs,
+                vertical_offset = t.env.g_userdata[0].alt_vofs,
+            }
+        },
+        [string.pack("jj", 1, t.env.g_spd_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "SPD\n---",
+                horizontal_offset = t.env.g_userdata[1].spd_hofs,
+                vertical_offset = t.env.g_userdata[1].spd_vofs,
+            }
+        },
+        [string.pack("jj", 1, t.env.g_alt_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "ALT\n---",
+                horizontal_offset = t.env.g_userdata[1].alt_hofs,
+                vertical_offset = t.env.g_userdata[1].alt_vofs,
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.onCustomCommand("", 0, false, false, "?widget", "on")
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, t.env.g_spd_ui_id)] = {{op = "removePopup"}},
+        [string.pack("jj", 0, t.env.g_alt_ui_id)] = {{op = "removePopup"}},
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, t.env.g_spd_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "SPD\n---",
+                horizontal_offset = t.env.g_userdata[0].spd_hofs,
+                vertical_offset = t.env.g_userdata[0].spd_vofs,
+            }
+        },
+        [string.pack("jj", 0, t.env.g_alt_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "ALT\n---",
+                horizontal_offset = t.env.g_userdata[0].alt_hofs,
+                vertical_offset = t.env.g_userdata[0].alt_vofs,
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.onCustomCommand("", 1, false, false, "?widget", "on")
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, t.env.g_spd_ui_id)] = {{op = "removePopup"}},
+        [string.pack("jj", 1, t.env.g_alt_ui_id)] = {{op = "removePopup"}},
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, t.env.g_spd_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "SPD\n---",
+                horizontal_offset = t.env.g_userdata[1].spd_hofs,
+                vertical_offset = t.env.g_userdata[1].spd_vofs,
+            }
+        },
+        [string.pack("jj", 1, t.env.g_alt_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "ALT\n---",
+                horizontal_offset = t.env.g_userdata[1].alt_hofs,
+                vertical_offset = t.env.g_userdata[1].alt_vofs,
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+end
+
 function test_decl.testOnCustomCommandWidgetOff(t)
     local tests = {
         {

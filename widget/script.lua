@@ -99,6 +99,7 @@ function execOn(user_peer_id, is_admin, is_auth, args)
         return
     end
     g_userdata[user_peer_id].enabled = true
+    g_uim:resetPlayerPopup(user_peer_id)
     server.announce(getAnnounceName(), "widgets are now enabled", user_peer_id)
 end
 
