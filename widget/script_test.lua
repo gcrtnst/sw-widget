@@ -157,7 +157,7 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
 end
 
 function test_decl.testOnCustomCommandWidgetVersion(t)
-    local ver = "v0.2.0-beta.1"
+    local ver = "v0.2.0"
     local tt = {
         {
             prefix = "host",
