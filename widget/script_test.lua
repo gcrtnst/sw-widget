@@ -157,6 +157,7 @@ function test_decl.testOnCustomCommandWidgetHelp(t)
 end
 
 function test_decl.testOnCustomCommandWidgetVersion(t)
+    local ver = "v0.2.0"
     local tt = {
         {
             prefix = "host",
@@ -165,7 +166,7 @@ function test_decl.testOnCustomCommandWidgetVersion(t)
             want_announce_log = {
                 {
                     name = "[???]",
-                    message = "??? v0.1.0",
+                    message = "??? " .. ver,
                     peer_id = 0,
                 },
             },
@@ -177,7 +178,7 @@ function test_decl.testOnCustomCommandWidgetVersion(t)
             want_announce_log = {
                 {
                     name = "[???]",
-                    message = "??? v0.1.0",
+                    message = "??? " .. ver,
                     peer_id = 0,
                 },
             },
@@ -201,7 +202,7 @@ function test_decl.testOnCustomCommandWidgetVersion(t)
             want_announce_log = {
                 {
                     name = "[???]",
-                    message = "??? v0.1.0",
+                    message = "??? " .. ver,
                     peer_id = 1,
                 },
             },
@@ -338,6 +339,127 @@ function test_decl.testOnCustomCommandWidgetOn(t)
         assertEqual(prefix, "g_userdata[1].enabled", want_enabled_1, t.env.g_userdata[1].enabled)
         assertEqual(prefix, "g_savedata.hostdata.enabled", want_enabled_0, t.env.g_savedata.hostdata.enabled)
     end
+end
+
+function test_decl.testOnCustomCommandWidgetOnRepairPopup(t)
+    t:reset()
+    t.fn()
+
+    t.env.onCreate(false)
+    t.env.server._popup = {}
+    t.env.server._player_list = {
+        { id = 0 },
+        { id = 1 },
+    }
+
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, t.env.g_spd_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "SPD\n---",
+                horizontal_offset = t.env.g_userdata[0].spd_hofs,
+                vertical_offset = t.env.g_userdata[0].spd_vofs,
+            }
+        },
+        [string.pack("jj", 0, t.env.g_alt_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "ALT\n---",
+                horizontal_offset = t.env.g_userdata[0].alt_hofs,
+                vertical_offset = t.env.g_userdata[0].alt_vofs,
+            }
+        },
+        [string.pack("jj", 1, t.env.g_spd_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "SPD\n---",
+                horizontal_offset = t.env.g_userdata[1].spd_hofs,
+                vertical_offset = t.env.g_userdata[1].spd_vofs,
+            }
+        },
+        [string.pack("jj", 1, t.env.g_alt_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "ALT\n---",
+                horizontal_offset = t.env.g_userdata[1].alt_hofs,
+                vertical_offset = t.env.g_userdata[1].alt_vofs,
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.onCustomCommand("", 0, false, false, "?widget", "on")
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, t.env.g_spd_ui_id)] = {{op = "removePopup"}},
+        [string.pack("jj", 0, t.env.g_alt_ui_id)] = {{op = "removePopup"}},
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, t.env.g_spd_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "SPD\n---",
+                horizontal_offset = t.env.g_userdata[0].spd_hofs,
+                vertical_offset = t.env.g_userdata[0].spd_vofs,
+            }
+        },
+        [string.pack("jj", 0, t.env.g_alt_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "ALT\n---",
+                horizontal_offset = t.env.g_userdata[0].alt_hofs,
+                vertical_offset = t.env.g_userdata[0].alt_vofs,
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.onCustomCommand("", 1, false, false, "?widget", "on")
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, t.env.g_spd_ui_id)] = {{op = "removePopup"}},
+        [string.pack("jj", 1, t.env.g_alt_ui_id)] = {{op = "removePopup"}},
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.onTick(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, t.env.g_spd_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "SPD\n---",
+                horizontal_offset = t.env.g_userdata[1].spd_hofs,
+                vertical_offset = t.env.g_userdata[1].spd_vofs,
+            }
+        },
+        [string.pack("jj", 1, t.env.g_alt_ui_id)] = {
+            {
+                op = "setPopupScreen",
+                name = "",
+                is_show = true,
+                text = "ALT\n---",
+                horizontal_offset = t.env.g_userdata[1].alt_hofs,
+                vertical_offset = t.env.g_userdata[1].alt_vofs,
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
 end
 
 function test_decl.testOnCustomCommandWidgetOff(t)
@@ -1856,64 +1978,16 @@ function test_decl.testOnTick(t)
                 },
             },
             {
-                [string.pack("jj", 0, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n1.10m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n6.89ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+                [string.pack("jj", 0, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n---", horizontal_offset = 0.1, vertical_offset = -0.1 } },
+                [string.pack("jj", 0, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n1.10m", horizontal_offset = 0.2, vertical_offset = -0.2 } },
+                [string.pack("jj", 1, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n---", horizontal_offset = 0.3, vertical_offset = -0.3 } },
+                [string.pack("jj", 1, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n6.89ft", horizontal_offset = 0.4, vertical_offset = -0.4 } },
             },
             {
-                [string.pack("jj", 0, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n6.00m/s",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n1.20m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n12.00mps",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n7.55ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+                [string.pack("jj", 0, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n6.00m/s", horizontal_offset = 0.1, vertical_offset = -0.1 } },
+                [string.pack("jj", 0, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n1.20m", horizontal_offset = 0.2, vertical_offset = -0.2 } },
+                [string.pack("jj", 1, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n12.00mps", horizontal_offset = 0.3, vertical_offset = -0.3 } },
+                [string.pack("jj", 1, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n7.55ft", horizontal_offset = 0.4, vertical_offset = -0.4 } },
             },
         },
         {
@@ -1970,36 +2044,12 @@ function test_decl.testOnTick(t)
                 },
             },
             {
-                [string.pack("jj", 1, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n6.89ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+                [string.pack("jj", 1, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n---", horizontal_offset = 0.3, vertical_offset = -0.3 } },
+                [string.pack("jj", 1, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n6.89ft", horizontal_offset = 0.4, vertical_offset = -0.4 } },
             },
             {
-                [string.pack("jj", 1, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n12.00mps",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n7.55ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+                [string.pack("jj", 1, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n12.00mps", horizontal_offset = 0.3, vertical_offset = -0.3 } },
+                [string.pack("jj", 1, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n7.55ft", horizontal_offset = 0.4, vertical_offset = -0.4 } },
             },
         },
         {
@@ -2056,36 +2106,12 @@ function test_decl.testOnTick(t)
                 },
             },
             {
-                [string.pack("jj", 0, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n1.10m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
+                [string.pack("jj", 0, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n---", horizontal_offset = 0.1, vertical_offset = -0.1 } },
+                [string.pack("jj", 0, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n1.10m", horizontal_offset = 0.2, vertical_offset = -0.2 } },
             },
             {
-                [string.pack("jj", 0, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n6.00m/s",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n1.20m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
+                [string.pack("jj", 0, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n6.00m/s", horizontal_offset = 0.1, vertical_offset = -0.1 } },
+                [string.pack("jj", 0, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n1.20m", horizontal_offset = 0.2, vertical_offset = -0.2 } },
             },
         },
         {
@@ -2144,64 +2170,16 @@ function test_decl.testOnTick(t)
                 },
             },
             {
-                [string.pack("jj", 0, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n1.10m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n6.89ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+                [string.pack("jj", 0, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n---", horizontal_offset = 0.1, vertical_offset = -0.1 } },
+                [string.pack("jj", 0, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n1.10m", horizontal_offset = 0.2, vertical_offset = -0.2 } },
+                [string.pack("jj", 1, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n---", horizontal_offset = 0.3, vertical_offset = -0.3 } },
+                [string.pack("jj", 1, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n6.89ft", horizontal_offset = 0.4, vertical_offset = -0.4 } },
             },
             {
-                [string.pack("jj", 0, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n6.00m/s",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n1.20m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n12.00mps",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n7.55ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+                [string.pack("jj", 0, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n6.00m/s", horizontal_offset = 0.1, vertical_offset = -0.1 } },
+                [string.pack("jj", 0, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n1.20m", horizontal_offset = 0.2, vertical_offset = -0.2 } },
+                [string.pack("jj", 1, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n12.00mps", horizontal_offset = 0.3, vertical_offset = -0.3 } },
+                [string.pack("jj", 1, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n7.55ft", horizontal_offset = 0.4, vertical_offset = -0.4 } },
             },
         },
         {
@@ -2260,64 +2238,16 @@ function test_decl.testOnTick(t)
                 },
             },
             {
-                [string.pack("jj", 0, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n1.10m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n---",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n6.89ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+                [string.pack("jj", 0, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n---", horizontal_offset = 0.1, vertical_offset = -0.1 } },
+                [string.pack("jj", 0, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n1.10m", horizontal_offset = 0.2, vertical_offset = -0.2 } },
+                [string.pack("jj", 1, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n---", horizontal_offset = 0.3, vertical_offset = -0.3 } },
+                [string.pack("jj", 1, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n6.89ft", horizontal_offset = 0.4, vertical_offset = -0.4 } },
             },
             {
-                [string.pack("jj", 0, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n6.00m/s",
-                    horizontal_offset = 0.1,
-                    vertical_offset = -0.1,
-                },
-                [string.pack("jj", 0, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n1.20m",
-                    horizontal_offset = 0.2,
-                    vertical_offset = -0.2,
-                },
-                [string.pack("jj", 1, 256)] = {
-                    name = "",
-                    is_show = true,
-                    text = "SPD\n12.00mps",
-                    horizontal_offset = 0.3,
-                    vertical_offset = -0.3,
-                },
-                [string.pack("jj", 1, 257)] = {
-                    name = "",
-                    is_show = true,
-                    text = "ALT\n7.55ft",
-                    horizontal_offset = 0.4,
-                    vertical_offset = -0.4,
-                },
+                [string.pack("jj", 0, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n6.00m/s", horizontal_offset = 0.1, vertical_offset = -0.1 } },
+                [string.pack("jj", 0, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n1.20m", horizontal_offset = 0.2, vertical_offset = -0.2 } },
+                [string.pack("jj", 1, 256)] = { { op = "setPopupScreen", name = "", is_show = true, text = "SPD\n12.00mps", horizontal_offset = 0.3, vertical_offset = -0.3 } },
+                [string.pack("jj", 1, 257)] = { { op = "setPopupScreen", name = "", is_show = true, text = "ALT\n7.55ft", horizontal_offset = 0.4, vertical_offset = -0.4 } },
             },
         },
     }
@@ -2337,6 +2267,7 @@ function test_decl.testOnTick(t)
 
         t.env.server._ui_id_cnt = 256
         t.env.onCreate()
+        t.env.server._popup = {}
         t.env.server._player_list = { { id = 1 } }
         t.env.server._player_character_tbl = { [0] = 8, [1] = 9 }
         t.env.server._character_vehicle_tbl = in_character_vehicle_tbl
@@ -2345,10 +2276,12 @@ function test_decl.testOnTick(t)
         t.env.g_userdata = in_userdata
         t.env.onTick(1)
         assertEqual(prefix, "server._popup", want_popup_1, t.env.server._popup)
+        t.env.server._popup = {}
         t.env.server._vehicle_pos_tbl = in_vehicle_pos_tbl_2
         t.env.server._object_pos_tbl = in_object_pos_tbl_2
         t.env.onTick(1)
         assertEqual(prefix, "server._popup", want_popup_2, t.env.server._popup)
+        t.env.server._popup = {}
     end
 end
 
@@ -2399,8 +2332,8 @@ function test_decl.testOnCreate(t)
             },
             10,
             {
-                [string.pack("jj", -1, 10)] = {},
-                [string.pack("jj", -1, 11)] = {},
+                [string.pack("jj", -1, 1)] = { { op = "removePopup" } },
+                [string.pack("jj", -1, 2)] = { { op = "removePopup" } },
             },
         },
         {
@@ -2448,8 +2381,8 @@ function test_decl.testOnCreate(t)
             },
             11,
             {
-                [string.pack("jj", -1, 1)] = {},
-                [string.pack("jj", -1, 11)] = {},
+                [string.pack("jj", -1, 2)] = { { op = "removePopup" } },
+                [string.pack("jj", -1, 10)] = { { op = "removePopup" } },
             },
         },
         {
@@ -2497,8 +2430,8 @@ function test_decl.testOnCreate(t)
             },
             11,
             {
-                [string.pack("jj", -1, 2)] = {},
-                [string.pack("jj", -1, 11)] = {},
+                [string.pack("jj", -1, 1)] = { { op = "removePopup" } },
+                [string.pack("jj", -1, 10)] = { { op = "removePopup" } },
             },
         },
     }
@@ -2516,12 +2449,6 @@ function test_decl.testOnCreate(t)
         t.fn()
 
         t.env.server._ui_id_cnt = 10
-        t.env.server._popup = {
-            [string.pack("jj", -1, 1)] = {},
-            [string.pack("jj", -1, 2)] = {},
-            [string.pack("jj", -1, 10)] = {},
-            [string.pack("jj", -1, 11)] = {},
-        }
         t.env.g_savedata = in_savedata
         t.env.onCreate(false)
         assertEqual(prefix, "g_userdata", want_userdata, t.env.g_userdata)
@@ -2530,7 +2457,7 @@ function test_decl.testOnCreate(t)
         assertEqual(prefix, "g_savedata", want_savedata, t.env.g_savedata)
         assertEqual(prefix, "server._ui_id_cnt", want_ui_id_cnt, t.env.server._ui_id_cnt)
         assertEqual(prefix, "server._popup", want_popup, t.env.server._popup)
-        assertEqual(prefix, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
+        t.env.server._popup = {}
     end
 end
 
@@ -2872,7 +2799,7 @@ function test_decl.testFormatSpd(t)
         {"normal_mps", 1.5/60, "m/s", "SPD\n1.50m/s"},
         {"normal_mph", 1.5/(216000.0/1609.344), "mph", "SPD\n1.50mph"},
         {"normal_kt", 1.5/(216000.0/1852.0), "kt", "SPD\n1.50kt"},
-        {"exc_nan", 0.0/0.0, "km/h", "SPD\nnankm/h"},
+        {"exc_nan", math.abs(0.0/0.0), "km/h", "SPD\nnankm/h"},
         {"exc_pinf", 1.0/0.0, "km/h", "SPD\ninfkm/h"},
         {"exc_ninf", -1.0/0.0, "km/h", "SPD\n-infkm/h"},
     }
@@ -2897,7 +2824,7 @@ function test_decl.testFormatAlt(t)
         {"invalid_unit_unknown", 0, "invalid", "ALT\n---"},
         {"normal_m", 1.5, "m", "ALT\n1.50m"},
         {"normal_ft", 1.5/(1.0/0.3048), "ft", "ALT\n1.50ft"},
-        {"exc_nan", 0.0/0.0, "m", "ALT\nnanm"},
+        {"exc_nan", math.abs(0.0/0.0), "m", "ALT\nnanm"},
         {"exc_pinf", 1.0/0.0, "m", "ALT\ninfm"},
         {"exc_ninf", -1.0/0.0, "m", "ALT\n-infm"},
     }
@@ -5615,8 +5542,9 @@ function test_decl.testUIMPopupEmpty(t)
     t.fn()
 
     local uim = t.env.buildUIManager()
-    uim:flushPopup()
-    assertEqual(nil, "server._popup_update_cnt", 0, t.env.server._popup_update_cnt)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
 end
 
 function test_decl.testUIMPopupAddAll(t)
@@ -5625,8 +5553,9 @@ function test_decl.testUIMPopupAddAll(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(-1, 0, "name", true, "text", 0, 0)
-    uim:flushPopup()
-    assertEqual(nil, "server._popup_update_cnt", 0, t.env.server._popup_update_cnt)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
 end
 
 function test_decl.testUIMPopupAdd(t)
@@ -5635,17 +5564,20 @@ function test_decl.testUIMPopupAdd(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
-            name = "name",
-            is_show = true,
-            text = "text",
-            horizontal_offset = 0.1,
-            vertical_offset = 0.2,
+            {
+                op = "setPopupScreen",
+                name = "name",
+                is_show = true,
+                text = "text",
+                horizontal_offset = 0.1,
+                vertical_offset = 0.2,
+            },
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 end
 
 function test_decl.testUIMPopupKeep(t)
@@ -5654,30 +5586,25 @@ function test_decl.testUIMPopupKeep(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
-            name = "name",
-            is_show = true,
-            text = "text",
-            horizontal_offset = 0.1,
-            vertical_offset = 0.2,
+            {
+                op = "setPopupScreen",
+                name = "name",
+                is_show = true,
+                text = "text",
+                horizontal_offset = 0.1,
+                vertical_offset = 0.2,
+            },
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
-    uim:flushPopup()
-    assertEqual(nil, "server._popup", {
-        [string.pack("jj", 0, 1)] = {
-            name = "name",
-            is_show = true,
-            text = "text",
-            horizontal_offset = 0.1,
-            vertical_offset = 0.2,
-        },
-    }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
 end
 
 function test_decl.testUIMPopupUpdate(t)
@@ -5702,30 +5629,36 @@ function test_decl.testUIMPopupUpdate(t)
         local uim = t.env.buildUIManager()
 
         uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
-        uim:flushPopup()
+        uim:tick()
         assertEqual(prefix, "server._popup", {
             [string.pack("jj", 0, 1)] = {
-                name = "name1",
-                is_show = true,
-                text = "text1",
-                horizontal_offset = 0.1,
-                vertical_offset = 0.2,
+                {
+                    op = "setPopupScreen",
+                    name = "name1",
+                    is_show = true,
+                    text = "text1",
+                    horizontal_offset = 0.1,
+                    vertical_offset = 0.2,
+                },
             },
         }, t.env.server._popup)
-        assertEqual(prefix, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
+        t.env.server._popup = {}
 
         uim:setPopupScreen(0, 1, in_name, in_is_show, in_text, in_horizontal_offset, in_vertical_offset)
-        uim:flushPopup()
+        uim:tick()
         assertEqual(prefix, "server._popup", {
             [string.pack("jj", 0, 1)] = {
-                name = in_name,
-                is_show = in_is_show,
-                text = in_text,
-                horizontal_offset = in_horizontal_offset,
-                vertical_offset = in_vertical_offset,
+                {
+                    op = "setPopupScreen",
+                    name = in_name,
+                    is_show = in_is_show,
+                    text = in_text,
+                    horizontal_offset = in_horizontal_offset,
+                    vertical_offset = in_vertical_offset,
+                },
             },
         }, t.env.server._popup)
-        assertEqual(prefix, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
+        t.env.server._popup = {}
     end
 end
 
@@ -5735,21 +5668,28 @@ function test_decl.testUIMPopupRemove(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name", true, "text", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
-            name = "name",
-            is_show = true,
-            text = "text",
-            horizontal_offset = 0.1,
-            vertical_offset = 0.2,
+            {
+                op = "setPopupScreen",
+                name = "name",
+                is_show = true,
+                text = "text",
+                horizontal_offset = 0.1,
+                vertical_offset = 0.2,
+            },
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 
-    uim:flushPopup()
-    assertEqual(nil, "server._popup", {}, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, 1)] = {
+            { op = "removePopup" },
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
 end
 
 function test_decl.testUIMPopupOverrideAdd(t)
@@ -5759,17 +5699,20 @@ function test_decl.testUIMPopupOverrideAdd(t)
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
     uim:setPopupScreen(0, 1, "name2", false, "text2", 0.3, 0.4)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
-            name = "name2",
-            is_show = false,
-            text = "text2",
-            horizontal_offset = 0.3,
-            vertical_offset = 0.4,
+            {
+                op = "setPopupScreen",
+                name = "name2",
+                is_show = false,
+                text = "text2",
+                horizontal_offset = 0.3,
+                vertical_offset = 0.4,
+            },
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 end
 
 function test_decl.testUIMPopupOverrideKeep(t)
@@ -5778,31 +5721,26 @@ function test_decl.testUIMPopupOverrideKeep(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
-            name = "name1",
-            is_show = true,
-            text = "text1",
-            horizontal_offset = 0.1,
-            vertical_offset = 0.2,
+            {
+                op = "setPopupScreen",
+                name = "name1",
+                is_show = true,
+                text = "text1",
+                horizontal_offset = 0.1,
+                vertical_offset = 0.2,
+            },
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 
     uim:setPopupScreen(0, 1, "name2", false, "text2", 0.3, 0.4)
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
-    uim:flushPopup()
-    assertEqual(nil, "server._popup", {
-        [string.pack("jj", 0, 1)] = {
-            name = "name1",
-            is_show = true,
-            text = "text1",
-            horizontal_offset = 0.1,
-            vertical_offset = 0.2,
-        },
-    }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
 end
 
 function test_decl.testUIMPopupOverrideUpdate(t)
@@ -5811,31 +5749,37 @@ function test_decl.testUIMPopupOverrideUpdate(t)
 
     local uim = t.env.buildUIManager()
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
-            name = "name1",
-            is_show = true,
-            text = "text1",
-            horizontal_offset = 0.1,
-            vertical_offset = 0.2,
+            {
+                op = "setPopupScreen",
+                name = "name1",
+                is_show = true,
+                text = "text1",
+                horizontal_offset = 0.1,
+                vertical_offset = 0.2,
+            },
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 1, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 
     uim:setPopupScreen(0, 1, "name2", false, "text2", 0.3, 0.4)
     uim:setPopupScreen(0, 1, "name3", true, "text3", 0.5, 0.6)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
-            name = "name3",
-            is_show = true,
-            text = "text3",
-            horizontal_offset = 0.5,
-            vertical_offset = 0.6,
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.5,
+                vertical_offset = 0.6,
+            },
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 end
 
 function test_decl.testUIMPopupKey(t)
@@ -5854,24 +5798,30 @@ function test_decl.testUIMPopupKey(t)
         local uim = t.env.buildUIManager()
         uim:setPopupScreen(0, 1, "name1", true, "text1", 0.1, 0.2)
         uim:setPopupScreen(in_peer_id, in_ui_id, "name2", false, "text2", 0.3, 0.4)
-        uim:flushPopup()
+        uim:tick()
         assertEqual(prefix, "server._popup", {
             [string.pack("jj", 0, 1)] = {
-                name = "name1",
-                is_show = true,
-                text = "text1",
-                horizontal_offset = 0.1,
-                vertical_offset = 0.2,
+                {
+                    op = "setPopupScreen",
+                    name = "name1",
+                    is_show = true,
+                    text = "text1",
+                    horizontal_offset = 0.1,
+                    vertical_offset = 0.2,
+                },
             },
             [string.pack("jj", in_peer_id, in_ui_id)] = {
-                name = "name2",
-                is_show = false,
-                text = "text2",
-                horizontal_offset = 0.3,
-                vertical_offset = 0.4,
+                {
+                    op = "setPopupScreen",
+                    name = "name2",
+                    is_show = false,
+                    text = "text2",
+                    horizontal_offset = 0.3,
+                    vertical_offset = 0.4,
+                },
             },
         }, t.env.server._popup)
-        assertEqual(prefix, "server._popup_update_cnt", 2, t.env.server._popup_update_cnt)
+        t.env.server._popup = {}
     end
 end
 
@@ -5886,52 +5836,70 @@ function test_decl.testUIMPopupMix(t)
     uim:setPopupScreen(0, 6, "update2", false, "text61", 0.61, 0.62)
     uim:setPopupScreen(0, 7, "remove1", true, "text71", 0.71, 0.72)
     uim:setPopupScreen(0, 8, "remove2", false, "text81", 0.81, 0.82)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 3)] = {
-            name = "keep1",
-            is_show = true,
-            text = "text31",
-            horizontal_offset = 0.31,
-            vertical_offset = 0.32,
+            {
+                op = "setPopupScreen",
+                name = "keep1",
+                is_show = true,
+                text = "text31",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
         },
         [string.pack("jj", 0, 4)] = {
-            name = "keep2",
-            is_show = false,
-            text = "text41",
-            horizontal_offset = 0.41,
-            vertical_offset = 0.42,
+            {
+                op = "setPopupScreen",
+                name = "keep2",
+                is_show = false,
+                text = "text41",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
         },
         [string.pack("jj", 0, 5)] = {
-            name = "update1",
-            is_show = true,
-            text = "text51",
-            horizontal_offset = 0.51,
-            vertical_offset = 0.52,
+            {
+                op = "setPopupScreen",
+                name = "update1",
+                is_show = true,
+                text = "text51",
+                horizontal_offset = 0.51,
+                vertical_offset = 0.52
+            }
         },
         [string.pack("jj", 0, 6)] = {
-            name = "update2",
-            is_show = false,
-            text = "text61",
-            horizontal_offset = 0.61,
-            vertical_offset = 0.62,
+            {
+                op = "setPopupScreen",
+                name = "update2",
+                is_show = false,
+                text = "text61",
+                horizontal_offset = 0.61,
+                vertical_offset = 0.62
+            }
         },
         [string.pack("jj", 0, 7)] = {
-            name = "remove1",
-            is_show = true,
-            text = "text71",
-            horizontal_offset = 0.71,
-            vertical_offset = 0.72,
+            {
+                op = "setPopupScreen",
+                name = "remove1",
+                is_show = true,
+                text = "text71",
+                horizontal_offset = 0.71,
+                vertical_offset = 0.72
+            }
         },
         [string.pack("jj", 0, 8)] = {
-            name = "remove2",
-            is_show = false,
-            text = "text81",
-            horizontal_offset = 0.81,
-            vertical_offset = 0.82,
+            {
+                op = "setPopupScreen",
+                name = "remove2",
+                is_show = false,
+                text = "text81",
+                horizontal_offset = 0.81,
+                vertical_offset = 0.82
+            }
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 6, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 
     uim:setPopupScreen(0, 1, "add1", true, "text11", 0.11, 0.12)
     uim:setPopupScreen(0, 2, "add2", false, "text21", 0.21, 0.22)
@@ -5939,151 +5907,715 @@ function test_decl.testUIMPopupMix(t)
     uim:setPopupScreen(0, 4, "keep2", false, "text41", 0.41, 0.42)
     uim:setPopupScreen(0, 5, "update1!", false, "text52", 0.53, 0.54)
     uim:setPopupScreen(0, 6, "update2!", true, "text62", 0.63, 0.64)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
-            name = "add1",
-            is_show = true,
-            text = "text11",
-            horizontal_offset = 0.11,
-            vertical_offset = 0.12,
+            {
+                op = "setPopupScreen",
+                name = "add1",
+                is_show = true,
+                text = "text11",
+                horizontal_offset = 0.11,
+                vertical_offset = 0.12
+            }
         },
         [string.pack("jj", 0, 2)] = {
-            name = "add2",
-            is_show = false,
-            text = "text21",
-            horizontal_offset = 0.21,
-            vertical_offset = 0.22,
-        },
-        [string.pack("jj", 0, 3)] = {
-            name = "keep1",
-            is_show = true,
-            text = "text31",
-            horizontal_offset = 0.31,
-            vertical_offset = 0.32,
-        },
-        [string.pack("jj", 0, 4)] = {
-            name = "keep2",
-            is_show = false,
-            text = "text41",
-            horizontal_offset = 0.41,
-            vertical_offset = 0.42,
+            {
+                op = "setPopupScreen",
+                name = "add2",
+                is_show = false,
+                text = "text21",
+                horizontal_offset = 0.21,
+                vertical_offset = 0.22
+            }
         },
         [string.pack("jj", 0, 5)] = {
-            name = "update1!",
-            is_show = false,
-            text = "text52",
-            horizontal_offset = 0.53,
-            vertical_offset = 0.54,
+            {
+                op = "setPopupScreen",
+                name = "update1!",
+                is_show = false,
+                text = "text52",
+                horizontal_offset = 0.53,
+                vertical_offset = 0.54
+            }
         },
         [string.pack("jj", 0, 6)] = {
-            name = "update2!",
-            is_show = true,
-            text = "text62",
-            horizontal_offset = 0.63,
-            vertical_offset = 0.64,
+            {
+                op = "setPopupScreen",
+                name = "update2!",
+                is_show = true,
+                text = "text62",
+                horizontal_offset = 0.63,
+                vertical_offset = 0.64
+            }
+        },
+        [string.pack("jj", 0, 7)] = {
+            { op = "removePopup" }
+        },
+        [string.pack("jj", 0, 8)] = {
+            { op = "removePopup" }
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 12, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 end
 
-function test_decl.testUIMPopupJoin(t)
+function test_decl.testUIMPopupRepair(t)
     t:reset()
     t.fn()
-
     local uim = t.env.buildUIManager()
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.3},
+        [1] = {0.4, 0.5, 0.6},
+    }
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
     uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
     uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
     uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
         [string.pack("jj", 0, 1)] = {
-            name = "name1",
-            is_show = true,
-            text = "text1",
-            horizontal_offset = 0.11,
-            vertical_offset = 0.12,
+            {
+                op = "setPopupScreen",
+                name = "name1",
+                is_show = true,
+                text = "text1",
+                horizontal_offset = 0.11,
+                vertical_offset = 0.12
+            }
         },
         [string.pack("jj", 0, 2)] = {
-            name = "name2",
-            is_show = false,
-            text = "text2",
-            horizontal_offset = 0.21,
-            vertical_offset = 0.22,
+            {
+                op = "setPopupScreen",
+                name = "name2",
+                is_show = false,
+                text = "text2",
+                horizontal_offset = 0.21,
+                vertical_offset = 0.22
+            }
         },
         [string.pack("jj", 1, 1)] = {
-            name = "name3",
-            is_show = true,
-            text = "text3",
-            horizontal_offset = 0.31,
-            vertical_offset = 0.32,
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
         },
         [string.pack("jj", 1, 2)] = {
-            name = "name4",
-            is_show = false,
-            text = "text4",
-            horizontal_offset = 0.41,
-            vertical_offset = 0.42,
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 4, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 
     uim:onPlayerJoin(0, "name", 1, false, false)
     assertEqual(nil, "server._popup", {
-        [string.pack("jj", 0, 1)] = {
-            name = "name1",
-            is_show = true,
-            text = "text1",
-            horizontal_offset = 0.11,
-            vertical_offset = 0.12,
+        [string.pack("jj", 1, 1)] = {
+            { op = "removePopup" }
         },
-        [string.pack("jj", 0, 2)] = {
-            name = "name2",
-            is_show = false,
-            text = "text2",
-            horizontal_offset = 0.21,
-            vertical_offset = 0.22,
+        [string.pack("jj", 1, 2)] = {
+            { op = "removePopup" }
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 6, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
 
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
     uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
     uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
     uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
-    uim:flushPopup()
+    uim:tick()
     assertEqual(nil, "server._popup", {
-        [string.pack("jj", 0, 1)] = {
-            name = "name1",
-            is_show = true,
-            text = "text1",
-            horizontal_offset = 0.11,
-            vertical_offset = 0.12,
-        },
-        [string.pack("jj", 0, 2)] = {
-            name = "name2",
-            is_show = false,
-            text = "text2",
-            horizontal_offset = 0.21,
-            vertical_offset = 0.22,
-        },
         [string.pack("jj", 1, 1)] = {
-            name = "name3",
-            is_show = true,
-            text = "text3",
-            horizontal_offset = 0.31,
-            vertical_offset = 0.32,
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
         },
         [string.pack("jj", 1, 2)] = {
-            name = "name4",
-            is_show = false,
-            text = "text4",
-            horizontal_offset = 0.41,
-            vertical_offset = 0.42,
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
         },
     }, t.env.server._popup)
-    assertEqual(nil, "server._popup_update_cnt", 8, t.env.server._popup_update_cnt)
+    t.env.server._popup = {}
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.6},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.8},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            { op = "removePopup" },
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            },
+        },
+        [string.pack("jj", 1, 2)] = {
+            { op = "removePopup" },
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            },
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.9},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+end
+
+function test_decl.testUIMPopupRepairManual(t)
+    t:reset()
+    t.fn()
+    local uim = t.env.buildUIManager()
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.3},
+        [1] = {0.4, 0.5, 0.6},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name1",
+                is_show = true,
+                text = "text1",
+                horizontal_offset = 0.11,
+                vertical_offset = 0.12
+            }
+        },
+        [string.pack("jj", 0, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name2",
+                is_show = false,
+                text = "text2",
+                horizontal_offset = 0.21,
+                vertical_offset = 0.22
+            }
+        },
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:onPlayerJoin(0, "name", 1, false, false)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            { op = "removePopup" }
+        },
+        [string.pack("jj", 1, 2)] = {
+            { op = "removePopup" }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:resetPlayerPopup(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            { op = "removePopup" }
+        },
+        [string.pack("jj", 1, 2)] = {
+            { op = "removePopup" }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.3},
+        [1] = {0.4, 0.5, 0.7},
+    }
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+end
+
+function test_decl.testUIMPopupRepairForce(t)
+    t:reset()
+    t.fn()
+    local uim = t.env.buildUIManager()
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name1",
+                is_show = true,
+                text = "text1",
+                horizontal_offset = 0.11,
+                vertical_offset = 0.12
+            }
+        },
+        [string.pack("jj", 0, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name2",
+                is_show = false,
+                text = "text2",
+                horizontal_offset = 0.21,
+                vertical_offset = 0.22
+            }
+        },
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:resetPlayerPopup(1)
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            { op = "removePopup" }
+        },
+        [string.pack("jj", 1, 2)] = {
+            { op = "removePopup" }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+end
+
+function test_decl.testUIMPopupRepairScript(t)
+    t:reset()
+    t.fn()
+    local uim = t.env.buildUIManager()
+
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {
+        [string.pack("jj", 0, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name1",
+                is_show = true,
+                text = "text1",
+                horizontal_offset = 0.11,
+                vertical_offset = 0.12
+            }
+        },
+        [string.pack("jj", 0, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name2",
+                is_show = false,
+                text = "text2",
+                horizontal_offset = 0.21,
+                vertical_offset = 0.22
+            }
+        },
+        [string.pack("jj", 1, 1)] = {
+            {
+                op = "setPopupScreen",
+                name = "name3",
+                is_show = true,
+                text = "text3",
+                horizontal_offset = 0.31,
+                vertical_offset = 0.32
+            }
+        },
+        [string.pack("jj", 1, 2)] = {
+            {
+                op = "setPopupScreen",
+                name = "name4",
+                is_show = false,
+                text = "text4",
+                horizontal_offset = 0.41,
+                vertical_offset = 0.42
+            }
+        },
+    }, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:onPlayerJoin(0, "name", -1, false, false)
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+
+    uim:resetPlayerPopup(-1)
+    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
+    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
+    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
+    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
+    uim:tick()
+    assertEqual(nil, "server._popup", {}, t.env.server._popup)
+    t.env.server._popup = {}
+end
+
+function test_decl.testMouseDetect(t)
+    local tests = {
+        {
+            "static",
+            {0.1, 0.2, 0.3},
+            {0.1, 0.2, 0.3},
+            false,
+        },
+        {
+            "x",
+            {0.1, 0.2, 0.3},
+            {0.4, 0.2, 0.3},
+            true,
+        },
+        {
+            "y",
+            {0.1, 0.2, 0.3},
+            {0.1, 0.4, 0.3},
+            true,
+        },
+        {
+            "z",
+            {0.1, 0.2, 0.3},
+            {0.1, 0.2, 0.4},
+            true,
+        },
+    }
+
+    for i, tt in ipairs(tests) do
+        local prefix = tt[1]
+        local in_player_look_1 = tt[2]
+        local in_player_look_2 = tt[3]
+        local want_ret = tt[4]
+        t:reset()
+        t.fn()
+        local mouse = t.env.buildMouseDetector()
+
+        t.env.server._player_look_tbl = { [0] = in_player_look_1 }
+        local got_ret = mouse:detect(0)
+        assertEqual(prefix, "ret", false, got_ret)
+
+        mouse:tick()
+        t.env.server._player_look_tbl = { [0] = in_player_look_2 }
+        local got_ret = mouse:detect(0)
+        assertEqual(prefix, "ret", want_ret, got_ret)
+    end
+end
+
+function test_decl.testMouseDetectContinuous(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.5, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.5, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.6, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+end
+
+function test_decl.testMouseUnavailable(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+end
+
+function test_decl.testMouseIdleInit(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+end
+
+function test_decl.testMouseIdleReset(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+
+    mouse:tick()
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.1, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", false, ret)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = { [0] = {0.4, 0.2, 0.3} }
+    local ret = mouse:detect(0)
+    assertEqual(nil, "ret", true, ret)
+end
+
+function test_decl.testMouseMultiplay(t)
+    t:reset()
+    t.fn()
+    local mouse = t.env.buildMouseDetector()
+
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.3},
+        [1] = {0.4, 0.5, 0.6},
+    }
+    local ret_0 = mouse:detect(0)
+    assertEqual(nil, "ret_0", false, ret_0)
+    local ret_1 = mouse:detect(1)
+    assertEqual(nil, "ret_1", false, ret_1)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.6},
+    }
+    local ret_0 = mouse:detect(0)
+    assertEqual(nil, "ret_0", true, ret_0)
+    local ret_1 = mouse:detect(1)
+    assertEqual(nil, "ret_1", false, ret_1)
+
+    mouse:tick()
+    t.env.server._player_look_tbl = {
+        [0] = {0.1, 0.2, 0.7},
+        [1] = {0.4, 0.5, 0.8},
+    }
+    local ret_0 = mouse:detect(0)
+    assertEqual(nil, "ret_0", false, ret_0)
+    local ret_1 = mouse:detect(1)
+    assertEqual(nil, "ret_1", true, ret_1)
 end
 
 function test_decl.testGetPlayerPos(t)
@@ -6266,8 +6798,8 @@ local function buildMockServer()
         _announce_log = {},
         _ui_id_cnt = 0,
         _popup = {},
-        _popup_update_cnt = 0,
         _player_list = {},
+        _player_look_tbl = {},
         _player_character_tbl = {},
         _character_vehicle_tbl = {},
         _object_pos_tbl = {},
@@ -6301,24 +6833,39 @@ local function buildMockServer()
 
     function server.setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
         local key = string.pack("jj", peer_id, ui_id)
-        server._popup[key] = {
+        if server._popup[key] == nil then
+            server._popup[key] = {}
+        end
+        table.insert(server._popup[key], {
+            op = "setPopupScreen",
             name = name,
             is_show = is_show,
             text = text,
             horizontal_offset = horizontal_offset,
             vertical_offset = vertical_offset,
-        }
-        server._popup_update_cnt = server._popup_update_cnt + 1
+        })
     end
 
     function server.removePopup(peer_id, ui_id)
         local key = string.pack("jj", peer_id, ui_id)
-        server._popup[key] = nil
-        server._popup_update_cnt = server._popup_update_cnt + 1
+        if server._popup[key] == nil then
+            server._popup[key] = {}
+        end
+        table.insert(server._popup[key], {op = "removePopup"})
     end
 
     function server.getPlayers()
         return server._player_list
+    end
+
+    function server.getPlayerLookDirection(peer_id)
+        local player_look = server._player_look_tbl[peer_id]
+        if player_look == nil then
+            return 0, 0, 0, false
+        end
+
+        local player_look_x, player_look_y, player_look_z = table.unpack(player_look)
+        return player_look_x, player_look_y, player_look_z, true
     end
 
     function server.getPlayerCharacterID(peer_id)
