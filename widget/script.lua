@@ -1,5 +1,5 @@
 c_cmd = "?widget"
-c_ver = "v0.2.0"
+c_ver = "v0.2.1"
 c_spd_unit_tbl = {
     ["km/h"] = 216,
     ["kph"] = 216,
@@ -517,8 +517,6 @@ function buildUIManager()
     local uim = {
         _popup_old = {},
         _popup_new = {},
-        _popup_may_broken = {},
-        _mouse = buildMouseDetector(),
     }
 
     function uim:setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_offset, vertical_offset)
@@ -540,37 +538,22 @@ function buildUIManager()
     end
 
     function uim:resetPlayerPopup(peer_id)
-        self:_resetPlayerPopup(peer_id)
-        self._popup_may_broken[peer_id] = nil
+        for key, popup in pairs(self._popup_old) do
+            if popup.peer_id == peer_id then
+                server.removePopup(popup.peer_id, popup.ui_id)
+                self._popup_old[key] = nil
+            end
+        end
     end
 
     function uim:onPlayerJoin(steam_id, name, peer_id, is_admin, is_auth)
-        if peer_id >= 0 then
-            -- Since previous calls to server.setPopupScreen() were ignored,
-            -- we attempt to set it again in the next tick.
-            self:_resetPlayerPopup(peer_id)
-
-            -- Players may minimize the window during loading.
-            -- Since popups might not render correctly while minimized,
-            -- we will re-set it once the player is confirmed to be back in-game.
-            -- https://geometa.co.uk/support/stormworks/29494/
-            self._popup_may_broken[peer_id] = true
-        end
+        -- Since previous calls to server.setPopupScreen() were ignored,
+        -- we attempt to set it again in the next tick.
+        self:resetPlayerPopup(peer_id)
     end
 
     function uim:tick()
-        self:_tickMouse()
         self:_tickPopup()
-    end
-
-    function uim:_tickMouse()
-        for peer_id, _ in pairs(self._popup_may_broken) do
-            if self._mouse:detect(peer_id) then
-                self:_resetPlayerPopup(peer_id)
-                self._popup_may_broken[peer_id] = nil
-            end
-        end
-        self._mouse:tick()
     end
 
     function uim:_tickPopup()
@@ -604,46 +587,7 @@ function buildUIManager()
         self._popup_new = {}
     end
 
-    function uim:_resetPlayerPopup(peer_id)
-        for key, popup in pairs(self._popup_old) do
-            if popup.peer_id == peer_id then
-                server.removePopup(popup.peer_id, popup.ui_id)
-                self._popup_old[key] = nil
-            end
-        end
-    end
-
     return uim
-end
-
-function buildMouseDetector()
-    local mouse = {
-        _old = {},
-        _new = {},
-    }
-
-    function mouse:detect(peer_id)
-        local new_x, new_y, new_z, is_success = server.getPlayerLookDirection(peer_id)
-        if not is_success then
-            return false
-        end
-        self._new[peer_id] = {new_x, new_y, new_z}
-
-        local old = self._old[peer_id]
-        if old == nil then
-            return false
-        end
-
-        local old_x, old_y, old_z = table.unpack(old)
-        return old_x ~= new_x or old_y ~= new_y or old_z ~= new_z
-    end
-
-    function mouse:tick()
-        self._old = self._new
-        self._new = {}
-    end
-
-    return mouse
 end
 
 function getPlayerPos(peer_id)
