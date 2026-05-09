@@ -5964,10 +5964,6 @@ function test_decl.testUIMPopupRepairManual(t)
     t.fn()
     local uim = t.env.buildUIManager()
 
-    t.env.server._player_look_tbl = {
-        [0] = {0.1, 0.2, 0.3},
-        [1] = {0.4, 0.5, 0.6},
-    }
     uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
     uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
     uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
@@ -6095,18 +6091,6 @@ function test_decl.testUIMPopupRepairManual(t)
             }
         },
     }, t.env.server._popup)
-    t.env.server._popup = {}
-
-    t.env.server._player_look_tbl = {
-        [0] = {0.1, 0.2, 0.3},
-        [1] = {0.4, 0.5, 0.7},
-    }
-    uim:setPopupScreen(0, 1, "name1", true, "text1", 0.11, 0.12)
-    uim:setPopupScreen(0, 2, "name2", false, "text2", 0.21, 0.22)
-    uim:setPopupScreen(1, 1, "name3", true, "text3", 0.31, 0.32)
-    uim:setPopupScreen(1, 2, "name4", false, "text4", 0.41, 0.42)
-    uim:tick()
-    assertEqual(nil, "server._popup", {}, t.env.server._popup)
     t.env.server._popup = {}
 end
 
@@ -6459,7 +6443,6 @@ local function buildMockServer()
         _ui_id_cnt = 0,
         _popup = {},
         _player_list = {},
-        _player_look_tbl = {},
         _player_character_tbl = {},
         _character_vehicle_tbl = {},
         _object_pos_tbl = {},
@@ -6516,16 +6499,6 @@ local function buildMockServer()
 
     function server.getPlayers()
         return server._player_list
-    end
-
-    function server.getPlayerLookDirection(peer_id)
-        local player_look = server._player_look_tbl[peer_id]
-        if player_look == nil then
-            return 0, 0, 0, false
-        end
-
-        local player_look_x, player_look_y, player_look_z = table.unpack(player_look)
-        return player_look_x, player_look_y, player_look_z, true
     end
 
     function server.getPlayerCharacterID(peer_id)
